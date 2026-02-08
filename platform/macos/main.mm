@@ -155,6 +155,19 @@ static int g_keyboardPort = -1; // -1 = assign after controllers
 @end
 
 // ---------------------------------------------------------------------------
+// Shared rewind state handler
+// ---------------------------------------------------------------------------
+
+// Called by both controller and keyboard to manage rewind state
+static void UpdateRewindState(bool rewindRequested) {
+    if (rewindRequested && !Emulator::IsRewinding()) {
+        Emulator::RewindStartContinuous();
+    } else if (!rewindRequested && Emulator::IsRewinding()) {
+        Emulator::RewindStop();
+    }
+}
+
+// ---------------------------------------------------------------------------
 // InputManager — GCController mapping to SNES joypad bitmask
 // ---------------------------------------------------------------------------
 
@@ -319,12 +332,7 @@ static int g_keyboardPort = -1; // -1 = assign after controllers
         Emulator::SetButtonState(padIndex, buttons);
 
         // L2/ZL trigger for rewind
-        bool rewindHeld = gamepad.leftTrigger.pressed;
-        if (rewindHeld && !Emulator::IsRewinding()) {
-            Emulator::RewindStartContinuous();
-        } else if (!rewindHeld && Emulator::IsRewinding()) {
-            Emulator::RewindStop();
-        }
+        UpdateRewindState(gamepad.leftTrigger.pressed);
     };
 }
 
@@ -335,6 +343,7 @@ static int g_keyboardPort = -1; // -1 = assign after controllers
 // ---------------------------------------------------------------------------
 
 static uint16_t g_keyboardButtons = 0;
+static bool g_backspaceHeld = false;
 
 // Default keyboard mapping (macOS keycodes)
 static void InitDefaultKeyboardMapping() {
@@ -356,6 +365,15 @@ static void HandleKeyEvent(NSEvent *event, BOOL pressed) {
     int keyCode = event.keyCode;
     uint16_t mask = 0;
     const char *button = nullptr;
+
+    // Handle backspace (51) as rewind trigger
+    if (keyCode == 51) {
+        g_backspaceHeld = pressed;
+        UpdateRewindState(pressed);
+        if (g_debug)
+            printf("[Input] Backspace %s -> rewind %s\n", pressed ? "DOWN" : "UP", pressed ? "start" : "stop");
+        return;
+    }
 
     // Map keycode to SNES button
     for (const auto &pair : g_keyboardMapping.button_to_keycode) {
