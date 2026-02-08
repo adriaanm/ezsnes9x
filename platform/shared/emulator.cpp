@@ -261,6 +261,11 @@ const char *GetROMName()
     return Memory.ROMName;
 }
 
+const S9xConfig *GetConfig()
+{
+    return &s_config;
+}
+
 } // namespace Emulator
 
 // ---------------------------------------------------------------------------

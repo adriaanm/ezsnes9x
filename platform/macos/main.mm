@@ -17,6 +17,7 @@
 #include "snes9x.h"
 #include "gfx.h"
 #include "apu/apu.h"
+#include "config.h"
 
 // ---------------------------------------------------------------------------
 // Forward declarations for port stubs and frame-size helper
@@ -96,6 +97,7 @@ fragment float4 colorFragmentShader(ColorVertexOut in [[stage_in]]) {
 static NSString *g_romPath = nil;
 static bool g_running = false;
 static bool g_debug = false;
+static S9xKeyboardMapping g_keyboardMapping;
 
 // ---------------------------------------------------------------------------
 // AudioEngine — pulls samples from S9xMixSamples via AVAudioEngine source node
@@ -262,33 +264,51 @@ static bool g_debug = false;
 
 static uint16_t g_keyboardButtons = 0;
 
-static void HandleKeyEvent(NSEvent *event, BOOL pressed) {
-    uint16_t mask = 0;
-    const char *name = "?";
+// Default keyboard mapping (macOS keycodes)
+static void InitDefaultKeyboardMapping() {
+    g_keyboardMapping.button_to_keycode["up"]     = 126; // Arrow up
+    g_keyboardMapping.button_to_keycode["down"]   = 125; // Arrow down
+    g_keyboardMapping.button_to_keycode["left"]   = 123; // Arrow left
+    g_keyboardMapping.button_to_keycode["right"]  = 124; // Arrow right
+    g_keyboardMapping.button_to_keycode["a"]      = 37;  // L
+    g_keyboardMapping.button_to_keycode["b"]      = 40;  // K
+    g_keyboardMapping.button_to_keycode["x"]      = 34;  // I
+    g_keyboardMapping.button_to_keycode["y"]      = 31;  // O
+    g_keyboardMapping.button_to_keycode["l"]      = 3;   // F
+    g_keyboardMapping.button_to_keycode["r"]      = 35;  // P
+    g_keyboardMapping.button_to_keycode["start"]  = 36;  // Enter
+    g_keyboardMapping.button_to_keycode["select"] = 49;  // Space
+}
 
-    switch (event.keyCode) {
-        case 126: mask = SNES_UP_MASK;     name = "Up";     break;
-        case 125: mask = SNES_DOWN_MASK;   name = "Down";   break;
-        case 123: mask = SNES_LEFT_MASK;   name = "Left";   break;
-        case 124: mask = SNES_RIGHT_MASK;  name = "Right";  break;
-        case 13:  mask = SNES_UP_MASK;     name = "W/Up";   break;
-        case 0:   mask = SNES_LEFT_MASK;   name = "A/Left"; break;
-        case 1:   mask = SNES_DOWN_MASK;   name = "S/Down"; break;
-        case 2:   mask = SNES_RIGHT_MASK;  name = "D/Right";break;
-        case 37:  mask = SNES_A_MASK;      name = "L/A";    break;
-        case 40:  mask = SNES_B_MASK;      name = "K/B";    break;
-        case 34:  mask = SNES_X_MASK;      name = "I/X";    break;
-        case 31:  mask = SNES_Y_MASK;      name = "O/Y";    break;
-        case 38:  mask = SNES_Y_MASK;      name = "J/Y";    break;
-        case 3:   mask = SNES_TL_MASK;     name = "F/TL";   break;
-        case 35:  mask = SNES_TR_MASK;     name = "P/TR";   break;
-        case 36:  mask = SNES_START_MASK;  name = "Enter/Start"; break;
-        case 49:  mask = SNES_SELECT_MASK; name = "Space/Select"; break;
-        case 48:  mask = SNES_SELECT_MASK; name = "Tab/Select"; break;
-        default:
-            if (g_debug)
-                printf("[Input] Unmapped key code: %d %s\n", event.keyCode, pressed ? "down" : "up");
-            return;
+static void HandleKeyEvent(NSEvent *event, BOOL pressed) {
+    int keyCode = event.keyCode;
+    uint16_t mask = 0;
+    const char *button = nullptr;
+
+    // Map keycode to SNES button
+    for (const auto &pair : g_keyboardMapping.button_to_keycode) {
+        if (pair.second == keyCode) {
+            button = pair.first.c_str();
+            if (pair.first == "up")         mask = SNES_UP_MASK;
+            else if (pair.first == "down")  mask = SNES_DOWN_MASK;
+            else if (pair.first == "left")  mask = SNES_LEFT_MASK;
+            else if (pair.first == "right") mask = SNES_RIGHT_MASK;
+            else if (pair.first == "a")     mask = SNES_A_MASK;
+            else if (pair.first == "b")     mask = SNES_B_MASK;
+            else if (pair.first == "x")     mask = SNES_X_MASK;
+            else if (pair.first == "y")     mask = SNES_Y_MASK;
+            else if (pair.first == "l")     mask = SNES_TL_MASK;
+            else if (pair.first == "r")     mask = SNES_TR_MASK;
+            else if (pair.first == "start") mask = SNES_START_MASK;
+            else if (pair.first == "select") mask = SNES_SELECT_MASK;
+            break;
+        }
+    }
+
+    if (mask == 0) {
+        if (g_debug)
+            printf("[Input] Unmapped key code: %d %s\n", keyCode, pressed ? "down" : "up");
+        return;
     }
 
     if (pressed)
@@ -297,7 +317,7 @@ static void HandleKeyEvent(NSEvent *event, BOOL pressed) {
         g_keyboardButtons &= ~mask;
 
     if (g_debug)
-        printf("[Input] Key %s %s -> buttons=0x%04x\n", name, pressed ? "DOWN" : "UP", g_keyboardButtons);
+        printf("[Input] Key %s (%d) %s -> buttons=0x%04x\n", button, keyCode, pressed ? "DOWN" : "UP", g_keyboardButtons);
     Emulator::SetButtonState(0, g_keyboardButtons);
 }
 
@@ -624,10 +644,20 @@ static void HandleKeyEvent(NSEvent *event, BOOL pressed) {
         }
     }
 
+    // Initialize emulator
     if (!Emulator::Init(configPath.c_str())) {
         NSLog(@"Failed to initialize emulator");
         [NSApp terminate:nil];
         return;
+    }
+
+    // Load keyboard mapping from config or use defaults
+    InitDefaultKeyboardMapping();
+    const S9xConfig *config = Emulator::GetConfig();
+    if (config && !config->keyboard.button_to_keycode.empty()) {
+        g_keyboardMapping = config->keyboard;
+        if (g_debug)
+            printf("[Input] Loaded custom keyboard mapping from config\n");
     }
 
     if (!Emulator::LoadROM([romPath UTF8String])) {

@@ -100,12 +100,19 @@ static void apply_setting(const std::string &section,
                           S9xConfig &config)
 {
     bool bval;
+    int ival;
 
     if (section.empty())
     {
         // Top-level keys
         if (key == "save_dir")
             config.save_dir = value;
+    }
+    else if (section == "keyboard")
+    {
+        // Store keycode for this button mapping
+        if (parse_int(value, ival))
+            config.keyboard.button_to_keycode[key] = ival;
     }
     else if (section == "input")
     {

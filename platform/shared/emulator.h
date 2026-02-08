@@ -9,11 +9,14 @@
 
 #include <cstdint>
 
+struct S9xConfig;
+
 namespace Emulator {
-    bool Init(const char *config_path);   // Load config, init memory/APU/graphics
-    bool LoadROM(const char *rom_path);   // Load ROM, set up controllers, reset
-    void RunFrame();                       // S9xMainLoop() + rewind capture
-    void Shutdown();                       // Save SRAM, deinit everything
+    bool Init(const char *config_path);         // Load config, init memory/APU/graphics
+    bool LoadROM(const char *rom_path);         // Load ROM, set up controllers, reset
+    void RunFrame();                             // S9xMainLoop() + rewind capture
+    void Shutdown();                             // Save SRAM, deinit everything
+    const S9xConfig *GetConfig();                // Access loaded config (e.g., keyboard mapping)
 
     // Rewind
     void RewindStartContinuous();          // Start continuous rewind (call on trigger down)

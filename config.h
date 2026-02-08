@@ -9,10 +9,16 @@
 
 #include "snes9x.h"
 #include <string>
+#include <map>
+
+struct S9xKeyboardMapping {
+    std::map<std::string, int> button_to_keycode; // e.g., "up" -> 126
+};
 
 struct S9xConfig {
     std::string rom_path;
     std::string save_dir;
+    S9xKeyboardMapping keyboard;
 };
 
 // Parse config file and populate Settings struct + S9xConfig

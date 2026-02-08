@@ -42,14 +42,31 @@ Configuration is optional. The emulator uses sensible defaults. If you need to c
 # Where to store .srm save files (default: same directory as ROM)
 save_dir: /path/to/saves
 
+# Keyboard mapping (macOS keycodes)
+keyboard:
+  up: 126         # Arrow up
+  down: 125       # Arrow down
+  left: 123       # Arrow left
+  right: 124      # Arrow right
+  a: 37           # L key
+  b: 40           # K key
+  x: 34           # I key
+  y: 31           # O key
+  l: 3            # F key
+  r: 35           # P key
+  start: 36       # Enter/Return
+  select: 49      # Space
+
 input:
   # Controller assignments (default: pad0 on port 1, pad1 on port 2)
-  player1: pad0           # Options: pad0-7, none
-  player2: pad1           # Options: pad0-7, none
+  player1: pad0   # Options: pad0-7, none
+  player2: pad1   # Options: pad0-7, none
 
   # Allow simultaneous opposing directions (default: false)
   up_and_down: false
 ```
+
+**Keyboard mapping:** Use macOS keycodes. To find keycodes, run with `--debug` and press unmapped keys - the keycode will be printed to console.
 
 Config file is searched in order:
 1. Path specified with `--config`
@@ -61,13 +78,8 @@ Config file is searched in order:
 
 ### macOS
 
-**Keyboard** (development/testing):
-- Arrow keys / WASD: D-pad
-- L/K: A/B
-- I/O or J: X/Y
-- F/P: L/R
-- Enter: Start
-- Space/Tab: Select
+**Keyboard** (configurable, see Configuration section):
+- Default mapping: Arrow keys for D-pad, L/K/I/O for buttons, F/P for shoulders, Enter/Space for Start/Select
 
 **Game Controller**:
 - D-pad: D-pad
