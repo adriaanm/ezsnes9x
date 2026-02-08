@@ -4,12 +4,9 @@
    For further information, consult the LICENSE file in the root directory.
 \*****************************************************************************/
 
-#include <map>
-#include <set>
-#include <vector>
-#include <string>
-#include <algorithm>
+#include <string.h>
 #include <assert.h>
+#include <stdio.h>
 
 #include "snes9x.h"
 #include "memmap.h"
@@ -17,8 +14,6 @@
 #include "snapshot.h"
 #include "controls.h"
 #include "display.h"
-
-using namespace	std;
 
 #define NONE					(-2)
 #define MP5						(-1)
@@ -34,35 +29,12 @@ using namespace	std;
 
 #define POLL_ALL				NUMCTLS
 
-#define MAP_UNKNOWN				(-1)
-#define MAP_NONE				0
-#define MAP_BUTTON				1
-#define MAP_AXIS				2
-#define MAP_POINTER				3
-
 #define FLAG_IOBIT0				(Memory.FillRAM[0x4213] & 0x40)
 #define FLAG_IOBIT1				(Memory.FillRAM[0x4213] & 0x80)
 #define FLAG_IOBIT(n)			((n) ? (FLAG_IOBIT1) : (FLAG_IOBIT0))
 
 bool8	pad_read = 0, pad_read_last = 0;
 uint8	read_idx[2 /* ports */][2 /* per port */];
-
-struct exemulti
-{
-	int32				pos;
-	bool8				data1;
-	s9xcommand_t		*script;
-};
-
-static struct
-{
-	int16				x, y;
-	int16				V_adj;
-	bool8				V_var;
-	int16				H_adj;
-	bool8				H_var;
-	bool8				mapped;
-}	pseudopointer[8];
 
 static struct
 {
@@ -78,28 +50,13 @@ static struct
 	int8				pads[4];
 }	mp5[2];
 
-static set<struct exemulti *>		exemultis;
-static set<uint32>					pollmap[NUMCTLS + 1];
-static map<uint32, s9xcommand_t>	keymap;
-static vector<s9xcommand_t *>		multis;
-static uint8						turbo_time;
-static uint8						pseudobuttons[256];
-static bool8						FLAG_LATCH = FALSE;
-static int32						curcontrollers[2] = { NONE,    NONE };
-static int32						newcontrollers[2] = { JOYPAD0, NONE };
-static char							buf[256];
+static uint8			turbo_time = 1;
+static bool8			FLAG_LATCH = FALSE;
+static int32			curcontrollers[2] = { NONE,    NONE };
+static int32			newcontrollers[2] = { JOYPAD0, NONE };
+static char				buf[256];
 
-static const char	*speed_names[4] =
-{
-	"Var",
-	"Slow",
-	"Med",
-	"Fast"
-};
-
-static const int	ptrspeeds[4] = { 1, 1, 4, 8 };
-
-// Note: these should be in asciibetical order!
+// Command enum for S9xButtonCommand case
 #define THE_COMMANDS \
 	S(ClipWindows), \
 	S(Debugger), \
@@ -160,7 +117,7 @@ static const int	ptrspeeds[4] = { 1, 1, 4, 8 };
 	S(ToggleBackdrop), \
 	S(ToggleEmuTurbo), \
 	S(ToggleSprites), \
-	S(ToggleTransparency) \
+	S(ToggleTransparency)
 
 #define S(x)	x
 
@@ -171,74 +128,14 @@ enum command_numbers
 };
 
 #undef S
-#define S(x)	#x
-
-static const char	*command_names[LAST_COMMAND + 1] =
-{
-	THE_COMMANDS,
-	NULL
-};
-
-#undef S
 #undef THE_COMMANDS
 
 static void DisplayStateChange (const char *, bool8);
-static int maptype (int);
-static bool strless (const char *, const char *);
-static int findstr (const char *, const char **, int);
-static int get_threshold (const char **);
-static const char * maptypename (int);
-static int32 ApplyMulti (s9xcommand_t *, int32, int16);
-static void do_polling (int);
-
-
-static string& operator += (string &s, int i)
-{
-	snprintf(buf, sizeof(buf), "%d", i);
-	s.append(buf);
-	return (s);
-}
-
-static string& operator += (string &s, double d)
-{
-	snprintf(buf, sizeof(buf), "%g", d);
-	s.append(buf);
-	return (s);
-}
 
 static void DisplayStateChange (const char *str, bool8 on)
 {
 	snprintf(buf, sizeof(buf), "%s: %s", str, on ? "on":"off");
 	S9xSetInfoString(buf);
-}
-
-static int maptype (int t)
-{
-	switch (t)
-	{
-		case S9xNoMapping:
-			return (MAP_NONE);
-
-		case S9xButtonJoypad:
-		case S9xButtonCommand:
-		case S9xButtonPseudopointer:
-		case S9xButtonPort:
-		case S9xButtonMulti:
-			return (MAP_BUTTON);
-
-		case S9xAxisJoypad:
-		case S9xAxisPseudopointer:
-		case S9xAxisPseudobuttons:
-		case S9xAxisPort:
-			return (MAP_AXIS);
-
-		case S9xPointer:
-		case S9xPointerPort:
-			return (MAP_POINTER);
-
-		default:
-			return (MAP_UNKNOWN);
-	}
 }
 
 void S9xControlsReset (void)
@@ -248,10 +145,6 @@ void S9xControlsReset (void)
 
 void S9xControlsSoftReset (void)
 {
-	for (set<struct exemulti *>::iterator it = exemultis.begin(); it != exemultis.end(); it++)
-		delete *it;
-	exemultis.clear();
-
 	for (int i = 0; i < 2; i++)
 		for (int j = 0; j < 2; j++)
 			read_idx[i][j]=0;
@@ -373,633 +266,12 @@ bool S9xVerifyControllers (void)
 	return (ret);
 }
 
-char * S9xGetCommandName (s9xcommand_t command)
-{
-	string	s;
-	char	c;
-
-	switch (command.type)
-	{
-		case S9xButtonJoypad:
-			if (command.button.joypad.buttons == 0)
-				return (strdup("None"));
-			if (command.button.joypad.buttons & 0x000f)
-				return (strdup("None"));
-
-			s = "Joypad";
-			s += command.button.joypad.idx + 1;
-
-			c = ' ';
-			if (command.button.joypad.toggle)	{ if (c) s += c; s += "Toggle"; c = 0; }
-			if (command.button.joypad.sticky)	{ if (c) s += c; s += "Sticky"; c = 0; }
-			if (command.button.joypad.turbo )	{ if (c) s += c; s += "Turbo";  c = 0; }
-
-			c = ' ';
-			if (command.button.joypad.buttons & SNES_UP_MASK    )	{ s += c; s += "Up";     c = '+'; }
-			if (command.button.joypad.buttons & SNES_DOWN_MASK  )	{ s += c; s += "Down";   c = '+'; }
-			if (command.button.joypad.buttons & SNES_LEFT_MASK  )	{ s += c; s += "Left";   c = '+'; }
-			if (command.button.joypad.buttons & SNES_RIGHT_MASK )	{ s += c; s += "Right";  c = '+'; }
-			if (command.button.joypad.buttons & SNES_A_MASK     )	{ s += c; s += "A";      c = '+'; }
-			if (command.button.joypad.buttons & SNES_B_MASK     )	{ s += c; s += "B";      c = '+'; }
-			if (command.button.joypad.buttons & SNES_X_MASK     )	{ s += c; s += "X";      c = '+'; }
-			if (command.button.joypad.buttons & SNES_Y_MASK     )	{ s += c; s += "Y";      c = '+'; }
-			if (command.button.joypad.buttons & SNES_TL_MASK    )	{ s += c; s += "L";      c = '+'; }
-			if (command.button.joypad.buttons & SNES_TR_MASK    )	{ s += c; s += "R";      c = '+'; }
-			if (command.button.joypad.buttons & SNES_START_MASK )	{ s += c; s += "Start";  c = '+'; }
-			if (command.button.joypad.buttons & SNES_SELECT_MASK)	{ s += c; s += "Select"; c = '+'; }
-
-			break;
-
-		case S9xButtonCommand:
-			if (command.button.command >= LAST_COMMAND)
-				return (strdup("None"));
-
-			return (strdup(command_names[command.button.command]));
-
-		case S9xPointer:
-			return (strdup("None"));
-
-		case S9xButtonPseudopointer:
-			if (!command.button.pointer.UD && !command.button.pointer.LR)
-				return (strdup("None"));
-			if (command.button.pointer.UD == -2 || command.button.pointer.LR == -2)
-				return (strdup("None"));
-
-			s = "ButtonToPointer ";
-			s += command.button.pointer.idx + 1;
-
-			if (command.button.pointer.UD)	s += (command.button.pointer.UD == 1) ? 'd' : 'u';
-			if (command.button.pointer.LR)	s += (command.button.pointer.LR == 1) ? 'r' : 'l';
-
-			s += " ";
-			s += speed_names[command.button.pointer.speed_type];
-
-			break;
-
-		case S9xAxisJoypad:
-			s = "Joypad";
-			s += command.axis.joypad.idx + 1;
-			s += " Axis ";
-
-			switch (command.axis.joypad.axis)
-			{
-				case 0:	s += (command.axis.joypad.invert ? "Right/Left" : "Left/Right");	break;
-				case 1:	s += (command.axis.joypad.invert ? "Down/Up"    : "Up/Down"   );	break;
-				case 2:	s += (command.axis.joypad.invert ? "A/Y"        : "Y/A"       );	break;
-				case 3:	s += (command.axis.joypad.invert ? "B/X"        : "X/B"       );	break;
-				case 4:	s += (command.axis.joypad.invert ? "R/L"        : "L/R"       );	break;
-				default:	return (strdup("None"));
-			}
-
-			s += " T=";
-			s += int((command.axis.joypad.threshold + 1) * 1000 / 256) / 10.0;
-			s += "%";
-
-			break;
-
-		case S9xAxisPseudopointer:
-			s = "AxisToPointer ";
-			s += command.axis.pointer.idx + 1;
-			s += command.axis.pointer.HV ? 'v' : 'h';
-			s += " ";
-
-			if (command.axis.pointer.invert)	s += "-";
-
-			s += speed_names[command.axis.pointer.speed_type];
-
-			break;
-
-		case S9xAxisPseudobuttons:
-			s = "AxisToButtons ";
-			s += command.axis.button.negbutton;
-			s += "/";
-			s += command.axis.button.posbutton;
-			s += " T=";
-			s += int((command.axis.button.threshold + 1) * 1000 / 256) / 10.0;
-			s += "%";
-
-			break;
-
-		case S9xButtonPort:
-		case S9xAxisPort:
-		case S9xPointerPort:
-			return (strdup("BUG: Port should have handled this instead of calling S9xGetCommandName()"));
-
-		case S9xNoMapping:
-			return (strdup("None"));
-
-		case S9xButtonMulti:
-		{
-			if (command.button.multi_idx >= (int) multis.size())
-				return (strdup("None"));
-
-			s = "{";
-			if (multis[command.button.multi_idx]->multi_press)	s = "+{";
-
-			bool	sep = false;
-
-			for (s9xcommand_t *m = multis[command.button.multi_idx]; m->multi_press != 3; m++)
-			{
-				if (m->type == S9xNoMapping)
-				{
-					s += ";";
-					sep = false;
-				}
-				else
-				{
-					if (sep)					s += ",";
-					if (m->multi_press == 1)	s += "+";
-					if (m->multi_press == 2)	s += "-";
-
-					s += S9xGetCommandName(*m);
-					sep = true;
-				}
-			}
-
-			s += "}";
-
-			break;
-		}
-
-		default:
-			return (strdup("BUG: Unknown command type"));
-	}
-
-	return (strdup(s.c_str()));
-}
-
-static bool strless (const char *a, const char *b)
-{
-	return (strcmp(a, b) < 0);
-}
-
-static int findstr (const char *needle, const char **haystack, int numstr)
-{
-	const char	**r;
-
-	r = lower_bound(haystack, haystack + numstr, needle, strless);
-	if (r >= haystack + numstr || strcmp(needle, *r))
-		return (-1);
-
-	return (r - haystack);
-}
-
-static int get_threshold (const char **ss)
-{
-	const char	*s = *ss;
-	int			i;
-
-	if (s[0] != 'T' || s[1] != '=')
-		return (-1);
-
-	s += 2;
-	i = 0;
-
-	if (s[0] == '0')
-	{
-		if (s[1] != '.')
-			return (-1);
-
-		s++;
-	}
-	else
-	{
-		do
-		{
-			if (*s < '0' || *s > '9')
-				return (-1);
-
-			i = i * 10 + 10 * (*s - '0');
-			if (i > 1000)
-				return (-1);
-
-			s++;
-		}
-		while (*s != '.' && *s != '%');
-	}
-
-	if (*s == '.')
-	{
-		if (s[1] < '0' || s[1] > '9' || s[2] != '%')
-			return (-1);
-
-		i += s[1] - '0';
-	}
-
-	if (i > 1000)
-		return (-1);
-
-	*ss = s;
-
-	return (i);
-}
-
-s9xcommand_t S9xGetCommandT (const char *name)
-{
-	s9xcommand_t	cmd;
-	int				i, j;
-	const char		*s;
-
-	memset(&cmd, 0, sizeof(cmd));
-	cmd.type         = S9xBadMapping;
-	cmd.multi_press  = 0;
-	cmd.button_norpt = 0;
-
-	if (!strcmp(name, "None"))
-		cmd.type = S9xNoMapping;
-	else if (!strncmp(name, "Joypad", 6))
-	{
-		if (name[6] < '1' || name[6] > '8' || name[7] != ' ')
-			return (cmd);
-
-		if (!strncmp(name + 8, "Axis ", 5))
-		{
-			cmd.axis.joypad.idx = name[6] - '1';
-			s = name + 13;
-
-			if (!strncmp(s, "Left/Right ", 11))	{ j = 0; i = 0; s += 11; }
-			else if (!strncmp(s, "Right/Left ", 11))	{ j = 0; i = 1; s += 11; }
-			else if (!strncmp(s, "Up/Down ",     8))	{ j = 1; i = 0; s +=  8; }
-			else if (!strncmp(s, "Down/Up ",     8))	{ j = 1; i = 1; s +=  8; }
-			else if (!strncmp(s, "Y/A ",         4))	{ j = 2; i = 0; s +=  4; }
-			else if (!strncmp(s, "A/Y ",         4))	{ j = 2; i = 1; s +=  4; }
-			else if (!strncmp(s, "X/B ",         4))	{ j = 3; i = 0; s +=  4; }
-			else if (!strncmp(s, "B/X ",         4))	{ j = 3; i = 1; s +=  4; }
-			else if (!strncmp(s, "L/R ",         4))	{ j = 4; i = 0; s +=  4; }
-			else if (!strncmp(s, "R/L ",         4))	{ j = 4; i = 1; s +=  4; }
-			else
-				return (cmd);
-
-			cmd.axis.joypad.axis      = j;
-			cmd.axis.joypad.invert    = i;
-			i = get_threshold(&s);
-			if (i < 0)
-				return (cmd);
-			cmd.axis.joypad.threshold = (i - 1) * 256 / 1000;
-
-			cmd.type = S9xAxisJoypad;
-		}
-		else
-		{
-			cmd.button.joypad.idx = name[6] - '1';
-			s = name + 8;
-			i = 0;
-
-			if ((cmd.button.joypad.toggle = strncmp(s, "Toggle", 6) ? 0 : 1))	s += i = 6;
-			if ((cmd.button.joypad.sticky = strncmp(s, "Sticky", 6) ? 0 : 1))	s += i = 6;
-			if ((cmd.button.joypad.turbo  = strncmp(s, "Turbo",  5) ? 0 : 1))	s += i = 5;
-
-			if (cmd.button.joypad.toggle && !(cmd.button.joypad.sticky || cmd.button.joypad.turbo))
-				return (cmd);
-
-			if (i)
-			{
-				if (*s != ' ')
-					return (cmd);
-				s++;
-			}
-
-			i = 0;
-
-			if (!strncmp(s, "Up",     2))	{ i |= SNES_UP_MASK;     s += 2; if (*s == '+') s++; }
-			if (!strncmp(s, "Down",   4))	{ i |= SNES_DOWN_MASK;   s += 4; if (*s == '+') s++; }
-			if (!strncmp(s, "Left",   4))	{ i |= SNES_LEFT_MASK;   s += 4; if (*s == '+') s++; }
-			if (!strncmp(s, "Right",  5))	{ i |= SNES_RIGHT_MASK;  s += 5; if (*s == '+') s++; }
-
-			if (*s == 'A')	{ i |= SNES_A_MASK;  s++; if (*s == '+') s++; }
-			if (*s == 'B')	{ i |= SNES_B_MASK;  s++; if (*s == '+') s++; }
-			if (*s == 'X')	{ i |= SNES_X_MASK;  s++; if (*s == '+') s++; }
-			if (*s == 'Y')	{ i |= SNES_Y_MASK;  s++; if (*s == '+') s++; }
-			if (*s == 'L')	{ i |= SNES_TL_MASK; s++; if (*s == '+') s++; }
-			if (*s == 'R')	{ i |= SNES_TR_MASK; s++; if (*s == '+') s++; }
-
-			if (!strncmp(s, "Start",  5))	{ i |= SNES_START_MASK;  s += 5; if (*s == '+') s++; }
-			if (!strncmp(s, "Select", 6))	{ i |= SNES_SELECT_MASK; s += 6; }
-
-			if (i == 0 || *s != 0 || *(s - 1) == '+')
-				return (cmd);
-
-			cmd.button.joypad.buttons = i;
-
-			cmd.type = S9xButtonJoypad;
-		}
-	}
-	else
-	if (!strncmp(name, "ButtonToPointer ", 16))
-	{
-		if (name[16] < '1' || name[16] > '8')
-			return (cmd);
-
-		cmd.button.pointer.idx = name[16] - '1';
-		s = name + 17;
-		i = 0;
-
-		if ((cmd.button.pointer.UD = (*s == 'u' ? -1 : (*s == 'd' ? 1 : 0))))	s += i = 1;
-		if ((cmd.button.pointer.LR = (*s == 'l' ? -1 : (*s == 'r' ? 1 : 0))))	s += i = 1;
-
-		if (i == 0 || *(s++) != ' ')
-			return (cmd);
-
-		for (i = 0; i < 4; i++)
-			if (!strcmp(s, speed_names[i]))
-				break;
-		if (i > 3)
-			return (cmd);
-
-		cmd.button.pointer.speed_type = i;
-
-		cmd.type = S9xButtonPseudopointer;
-	}
-	else
-	if (!strncmp(name, "AxisToPointer ", 14))
-	{
-		if (name[14] < '1' || name[14] > '8')
-			return (cmd);
-
-		cmd.axis.pointer.idx = name[14] - '1';
-		s= name + 15;
-		i = 0;
-
-		if (*s == 'h')
-			cmd.axis.pointer.HV = 0;
-		else if (*s == 'v')
-			cmd.axis.pointer.HV = 1;
-		else
-			return (cmd);
-
-		if (s[1] != ' ')
-			return (cmd);
-
-		s += 2;
-		if ((cmd.axis.pointer.invert = *s == '-'))
-			s++;
-
-		for (i = 0; i < 4; i++)
-			if (!strcmp(s, speed_names[i]))
-				break;
-		if (i > 3)
-			return (cmd);
-
-		cmd.axis.pointer.speed_type = i;
-
-		cmd.type = S9xAxisPseudopointer;
-	}
-	else
-	if (!strncmp(name, "AxisToButtons ", 14))
-	{
-		s = name + 14;
-
-		if (s[0] == '0')
-		{
-			if (s[1] != '/')
-				return (cmd);
-
-			cmd.axis.button.negbutton = 0;
-			s += 2;
-		}
-		else
-		{
-			i = 0;
-			do
-			{
-				if (*s < '0' || *s > '9')
-					return (cmd);
-
-				i = i * 10 + *s - '0';
-				if (i > 255)
-					return (cmd);
-			}
-			while (*++s != '/');
-
-			cmd.axis.button.negbutton = i;
-			s++;
-		}
-
-		if (s[0] == '0')
-		{
-			if (s[1] != ' ')
-				return (cmd);
-
-			cmd.axis.button.posbutton = 0;
-			s += 2;
-		}
-		else
-		{
-			i = 0;
-			do
-			{
-				if (*s < '0' || *s > '9')
-					return (cmd);
-
-				i = i * 10 + *s - '0';
-				if (i > 255)
-					return (cmd);
-			}
-			while (*++s != ' ');
-
-			cmd.axis.button.posbutton = i;
-			s++;
-		}
-
-		i = get_threshold(&s);
-		if (i < 0)
-			return (cmd);
-		cmd.axis.button.threshold = (i - 1) * 256 / 1000;
-
-		cmd.type = S9xAxisPseudobuttons;
-	}
-	else
-	if (!strncmp(name, "MULTI#", 6))
-	{
-		i = strtol(name + 6, (char **) &s, 10);
-		if (s != NULL && *s != '\0')
-			return (cmd);
-		if (i >= (int) multis.size())
-			return (cmd);
-
-		cmd.button.multi_idx = i;
-		cmd.type = S9xButtonMulti;
-	}
-	else
-	if (((name[0] == '+' && name[1] == '{') || name[0] == '{') && name[strlen(name) - 1] == '}')
-	{
-		if (multis.size() > 2147483640)
-		{
-			fprintf(stderr, "Too many multis!");
-			return (cmd);
-		}
-
-		string	x;
-		int		n;
-
-		j = 2;
-		for (i = (name[0] == '+') ? 2 : 1; name[i] != '\0'; i++)
-		{
-			if (name[i] == ',' || name[i] == ';')
-			{
-				if (name[i] == ';')
-					j++;
-				if (++j > 2147483640)
-				{
-					fprintf(stderr, "Multi too long!");
-					return (cmd);
-				}
-			}
-
-			if (name[i] == '{')
-				return (cmd);
-		}
-
-		s9xcommand_t	*c = (s9xcommand_t *) calloc(j, sizeof(s9xcommand_t));
-		if (c == NULL)
-		{
-			perror("malloc error while parsing multi");
-			return (cmd);
-		}
-
-		n = 0;
-		i = (name[0] == '+') ? 2 : 1;
-
-		do
-		{
-			if (name[i] == ';')
-			{
-				c[n].type         = S9xNoMapping;
-				c[n].multi_press  = 0;
-				c[n].button_norpt = 0;
-
-				j = i;
-			}
-			else if (name[i] == ',')
-			{
-				free(c);
-				return (cmd);
-			}
-			else
-			{
-				uint8	press = 0;
-
-				if (name[0] == '+')
-				{
-					if (name[i] == '+')
-						press = 1;
-					else if (name[i] == '-')
-						press = 2;
-					else
-					{
-						free(c);
-						return (cmd);
-					}
-
-					i++;
-				}
-
-				for (j = i; name[j] != ';' && name[j] != ',' && name[j] != '}'; j++) ;
-
-				x.assign(name + i, j - i);
-				c[n] = S9xGetCommandT(x.c_str());
-				c[n].multi_press = press;
-
-				if (maptype(c[n].type) != MAP_BUTTON)
-				{
-					free(c);
-					return (cmd);
-				}
-
-				if (name[j] == ';')
-					j--;
-			}
-
-			i = j + 1;
-			n++;
-		}
-		while (name[i] != '\0');
-
-		c[n].type        = S9xNoMapping;
-		c[n].multi_press = 3;
-
-		multis.push_back(c);
-
-		cmd.button.multi_idx = multis.size() - 1;
-		cmd.type = S9xButtonMulti;
-	}
-	else
-	{
-		i = findstr(name, command_names, LAST_COMMAND);
-		if (i < 0)
-			return (cmd);
-
-		cmd.type = S9xButtonCommand;
-		cmd.button.command = i;
-	}
-
-	return (cmd);
-}
-
-s9xcommand_t S9xGetMapping (uint32 id)
-{
-	if (keymap.count(id) == 0)
-	{
-		s9xcommand_t	cmd;
-		cmd.type = S9xNoMapping;
-		return (cmd);
-	}
-	else
-		return (keymap[id]);
-}
-
-static const char * maptypename (int t)
-{
-	switch (t)
-	{
-		case MAP_NONE:		return ("unmapped");
-		case MAP_BUTTON:	return ("button");
-		case MAP_AXIS:		return ("axis");
-		case MAP_POINTER:	return ("pointer");
-		default:			return ("unknown");
-	}
-}
-
-void S9xUnmapID (uint32 id)
-{
-	for (int i = 0; i < NUMCTLS + 1; i++)
-		pollmap[i].erase(id);
-
-	if (id >= PseudoPointerBase)
-		pseudopointer[id - PseudoPointerBase].mapped = false;
-
-	keymap.erase(id);
-}
-
-static int32 ApplyMulti (s9xcommand_t *multi, int32 pos, int16 data1)
-{
-	while (1)
-	{
-		if (multi[pos].multi_press == 3)
-			return (-1);
-
-		if (multi[pos].type == S9xNoMapping)
-			break;
-
-		if (multi[pos].multi_press)
-			S9xApplyCommand(multi[pos], multi[pos].multi_press == 1, 0);
-		else
-			S9xApplyCommand(multi[pos], data1, 0);
-
-		pos++;
-	}
-
-	return (pos + 1);
-}
-
 void S9xApplyCommand (s9xcommand_t cmd, int16 data1, int16 data2)
 {
 	int	i;
 
 	switch (cmd.type)
 	{
-		case S9xNoMapping:
-			return;
 
 		case S9xButtonJoypad:
 			if (cmd.button.joypad.toggle)
@@ -1101,9 +373,7 @@ void S9xApplyCommand (s9xcommand_t cmd, int16 data1, int16 data2)
 						break;
 
 					case Debugger:
-					#ifdef DEBUGGER
-						CPU.Flags |= DEBUG_MODE_FLAG;
-					#endif
+						// Debugger removed - not supported in new frontends
 						break;
 
 					case IncFrameRate:
@@ -1199,9 +469,6 @@ void S9xApplyCommand (s9xcommand_t cmd, int16 data1, int16 data2)
 					case Pause:
 						Settings.Paused = !Settings.Paused;
 						DisplayStateChange("Pause", Settings.Paused);
-					#if defined(NETPLAY_SUPPORT) && !defined(__WIN32__)
-						S9xNPSendPause(Settings.Paused);
-					#endif
 						break;
 
 					case QuickLoad000:
@@ -1346,17 +613,6 @@ void S9xApplyCommand (s9xcommand_t cmd, int16 data1, int16 data2)
 							break;
 						}
 
-#ifdef NETPLAY_SUPPORT
-						if (Settings.NetPlay && data2 != 1) { //data2 == 1 means it's sent by the netplay code
-							if (Settings.NetPlayServer) {
-								S9xNPSendJoypadSwap();
-							} else {
-								S9xSetInfoString("Netplay Client cannot swap pads.");
-								break;
-							}
-						}
-#endif
-
 						newcontrollers[1] = curcontrollers[0];
 						newcontrollers[0] = curcontrollers[1];
 
@@ -1385,43 +641,6 @@ void S9xApplyCommand (s9xcommand_t cmd, int16 data1, int16 data2)
 
 					case LAST_COMMAND:
 						break;
-				}
-			}
-
-			return;
-
-		case S9xPointer:
-			return;
-
-		case S9xButtonPseudopointer:
-			if (data1)
-			{
-				if (cmd.button.pointer.UD)
-				{
-					if (!pseudopointer[cmd.button.pointer.idx].V_adj)
-						pseudopointer[cmd.button.pointer.idx].V_adj = cmd.button.pointer.UD * ptrspeeds[cmd.button.pointer.speed_type];
-					pseudopointer[cmd.button.pointer.idx].V_var = (cmd.button.pointer.speed_type == 0);
-				}
-
-				if (cmd.button.pointer.LR)
-				{
-					if (!pseudopointer[cmd.button.pointer.idx].H_adj)
-						pseudopointer[cmd.button.pointer.idx].H_adj = cmd.button.pointer.LR * ptrspeeds[cmd.button.pointer.speed_type];
-					pseudopointer[cmd.button.pointer.idx].H_var = (cmd.button.pointer.speed_type == 0);
-				}
-			}
-			else
-			{
-				if (cmd.button.pointer.UD)
-				{
-					pseudopointer[cmd.button.pointer.idx].V_adj = 0;
-					pseudopointer[cmd.button.pointer.idx].V_var = false;
-				}
-
-				if (cmd.button.pointer.LR)
-				{
-					pseudopointer[cmd.button.pointer.idx].H_adj = 0;
-					pseudopointer[cmd.button.pointer.idx].H_var = false;
 				}
 			}
 
@@ -1464,101 +683,10 @@ void S9xApplyCommand (s9xcommand_t cmd, int16 data1, int16 data2)
 			return;
 		}
 
-		case S9xAxisPseudopointer:
-			if (data1 == 0)
-			{
-				if (cmd.axis.pointer.HV)
-				{
-					pseudopointer[cmd.axis.pointer.idx].V_adj = 0;
-					pseudopointer[cmd.axis.pointer.idx].V_var = false;
-				}
-				else
-				{
-					pseudopointer[cmd.axis.pointer.idx].H_adj = 0;
-					pseudopointer[cmd.axis.pointer.idx].H_var = false;
-				}
-			}
-			else
-			{
-				if (cmd.axis.pointer.invert)
-					data1 = -data1;
-
-				if (cmd.axis.pointer.HV)
-				{
-					if (!pseudopointer[cmd.axis.pointer.idx].V_adj)
-						pseudopointer[cmd.axis.pointer.idx].V_adj = (int16) ((int32) data1 * ptrspeeds[cmd.axis.pointer.speed_type] / 32767);
-					pseudopointer[cmd.axis.pointer.idx].V_var = (cmd.axis.pointer.speed_type == 0);
-				}
-				else
-				{
-					if (!pseudopointer[cmd.axis.pointer.idx].H_adj)
-						pseudopointer[cmd.axis.pointer.idx].H_adj = (int16) ((int32) data1 * ptrspeeds[cmd.axis.pointer.speed_type] / 32767);
-					pseudopointer[cmd.axis.pointer.idx].H_var = (cmd.axis.pointer.speed_type == 0);
-				}
-			}
-
-			return;
-
-		case S9xAxisPseudobuttons:
-			if (data1 >  ((cmd.axis.button.threshold + 1) *  127))
-			{
-				if (!pseudobuttons[cmd.axis.button.posbutton])
-				{
-					pseudobuttons[cmd.axis.button.posbutton] = 1;
-					S9xReportButton(PseudoButtonBase + cmd.axis.button.posbutton, true);
-				}
-			}
-			else
-			{
-				if (pseudobuttons[cmd.axis.button.posbutton])
-				{
-					pseudobuttons[cmd.axis.button.posbutton] = 0;
-					S9xReportButton(PseudoButtonBase + cmd.axis.button.posbutton, false);
-				}
-			}
-
-			if (data1 <= ((cmd.axis.button.threshold + 1) * -127))
-			{
-				if (!pseudobuttons[cmd.axis.button.negbutton])
-				{
-					pseudobuttons[cmd.axis.button.negbutton] = 1;
-					S9xReportButton(PseudoButtonBase + cmd.axis.button.negbutton, true);
-				}
-			}
-			else
-			{
-				if (pseudobuttons[cmd.axis.button.negbutton])
-				{
-					pseudobuttons[cmd.axis.button.negbutton] = 0;
-					S9xReportButton(PseudoButtonBase + cmd.axis.button.negbutton, false);
-				}
-			}
-
-			return;
-
 		case S9xButtonPort:
 		case S9xAxisPort:
 		case S9xPointerPort:
 			S9xHandlePortCommand(cmd, data1, data2);
-			return;
-
-		case S9xButtonMulti:
-			if (cmd.button.multi_idx >= (int) multis.size())
-				return;
-
-			if (multis[cmd.button.multi_idx]->multi_press && !data1)
-				return;
-
-			i = ApplyMulti(multis[cmd.button.multi_idx], 0, data1);
-			if (i >= 0)
-			{
-				struct exemulti	*e = new struct exemulti;
-				e->pos    = i;
-				e->data1  = data1 != 0;
-				e->script = multis[cmd.button.multi_idx];
-				exemultis.insert(e);
-			}
-
 			return;
 
 		default:
@@ -1756,7 +884,7 @@ void S9xDoAutoJoypad (void)
 
 void S9xControlEOF (void)
 {
-	int					i, j;
+	int	i, j;
 
 	for (int n = 0; n < 2; n++)
 	{
@@ -1798,79 +926,6 @@ void S9xControlEOF (void)
 				break;
 		}
 	}
-
-	for (int n = 0; n < 8; n++)
-	{
-		if (!pseudopointer[n].mapped)
-			continue;
-
-		if (pseudopointer[n].H_adj)
-		{
-			pseudopointer[n].x += pseudopointer[n].H_adj;
-			if (pseudopointer[n].x < 0)
-				pseudopointer[n].x = 0;
-			else if (pseudopointer[n].x > 255)
-				pseudopointer[n].x = 255;
-
-			if (pseudopointer[n].H_var)
-			{
-				if (pseudopointer[n].H_adj < 0)
-				{
-					if (pseudopointer[n].H_adj > -ptrspeeds[3])
-						pseudopointer[n].H_adj--;
-				}
-				else
-				{
-					if (pseudopointer[n].H_adj <  ptrspeeds[3])
-						pseudopointer[n].H_adj++;
-				}
-			}
-		}
-
-		if (pseudopointer[n].V_adj)
-		{
-			pseudopointer[n].y += pseudopointer[n].V_adj;
-			if (pseudopointer[n].y < 0)
-				pseudopointer[n].y = 0;
-			else if (pseudopointer[n].y > PPU.ScreenHeight - 1)
-				pseudopointer[n].y = PPU.ScreenHeight - 1;
-
-			if (pseudopointer[n].V_var)
-			{
-				if (pseudopointer[n].V_adj < 0)
-				{
-					if (pseudopointer[n].V_adj > -ptrspeeds[3])
-						pseudopointer[n].V_adj--;
-				}
-				else
-				{
-					if (pseudopointer[n].V_adj <  ptrspeeds[3])
-						pseudopointer[n].V_adj++;
-				}
-			}
-		}
-
-		// S9xReportPointer removed (old mapping system). pseudopointer[n].mapped is always false anyway.
-	}
-
-	set<struct exemulti *>::iterator	it, jt;
-
-	for (it = exemultis.begin(); it != exemultis.end(); it++)
-	{
-		i = ApplyMulti((*it)->script, (*it)->pos, (*it)->data1);
-
-		if (i >= 0)
-			(*it)->pos = i;
-		else
-		{
-			jt = it;
-			it--;
-			delete *jt;
-			exemultis.erase(jt);
-		}
-	}
-
-	do_polling(POLL_ALL);
 
 	pad_read_last = pad_read;
 	pad_read      = false;
@@ -1969,22 +1024,6 @@ void S9xControlPostLoadState (struct SControlSnapshot *s)
 		pad_read      = s->pad_read;
 		pad_read_last = s->pad_read_last;
 	}
-}
-
-uint16 MovieGetJoypad (int i)
-{
-	if (i < 0 || i > 7)
-		return (0);
-
-	return (joypad[i].buttons);
-}
-
-void MovieSetJoypad (int i, uint16 buttons)
-{
-	if (i < 0 || i > 7)
-		return;
-
-	joypad[i].buttons = buttons;
 }
 
 void S9xSetJoypadButtons (int pad, uint16 buttons)
