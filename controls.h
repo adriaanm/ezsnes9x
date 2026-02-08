@@ -15,12 +15,11 @@ enum controllers
 {
 	CTL_NONE,		// No controller
 	CTL_JOYPAD,		// Joypad (use id1 to specify 0-7)
-	CTL_MP5,		// Multitap (use id1-id4 to specify pads 0-7 or -1)
 };
 
 // Configure which controller is plugged into port 0 or 1
 // Called by: platform/shared/emulator.cpp (setup)
-void S9xSetController (int port, enum controllers controller, int8 id1, int8 id2, int8 id3, int8 id4); // port=0-1
+void S9xSetController (int port, enum controllers controller, int8 id1);
 
 // Verify controller configuration is valid, returns true if something was disabled
 // Called by: platform/shared/emulator.cpp, memmap.cpp
@@ -49,7 +48,7 @@ void S9xSetJoypadLatch (bool latch);
 // Called by: ppu.cpp when reading $4016/$4017 (joypad serial)
 uint8 S9xReadJOYSERn (int n);
 
-// Called by: gfx.cpp at end of frame (currently handles turbo button processing)
+// Called by: gfx.cpp at end of frame
 void S9xControlEOF (void);
 
 //////////
@@ -65,7 +64,7 @@ struct SControlSnapshot
 	uint8	dummy2[4];
 	uint8	dummy3[8];
 	bool8	pad_read, pad_read_last;
-	uint8	internal[16];				// joypad[].buttons for 8 pads
+	uint8	internal[16];				// joypad[].buttons for 8 joypads
 };
 
 // Called by: snapshot.cpp

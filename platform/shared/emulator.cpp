@@ -62,8 +62,8 @@ bool Init(const char *config_path)
     Settings.MaxSpriteTilesPerLine = 34; // Enable sprite rendering (34 = standard limit)
 
     // Default controller setup: pad0 on port 0, pad1 on port 1
-    S9xSetController(0, CTL_JOYPAD, 0, -1, -1, -1);
-    S9xSetController(1, CTL_JOYPAD, 1, -1, -1, -1);
+    S9xSetController(0, CTL_JOYPAD, 0);
+    S9xSetController(1, CTL_JOYPAD, 1);
 
     // Load config if provided
     if (config_path && config_path[0])
