@@ -106,9 +106,11 @@ endif()
 # Warnings
 target_compile_options(snes9x-core PRIVATE
     -Wall
+    -Wextra
+    -Wshadow
+    -Wdeprecated
+    -Wno-unused-parameter
     -Wno-parentheses
-    -Wno-unused-variable
-    -Wno-unused-function
     -Wno-narrowing
 )
 

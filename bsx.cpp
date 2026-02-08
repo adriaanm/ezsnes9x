@@ -705,8 +705,7 @@ void S9xSetBSX (uint8 byte, uint32 address)
 			switch (BSX.flash_command & 0xFFFF)
 			{
 				case 0x20D0: //Block Erase
-					uint32 x;
-					for (x = 0; x < 0x10000; x++) {
+					for (uint32 x = 0; x < 0x10000; x++) {
 						//BSX_Set_Bypass_FlashIO(((address & 0xFF0000) + x), 0xFF);
 						if (BSX.MMC[0x02])
 							FlashROM[(address & 0x0F0000) + x] = 0xFF;
@@ -718,8 +717,7 @@ void S9xSetBSX (uint8 byte, uint32 address)
 				case 0xA7D0: //Chip Erase (ONLY IN TYPE 1 AND 4)
 					if ((flashcard[6] & 0xF0) == 0x10 || (flashcard[6] & 0xF0) == 0x40)
 					{
-						uint32 x;
-						for (x = 0; x < FLASH_SIZE; x++) {
+						for (uint32 x = 0; x < FLASH_SIZE; x++) {
 							//BSX_Set_Bypass_FlashIO(x, 0xFF);
 							FlashROM[x] = 0xFF;
 						}

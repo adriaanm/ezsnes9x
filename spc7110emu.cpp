@@ -236,14 +236,14 @@ uint8 SPC7110::mmio_read(unsigned addr) {
     case 0x4810: {
       if(r481x != 0x07) return 0x00;
 
-      unsigned addr = data_pointer();
-      unsigned adjust = data_adjust();
-      if(r4818 & 8) adjust = (int16)adjust;  //16-bit sign extend
+      unsigned dp = data_pointer();
+      unsigned da = data_adjust();
+      if(r4818 & 8) da = (int16)da;  //16-bit sign extend
 
-      unsigned adjustaddr = addr;
+      unsigned adjustaddr = dp;
       if(r4818 & 2) {
-        adjustaddr += adjust;
-        set_data_adjust(adjust + 1);
+        adjustaddr += da;
+        set_data_adjust(da + 1);
       }
 
       uint8 data = memory_cartrom_read(datarom_addr(adjustaddr));
@@ -252,9 +252,9 @@ uint8 SPC7110::mmio_read(unsigned addr) {
         if(r4818 & 4) increment = (int16)increment;  //16-bit sign extend
 
         if((r4818 & 16) == 0) {
-          set_data_pointer(addr + increment);
+          set_data_pointer(dp + increment);
         } else {
-          set_data_adjust(adjust + increment);
+          set_data_adjust(da + increment);
         }
       }
 
@@ -271,16 +271,16 @@ uint8 SPC7110::mmio_read(unsigned addr) {
     case 0x481a: {
       if(r481x != 0x07) return 0x00;
 
-      unsigned addr = data_pointer();
-      unsigned adjust = data_adjust();
-      if(r4818 & 8) adjust = (int16)adjust;  //16-bit sign extend
+      unsigned dp = data_pointer();
+      unsigned da = data_adjust();
+      if(r4818 & 8) da = (int16)da;  //16-bit sign extend
 
-      uint8 data = memory_cartrom_read(datarom_addr(addr + adjust));
+      uint8 data = memory_cartrom_read(datarom_addr(dp + da));
       if((r4818 & 0x60) == 0x60) {
         if((r4818 & 16) == 0) {
-          set_data_pointer(addr + adjust);
+          set_data_pointer(dp + da);
         } else {
-          set_data_adjust(adjust + adjust);
+          set_data_adjust(da + da);
         }
       }
 
@@ -364,11 +364,11 @@ void SPC7110::mmio_write(unsigned addr, uint8 data) {
       unsigned table   = (r4801 + (r4802 << 8) + (r4803 << 16));
       unsigned index   = (r4804 << 2);
       //unsigned length  = (r4809 + (r480a << 8));
-      unsigned addr    = datarom_addr(table + index);
-      unsigned mode    = (memory_cartrom_read(addr + 0));
-      unsigned offset  = (memory_cartrom_read(addr + 1) << 16)
-                       + (memory_cartrom_read(addr + 2) <<  8)
-                       + (memory_cartrom_read(addr + 3) <<  0);
+      unsigned romaddr = datarom_addr(table + index);
+      unsigned mode    = (memory_cartrom_read(romaddr + 0));
+      unsigned offset  = (memory_cartrom_read(romaddr + 1) << 16)
+                       + (memory_cartrom_read(romaddr + 2) <<  8)
+                       + (memory_cartrom_read(romaddr + 3) <<  0);
 
       decomp.init(mode, offset, (r4805 + (r4806 << 8)) << mode);
       r480c = 0x80;

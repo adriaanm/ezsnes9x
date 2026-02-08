@@ -75,9 +75,9 @@ static BOOST::uint8_t const initial_regs [SPC_DSP::register_count] =
             S9xMSU1Generate(2); \
     }
 
-void SPC_DSP::set_output( Resampler *resampler )
+void SPC_DSP::set_output( Resampler *r )
 {
-	this->resampler = resampler;
+	this->resampler = r;
 }
 
 void SPC_DSP::set_output( sample_t* out, int size )
@@ -1327,12 +1327,12 @@ void SPC_DSP::copy_state( unsigned char** io, copy_func_t copy )
 		voice_t* v = &m.voices [i];
 
 		// BRR buffer
-		int i;
-		for ( i = 0; i < brr_buf_size; i++ )
+		int bi;
+		for ( bi = 0; bi < brr_buf_size; bi++ )
 		{
-			int s = v->buf [i];
+			int s = v->buf [bi];
 			SPC_COPY(  int16_t, s );
-			v->buf [i] = v->buf [i + brr_buf_size] = s;
+			v->buf [bi] = v->buf [bi + brr_buf_size] = s;
 		}
 
 		SPC_COPY( uint16_t, v->interp_pos );
@@ -1343,9 +1343,9 @@ void SPC_DSP::copy_state( unsigned char** io, copy_func_t copy )
 		SPC_COPY(  uint8_t, v->brr_offset );
 		SPC_COPY(  uint8_t, v->kon_delay );
 		{
-			int m = v->env_mode;
-			SPC_COPY(  uint8_t, m );
-			v->env_mode = (enum env_mode_t) m;
+			int em = v->env_mode;
+			SPC_COPY(  uint8_t, em );
+			v->env_mode = (enum env_mode_t) em;
 		}
 		SPC_COPY(  uint8_t, v->t_envx_out );
 

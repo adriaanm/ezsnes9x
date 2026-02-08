@@ -14,7 +14,7 @@ struct bml_node
     bml_node();
     bool parse_file(const std::string &filename);
     void parse(std::ifstream &fd);
-    bml_node *find_subnode(const std::string &name);
+    bml_node *find_subnode(const std::string &node_name);
     void print();
 
     std::string name;

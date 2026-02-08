@@ -249,10 +249,10 @@ void bml_node::parse(std::ifstream &fd)
     }
 }
 
-bml_node *bml_node::find_subnode(const std::string &name)
+bml_node *bml_node::find_subnode(const std::string &node_name)
 {
     for (auto &i : child)
-        if (name == i.name)
+        if (node_name == i.name)
             return &i;
 
     return nullptr;

@@ -64,15 +64,9 @@ public:
 };
 
 #ifndef BLARGG_DISABLE_NOTHROW
-	// throw spec mandatory in ISO C++ if operator new can return NULL
-	#if __cplusplus >= 199711 || defined (__GNUC__)
-		#define BLARGG_THROWS( spec ) throw spec
-	#else
-		#define BLARGG_THROWS( spec )
-	#endif
 	#define BLARGG_DISABLE_NOTHROW \
-		void* operator new ( size_t s ) BLARGG_THROWS(()) { return malloc( s ); }\
-		void operator delete ( void* p ) { free( p ); }
+		void* operator new ( size_t s ) noexcept { return malloc( s ); }\
+		void operator delete ( void* p ) noexcept { free( p ); }
 	#define BLARGG_NEW new
 #else
 	#include <new>
