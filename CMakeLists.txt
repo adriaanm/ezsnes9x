@@ -114,6 +114,27 @@ target_compile_options(snes9x-core PRIVATE
     -Wno-narrowing
 )
 
+# clang-tidy (opt-in: cmake -DENABLE_CLANG_TIDY=ON)
+option(ENABLE_CLANG_TIDY "Run clang-tidy during compilation" OFF)
+if(ENABLE_CLANG_TIDY)
+    find_program(CLANG_TIDY_EXE NAMES clang-tidy)
+    if(CLANG_TIDY_EXE)
+        set_target_properties(snes9x-core PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
+        message(STATUS "clang-tidy enabled: ${CLANG_TIDY_EXE}")
+    else()
+        message(WARNING "ENABLE_CLANG_TIDY is ON but clang-tidy not found")
+    endif()
+endif()
+
+# Sanitizers (opt-in: cmake -DSANITIZE=address,undefined)
+# Adds compile and link flags; frontends that link snes9x-core inherit them.
+set(SANITIZE "" CACHE STRING "Comma-separated list of sanitizers (e.g. address,undefined)")
+if(SANITIZE)
+    target_compile_options(snes9x-core PUBLIC -fsanitize=${SANITIZE} -fno-omit-frame-pointer)
+    target_link_options(snes9x-core PUBLIC -fsanitize=${SANITIZE})
+    message(STATUS "Sanitizers enabled: ${SANITIZE}")
+endif()
+
 # Platform frontends
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/platform/macos/CMakeLists.txt" AND APPLE)
     add_subdirectory(platform/macos)

@@ -1,0 +1,33 @@
+---
+# clang-tidy configuration for snes9x
+#
+# Run: cmake -B build -DCMAKE_BUILD_TYPE=Debug -DENABLE_CLANG_TIDY=ON
+# Or standalone: clang-tidy -p build src.cpp
+
+Checks: >
+  -*,
+  bugprone-*,
+  modernize-use-nullptr,
+  modernize-use-override,
+  modernize-use-auto,
+  modernize-use-using,
+  modernize-deprecated-headers,
+  performance-*,
+  readability-redundant-string-cstr,
+  readability-container-size-empty,
+  -bugprone-easily-swappable-parameters,
+  -bugprone-narrowing-conversions,
+  -bugprone-implicit-widening-of-multiplication-result,
+  -bugprone-assignment-in-if-condition,
+  -performance-no-int-to-ptr,
+
+WarningsAsErrors: ''
+
+HeaderFilterRegex: '.*\.h$'
+
+# Don't touch third-party code
+ExcludeHeaderFilterRegex: 'external/.*'
+
+CheckOptions:
+  - key: modernize-use-auto.MinTypeNameLength
+    value: '8'
