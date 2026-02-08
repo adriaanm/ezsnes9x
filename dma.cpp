@@ -125,7 +125,7 @@ bool8 S9xDoDMA (uint8 Channel)
 
 	// S-DD1
 
-	uint8	*in_sdd1_dma = NULL;
+	uint8	*in_sdd1_dma = nullptr;
 
 	if (Settings.SDD1)
 	{
@@ -158,7 +158,7 @@ bool8 S9xDoDMA (uint8 Channel)
 
 	// SPC7110
 
-	uint8	*spc7110_dma = NULL;
+	uint8	*spc7110_dma = nullptr;
 
 	if (Settings.SPC7110)
 	{
@@ -1156,7 +1156,7 @@ static inline bool8 HDMAReadLineCount (int d)
 		}
 
 		DMA[d].Address++;
-		HDMAMemPointers[d] = NULL;
+		HDMAMemPointers[d] = nullptr;
 
 		return (FALSE);
 	}
@@ -1305,7 +1305,7 @@ uint8 S9xDoHDMA (uint8 byte)
 					if ((IAddr & MEMMAP_MASK) + HDMA_ModeByteCounts[p->TransferMode] >= MEMMAP_BLOCK_SIZE)
 					{
 						// HDMA REALLY-SLOW PATH
-						HDMAMemPointers[d] = NULL;
+						HDMAMemPointers[d] = nullptr;
 
 						#define DOBYTE(Addr, RegOff) \
 							CPU.InWRAMDMAorHDMA = (ShiftedIBank == 0x7e0000 || ShiftedIBank == 0x7f0000 || \
@@ -1504,7 +1504,7 @@ uint8 S9xDoHDMA (uint8 byte)
 					// REVERSE HDMA REALLY-SLOW PATH
 					// anomie says: Since this is apparently never used
 					// (otherwise we would have noticed before now), let's not bother with faster paths.
-					HDMAMemPointers[d] = NULL;
+					HDMAMemPointers[d] = nullptr;
 
 					#define DOBYTE(Addr, RegOff) \
 						CPU.InWRAMDMAorHDMA = (ShiftedIBank == 0x7e0000 || ShiftedIBank == 0x7f0000 || \

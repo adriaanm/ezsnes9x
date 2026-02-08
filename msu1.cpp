@@ -13,13 +13,13 @@
 #include <fstream>
 #include <sys/stat.h>
 
-STREAM dataStream = NULL;
-STREAM audioStream = NULL;
+STREAM dataStream = nullptr;
+STREAM audioStream = nullptr;
 uint32 audioLoopPos;
 size_t partial_frames;
 
 // Sample buffer
-static Resampler *msu_resampler = NULL;
+static Resampler *msu_resampler = nullptr;
 
 #ifdef UNZIP_SUPPORT
 static int unzFindExtension(unzFile &file, const char *ext, bool restart = TRUE, bool print = TRUE, bool allowExact = FALSE)
@@ -58,7 +58,7 @@ static int unzFindExtension(unzFile &file, const char *ext, bool restart = TRUE,
 STREAM S9xMSU1OpenFile(const char *msu_ext, bool skip_unpacked)
 {
     auto filename = S9xGetFilename(msu_ext, ROMFILENAME_DIR);
-	STREAM file = 0;
+	STREAM file = nullptr;
 
 	if (!skip_unpacked)
 	{
@@ -101,7 +101,7 @@ static void AudioClose()
 	if (audioStream)
 	{
 		CLOSE_STREAM(audioStream);
-		audioStream = NULL;
+		audioStream = nullptr;
 	}
 }
 
@@ -144,7 +144,7 @@ static void DataClose()
 	if (dataStream)
 	{
 		CLOSE_STREAM(dataStream);
-		dataStream = NULL;
+		dataStream = nullptr;
 	}
 }
 
@@ -157,7 +157,7 @@ static bool DataOpen()
 	if(!dataStream)
 		dataStream = S9xMSU1OpenFile("msu1.rom");
 
-	return dataStream != NULL;
+	return dataStream != nullptr;
 }
 
 void S9xResetMSU(void)

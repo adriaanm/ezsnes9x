@@ -954,14 +954,14 @@ void S9xSA1SetPCBase (uint32 address)
 	{
 		case CMemory::MAP_LOROM_SRAM:
 			if ((Memory.SRAMMask & MEMMAP_MASK) != MEMMAP_MASK)
-				SA1.PCBase = NULL;
+				SA1.PCBase = nullptr;
 			else
 				SA1.PCBase = (Memory.SRAM + ((((address & 0xff0000) >> 1) | (address & 0x7fff)) & Memory.SRAMMask)) - (address & 0xffff);
 			return;
 
 		case CMemory::MAP_HIROM_SRAM:
 			if ((Memory.SRAMMask & MEMMAP_MASK) != MEMMAP_MASK)
-				SA1.PCBase = NULL;
+				SA1.PCBase = nullptr;
 			else
 				SA1.PCBase = (Memory.SRAM + (((address & 0x7fff) - 0x6000 + ((address & 0xf0000) >> 3)) & Memory.SRAMMask)) - (address & 0xffff);
 			return;
@@ -975,7 +975,7 @@ void S9xSA1SetPCBase (uint32 address)
 			return;
 
 		default:
-			SA1.PCBase = NULL;
+			SA1.PCBase = nullptr;
 			return;
 	}
 }

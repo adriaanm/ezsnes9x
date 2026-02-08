@@ -146,13 +146,13 @@ void C4Op0D (void)
 uint8 * S9xGetBasePointerC4 (uint16 Address)
 {
 	if (Address >= 0x7f40 && Address <= 0x7f5e)
-		return (NULL);
+		return (nullptr);
 	return (Memory.C4RAM - 0x6000);
 }
 
 uint8 * S9xGetMemPointerC4 (uint16 Address)
 {
 	if (Address >= 0x7f40 && Address <= 0x7f5e)
-		return (NULL);
+		return (nullptr);
 	return (Memory.C4RAM - 0x6000 + (Address & 0xffff));
 }

@@ -9,8 +9,8 @@
 #ifdef DEBUGGER
 #endif
 
-uint8	(*GetDSP) (uint16)        = NULL;
-void	(*SetDSP) (uint8, uint16) = NULL;
+uint8	(*GetDSP) (uint16)        = nullptr;
+void	(*SetDSP) (uint8, uint16) = nullptr;
 
 
 void S9xResetDSP (void)

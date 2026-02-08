@@ -1308,7 +1308,7 @@ void S9xInitBSX (void)
 
 	if (Settings.BS)
 	{
-		MapROM = NULL;
+		MapROM = nullptr;
 		FlashROM = Memory.ROM;
 		/*
 		time_t		t;

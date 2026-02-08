@@ -1284,36 +1284,36 @@ void S9xSetCPU (uint8 Byte, uint16 Address)
 
 			case 0x4: // 0x43x4: A1Bx
 				DMA[d].ABank = Byte;
-				HDMAMemPointers[d] = NULL;
+				HDMAMemPointers[d] = nullptr;
 				return;
 
 			case 0x5: // 0x43x5: DASxL
 				DMA[d].DMACount_Or_HDMAIndirectAddress &= 0xff00;
 				DMA[d].DMACount_Or_HDMAIndirectAddress |= Byte;
-				HDMAMemPointers[d] = NULL;
+				HDMAMemPointers[d] = nullptr;
 				return;
 
 			case 0x6: // 0x43x6: DASxH
 				DMA[d].DMACount_Or_HDMAIndirectAddress &= 0xff;
 				DMA[d].DMACount_Or_HDMAIndirectAddress |= Byte << 8;
-				HDMAMemPointers[d] = NULL;
+				HDMAMemPointers[d] = nullptr;
 				return;
 
 			case 0x7: // 0x43x7: DASBx
 				DMA[d].IndirectBank = Byte;
-				HDMAMemPointers[d] = NULL;
+				HDMAMemPointers[d] = nullptr;
 				return;
 
 			case 0x8: // 0x43x8: A2AxL
 				DMA[d].Address &= 0xff00;
 				DMA[d].Address |= Byte;
-				HDMAMemPointers[d] = NULL;
+				HDMAMemPointers[d] = nullptr;
 				return;
 
 			case 0x9: // 0x43x9: A2AxH
 				DMA[d].Address &= 0xff;
 				DMA[d].Address |= Byte << 8;
-				HDMAMemPointers[d] = NULL;
+				HDMAMemPointers[d] = nullptr;
 				return;
 
 			case 0xa: // 0x43xa: NLTRx
@@ -1897,7 +1897,7 @@ void S9xSoftResetPPU (void)
 	IPPU.DoubleHeightPixels = FALSE;
 	IPPU.CurrentLine = 0;
 	IPPU.PreviousLine = 0;
-	IPPU.XB = NULL;
+	IPPU.XB = nullptr;
 	for (int c = 0; c < 256; c++)
 		IPPU.ScreenColors[c] = c;
 	IPPU.MaxBrightness = 0;

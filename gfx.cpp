@@ -15,7 +15,7 @@ extern struct SLineMatrixData	LineMatrixData[240];
 
 void S9xComputeClipWindows (void);
 
-void (*S9xCustomDisplayString) (const char *, int, int, bool, int) = NULL;
+void (*S9xCustomDisplayString) (const char *, int, int, bool, int) = nullptr;
 
 static void SetupOBJ (void);
 static void DrawOBJS (int);
@@ -93,10 +93,10 @@ bool8 S9xGraphicsInit (void)
 
 void S9xGraphicsDeinit (void)
 {
-	if (GFX.ZERO)       { free(GFX.ZERO);       GFX.ZERO       = NULL; }
-	if (GFX.SubScreen)  { free(GFX.SubScreen);  GFX.SubScreen  = NULL; }
-	if (GFX.ZBuffer)    { free(GFX.ZBuffer);    GFX.ZBuffer    = NULL; }
-	if (GFX.SubZBuffer) { free(GFX.SubZBuffer); GFX.SubZBuffer = NULL; }
+	if (GFX.ZERO)       { free(GFX.ZERO);       GFX.ZERO       = nullptr; }
+	if (GFX.SubScreen)  { free(GFX.SubScreen);  GFX.SubScreen  = nullptr; }
+	if (GFX.ZBuffer)    { free(GFX.ZBuffer);    GFX.ZBuffer    = nullptr; }
+	if (GFX.SubZBuffer) { free(GFX.SubZBuffer); GFX.SubZBuffer = nullptr; }
 }
 
 void S9xGraphicsScreenResize (void)
@@ -737,8 +737,8 @@ static void SetupOBJ (void)
 #endif
 static void DrawOBJS (int D)
 {
-	void (*DrawTile) (uint32, uint32, uint32, uint32) = NULL;
-	void (*DrawClippedTile) (uint32, uint32, uint32, uint32, uint32, uint32) = NULL;
+	void (*DrawTile) (uint32, uint32, uint32, uint32) = nullptr;
+	void (*DrawClippedTile) (uint32, uint32, uint32, uint32, uint32, uint32) = nullptr;
 
 	int	PixWidth = IPPU.DoubleWidthPixels ? 2 : 1;
 	BG.InterlaceLine = S9xInterlaceField() ? 8 : 0;

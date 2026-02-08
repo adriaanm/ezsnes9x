@@ -53,7 +53,7 @@ public:
 		else if ( n > size_ ) // realloc failure only a problem if expanding
 			return "Out of memory";
 		size_ = n;
-		return 0;
+		return nullptr;
 	}
 	void clear() { void* p = begin_; begin_ = 0; size_ = 0; free( p ); }
 	T& operator [] ( size_t n ) const

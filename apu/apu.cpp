@@ -34,8 +34,8 @@ CPU cpu;
 } // namespace SNES
 
 namespace spc {
-static apu_callback callback = NULL;
-static void *callback_data = NULL;
+static apu_callback callback = nullptr;
+static void *callback_data = nullptr;
 
 static bool8 sound_in_sync = true;
 static bool8 sound_enabled = false;
@@ -118,7 +118,7 @@ int S9xGetSampleCount(void)
 
 void S9xLandSamples(void)
 {
-    if (spc::callback != NULL)
+    if (spc::callback != nullptr)
         spc::callback(spc::callback_data);
 
     if (spc::resampler.space_empty() >= 535 * 2 || !Settings.SoundSync ||

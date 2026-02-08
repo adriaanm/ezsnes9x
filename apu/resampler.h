@@ -55,13 +55,13 @@ class Resampler
     Resampler()
     {
         this->buffer_size = 0;
-        buffer = NULL;
+        buffer = nullptr;
         r_step = 1.0;
     }
 
     Resampler(int num_samples)
     {
-        buffer = NULL;
+        buffer = nullptr;
         resize(num_samples);
         r_step = 1.0;
     }
@@ -69,7 +69,7 @@ class Resampler
     ~Resampler()
     {
         delete[] buffer;
-        buffer = NULL;
+        buffer = nullptr;
     }
 
     inline void time_ratio(double ratio)

@@ -35,23 +35,23 @@ static inline size_t nearest_pow2_size(size_t v)
 void StateManager::deallocate() {
     if(buffer) {
         delete [] buffer;
-        buffer = NULL;
+        buffer = nullptr;
     }
     if(tmp_state) {
         delete [] tmp_state;
-        tmp_state = NULL;
+        tmp_state = nullptr;
     }
     if(in_state) {
         delete [] in_state;
-        in_state = NULL;
+        in_state = nullptr;
     }
 }
 
 StateManager::StateManager()
 {
-    buffer = NULL;
-    tmp_state = NULL;
-    in_state = NULL;
+    buffer = nullptr;
+    tmp_state = nullptr;
+    in_state = nullptr;
     init_done = false;
 }
 

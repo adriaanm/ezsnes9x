@@ -190,7 +190,7 @@ void _splitpath(const char *path, char *drive, char *dir, char *fname, char *ext
 
     if (dot && slash && dot < slash)
     {
-        dot = 0;
+        dot = nullptr;
     }
 
     if (!slash)

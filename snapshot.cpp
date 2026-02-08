@@ -1048,14 +1048,14 @@ void S9xResetSaveTimer (bool8 dontsave)
 {
 	static time_t	t = -1;
 
-	if (!Settings.DontSaveOopsSnapshot && !dontsave && t != -1 && time(NULL) - t > 300)
+	if (!Settings.DontSaveOopsSnapshot && !dontsave && t != -1 && time(nullptr) - t > 300)
 	{
 		auto filename = S9xGetFilename("oops", SNAPSHOT_DIR);
 		S9xMessage(S9X_INFO, S9X_FREEZE_FILE_INFO, SAVE_INFO_OOPS);
 		S9xFreezeGame(filename.c_str());
 	}
 
-	t = time(NULL);
+	t = time(nullptr);
 }
 
 uint32 S9xFreezeSize()
@@ -1075,7 +1075,7 @@ bool8 S9xFreezeGameMem (uint8 *buf, uint32 bufSize)
 
 bool8 S9xFreezeGame (const char *filename)
 {
-	STREAM	stream = NULL;
+	STREAM	stream = nullptr;
 
 	if (S9xOpenSnapshotFile(filename, FALSE, &stream))
 	{
@@ -1125,7 +1125,7 @@ void S9xMessageFromResult(int result, const char* base)
 
 bool8 S9xUnfreezeGame (const char *filename)
 {
-	STREAM	stream = NULL;
+	STREAM	stream = nullptr;
 
 	auto base = S9xBasename(filename);
 	auto path = splitpath(filename);
@@ -1159,7 +1159,7 @@ bool8 S9xUnfreezeGame (const char *filename)
 
 bool8 S9xUnfreezeScreenshot(const char *filename, uint16 **image_buffer, int &width, int &height)
 {
-    STREAM	stream = NULL;
+    STREAM	stream = nullptr;
 
     auto base = S9xBasename(filename);
 
@@ -1306,33 +1306,33 @@ int S9xUnfreezeFromStream (STREAM stream)
 	if (result != SUCCESS)
 		return (result);
 
-	uint8	*local_cpu           = NULL;
-	uint8	*local_registers     = NULL;
-	uint8	*local_ppu           = NULL;
-	uint8	*local_dma           = NULL;
-	uint8	*local_vram          = NULL;
-	uint8	*local_ram           = NULL;
-	uint8	*local_sram          = NULL;
-	uint8	*local_fillram       = NULL;
-	uint8	*local_apu_sound     = NULL;
-	uint8	*local_control_data  = NULL;
-	uint8	*local_timing_data   = NULL;
-	uint8	*local_superfx       = NULL;
-	uint8	*local_sa1           = NULL;
-	uint8	*local_sa1_registers = NULL;
-	uint8	*local_dsp1          = NULL;
-	uint8	*local_dsp2          = NULL;
-	uint8	*local_dsp4          = NULL;
-	uint8	*local_cx4_data      = NULL;
-	uint8	*local_st010         = NULL;
-	uint8	*local_obc1          = NULL;
-	uint8	*local_obc1_data     = NULL;
-	uint8	*local_spc7110       = NULL;
-	uint8	*local_srtc          = NULL;
-	uint8	*local_rtc_data      = NULL;
-	uint8	*local_bsx_data      = NULL;
-	uint8	*local_msu1_data     = NULL;
-	uint8	*local_screenshot    = NULL;
+	uint8	*local_cpu           = nullptr;
+	uint8	*local_registers     = nullptr;
+	uint8	*local_ppu           = nullptr;
+	uint8	*local_dma           = nullptr;
+	uint8	*local_vram          = nullptr;
+	uint8	*local_ram           = nullptr;
+	uint8	*local_sram          = nullptr;
+	uint8	*local_fillram       = nullptr;
+	uint8	*local_apu_sound     = nullptr;
+	uint8	*local_control_data  = nullptr;
+	uint8	*local_timing_data   = nullptr;
+	uint8	*local_superfx       = nullptr;
+	uint8	*local_sa1           = nullptr;
+	uint8	*local_sa1_registers = nullptr;
+	uint8	*local_dsp1          = nullptr;
+	uint8	*local_dsp2          = nullptr;
+	uint8	*local_dsp4          = nullptr;
+	uint8	*local_cx4_data      = nullptr;
+	uint8	*local_st010         = nullptr;
+	uint8	*local_obc1          = nullptr;
+	uint8	*local_obc1_data     = nullptr;
+	uint8	*local_spc7110       = nullptr;
+	uint8	*local_srtc          = nullptr;
+	uint8	*local_rtc_data      = nullptr;
+	uint8	*local_bsx_data      = nullptr;
+	uint8	*local_msu1_data     = nullptr;
+	uint8	*local_screenshot    = nullptr;
 
 	do
 	{
@@ -1799,7 +1799,7 @@ int S9xUnfreezeScreenshotFromStream(STREAM stream, uint16 **image_buffer, int &w
     if(result != SUCCESS)
         return (result);
 
-    uint8	*local_screenshot = NULL;
+    uint8	*local_screenshot = nullptr;
 
     // skip all blocks until screenshot
     SkipBlockWithName(stream, "CPU");
@@ -2154,7 +2154,7 @@ static int UnfreezeBlockCopy (STREAM stream, const char *name, uint8 **block, in
 	if (result != SUCCESS)
 	{
 		delete [] (*block);
-		*block = NULL;
+		*block = nullptr;
 		return (result);
 	}
 
@@ -2164,12 +2164,12 @@ static int UnfreezeBlockCopy (STREAM stream, const char *name, uint8 **block, in
 static int UnfreezeStruct (STREAM stream, const char *name, void *base, FreezeData *fields, int num_fields, int version)
 {
 	int		result;
-	uint8	*block = NULL;
+	uint8	*block = nullptr;
 
 	result = UnfreezeStructCopy(stream, name, &block, fields, num_fields, version);
 	if (result != SUCCESS)
 	{
-		if (block != NULL)
+		if (block != nullptr)
 			delete [] block;
 		return (result);
 	}

@@ -39,7 +39,7 @@ char * Stream::getline (void)
 
 	ret = getline(eof);
 	if (ret.size() == 0 && eof)
-		return (NULL);
+		return (nullptr);
 
 	return (strdup(ret.c_str()));
 }
@@ -54,7 +54,7 @@ std::string Stream::getline (bool &eof)
 
 	do
 	{
-		if (gets(buf, sizeof(buf)) == NULL)
+		if (gets(buf, sizeof(buf)) == nullptr)
 		{
 			eof = true;
 			break;
@@ -332,7 +332,7 @@ char * memStream::gets (char *buf, size_t len)
 		if (c == EOF)
 		{
 			if (i == 0)
-				return (NULL);
+				return (nullptr);
 			break;
 		}
 
@@ -418,7 +418,7 @@ int nulStream::get_char (void)
 char * nulStream::gets (char *buf, size_t len)
 {
 	*buf = '\0';
-	return NULL;
+	return nullptr;
 }
 
 size_t nulStream::read (void *buf, size_t len)
@@ -458,7 +458,7 @@ Stream *openStreamFromFSTREAM(const char* filename, const char* mode)
 {
     FSTREAM f = OPEN_FSTREAM(filename,mode);
     if(!f)
-        return NULL;
+        return nullptr;
     return new fStream(f);
 }
 
@@ -466,6 +466,6 @@ Stream *reopenStreamFromFd(int fd, const char* mode)
 {
     FSTREAM f = REOPEN_FSTREAM(fd,mode);
     if(!f)
-        return NULL;
+        return nullptr;
     return new fStream(f);
 }
