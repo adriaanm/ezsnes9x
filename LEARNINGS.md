@@ -97,6 +97,37 @@ The rewind system (`rewind.cpp`) uses a circular buffer with XOR delta compressi
 - Reconstruction walks back to nearest keyframe, then replays XOR deltas forward
 - The `s_prev_state` buffer tracks previous keyframe for delta generation
 
+## Using clang-tidy Auto-Fix (Critical)
+
+When using clang-tidy's `--fix` flag to automatically apply code fixes, **ALWAYS use single-threaded builds (`-j1`)** to avoid file corruption.
+
+**The Problem:**
+- With parallel builds (`-j$(nproc)`), multiple clang-tidy processes try to fix the same header files simultaneously
+- This causes race conditions that corrupt source files (e.g., `MAP_NONE` becomes `MnullptrONE`)
+- Header files included by many .cpp files are especially vulnerable
+
+**The Solution:**
+```bash
+# 1. Configure with clang-tidy auto-fix for a specific check
+cmake -B build \
+  -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+  -DCMAKE_CXX_CLANG_TIDY="/path/to/clang-tidy;--fix;--checks=-*,check-name;--quiet"
+
+# 2. Build with -j1 (single-threaded) - CRITICAL!
+cmake --build build -j1
+
+# 3. Check changes before committing
+git diff
+```
+
+**Key flags:**
+- `--fix`: Auto-applies fixes
+- `--checks=-*,check-name`: Only enable specific check (disable all others with `-*`)
+- `-j1`: **Required** to prevent race conditions on shared header files
+- `--quiet`: Reduces verbose output
+
+**On this system:** clang-tidy is at `/opt/homebrew/opt/llvm/bin/clang-tidy` (Homebrew's keg-only LLVM)
+
 ## Build System Notes
 
 - CMake 3.20+ works well with the codebase
