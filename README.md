@@ -39,24 +39,24 @@ Optional flags:
 Configuration is optional. The emulator works with sensible defaults. If you need to customize settings, create a YAML config file:
 
 ```yaml
-# Optional: specify ROM path and save directory
-rom: /path/to/game.sfc
-save_dir: /path/to/saves
+# Top-level settings
+save_dir: /path/to/saves  # Where to store .srm save files
 
 audio:
-  sample_rate: 48000  # Default: 32040 (SNES native)
-  stereo: true
-  mute: false
+  sample_rate: 32040      # Default: 32040 (SNES native rate)
+  stereo: true            # Default: true
+  mute: false             # Default: false
 
 video:
-  transparency: true
+  transparency: true      # Default: true
 
 input:
-  player1: pad1       # Options: pad1, none
-  player2: none       # Options: pad2, none
-  multitap: false     # Enable SNES multitap (up to 4 players)
-  up_and_down: false  # Allow simultaneous up+down, left+right
+  player1: pad1           # Options: pad0-7, mp5 (multitap), none
+  player2: pad1           # Options: pad0-7, mp5 (multitap), none
+  up_and_down: false      # Allow simultaneous up+down, left+right (default: false)
 ```
+
+Note: The `multitap` (mp5) setting enables SNES Multitap for 4-player games. When enabled, pads 0-3 connect to port 1, pads 4-7 to port 2.
 
 Config file is searched in order:
 1. Path specified with `--config`

@@ -82,33 +82,9 @@ static void parse_controller(int port, const std::string &value)
         int base = port * 4;
         S9xSetController(port, CTL_MP5, base, base + 1, base + 2, base + 3);
     }
-    else if (v == "mouse" || v == "mouse0")
-    {
-        S9xSetController(port, CTL_MOUSE, 0, -1, -1, -1);
-    }
-    else if (v == "mouse1")
-    {
-        S9xSetController(port, CTL_MOUSE, 1, -1, -1, -1);
-    }
-    else if (v == "superscope" || v == "scope")
-    {
-        S9xSetController(port, CTL_SUPERSCOPE, 0, -1, -1, -1);
-    }
-    else if (v == "justifier")
-    {
-        S9xSetController(port, CTL_JUSTIFIER, 0, -1, -1, -1);
-    }
-    else if (v == "justifier2" || v == "justifiers")
-    {
-        S9xSetController(port, CTL_JUSTIFIER, 1, -1, -1, -1);
-    }
-    else if (v == "macsrifle")
-    {
-        S9xSetController(port, CTL_MACSRIFLE, 0, -1, -1, -1);
-    }
     else
     {
-        // Default: treat as joypad. "pad0" through "pad7", or just "pad1", etc.
+        // Default: treat as joypad. "pad0" through "pad7"
         int id = 0;
         if (v.size() >= 4 && v.substr(0, 3) == "pad")
         {
