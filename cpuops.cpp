@@ -3391,7 +3391,7 @@ static void Op42 (void)
             snprintf(tmp, PATH_MAX, "%s-%06X", split.stem.c_str(), Registers.PBPC & 0xffffff);
             std::string filename = makepath(split.dir, S9xGetDirectory(SNAPSHOT_DIR), tmp, ".wdm");
 
-            sprintf(tmp, "WDM Snapshot at $%02X:%04X: %s", Registers.PB, Registers.PCw, filename.c_str());
+            snprintf(tmp, sizeof(tmp), "WDM Snapshot at $%02X:%04X: %s", Registers.PB, Registers.PCw, filename.c_str());
             S9xMessage(S9X_DEBUG, S9X_DEBUG_OUTPUT, tmp);
             S9xFreezeGame(filename.c_str());
 

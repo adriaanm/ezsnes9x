@@ -2406,7 +2406,7 @@ void CMemory::InitROM (void)
     strcpy(ROMId, SafeString(ROMId).c_str());
 
 
-	sprintf(String, "\"%s\" [%s] %s, %s, %s, %s, SRAM:%s, ID:%s, CRC32:%08X",
+	snprintf(String, sizeof(String), "\"%s\" [%s] %s, %s, %s, %s, SRAM:%s, ID:%s, CRC32:%08X",
 		SafeString(ROMName).c_str(),
 		 isChecksumOK ? "checksum ok"
 		 : Settings.IsPatched == 3 ? "UPS Patched"
@@ -3235,7 +3235,7 @@ const char * CMemory::StaticRAMSize (void)
 	if (SRAMSize > 16)
 		strcpy(str, "Corrupt");
 	else
-		sprintf(str, "%d Kbit", 8 * (SRAMMask + 1) / 1024);
+		snprintf(str, sizeof(str), "%d Kbit", 8 * (SRAMMask + 1) / 1024);
 
 	return (str);
 }
@@ -3249,7 +3249,7 @@ const char * CMemory::Size (void)
 	else if (ROMSize < 7 || ROMSize - 7 > 23)
 		strcpy(str, "Corrupt");
 	else
-		sprintf(str, "%d Mbit", 1 << (ROMSize - 7));
+		snprintf(str, sizeof(str), "%d Mbit", 1 << (ROMSize - 7));
 
 	return (str);
 }
@@ -3258,7 +3258,7 @@ const char * CMemory::Revision (void)
 {
 	static char	str[20];
 
-	sprintf(str, "1.%d", HiROM ? ((ExtendedFormat != NOPE) ? ROM[0x40ffdb] : ROM[0xffdb]) : ROM[0x7fdb]);
+	snprintf(str, sizeof(str), "1.%d", HiROM ? ((ExtendedFormat != NOPE) ? ROM[0x40ffdb] : ROM[0xffdb]) : ROM[0x7fdb]);
 
 	return (str);
 }
@@ -3298,14 +3298,14 @@ const char * CMemory::KartContents (void)
 	else if (Settings.SETA == ST_018)
 		strcpy(chip, "+ST-018");
 	else if (Settings.DSP)
-		sprintf(chip, "+DSP-%d", Settings.DSP);
+		snprintf(chip, sizeof(chip), "+DSP-%d", Settings.DSP);
 	else
 		strcpy(chip, "");
 
 	if (Settings.MSU1)
-		sprintf(chip + strlen(chip), "+MSU-1");
+		snprintf(chip + strlen(chip), sizeof(chip) - strlen(chip), "+MSU-1");
 
-	sprintf(str, "%s%s", contents[(ROMType & 0xf) % 3], chip);
+	snprintf(str, sizeof(str), "%s%s", contents[(ROMType & 0xf) % 3], chip);
 
 	return (str);
 }
@@ -3370,39 +3370,39 @@ void CMemory::MakeRomInfoText (char *romtext)
 
 	romtext[0] = 0;
 
-	sprintf(temp,   "            Cart Name: %s", ROMName);
+	snprintf(temp, sizeof(temp),   "            Cart Name: %s", ROMName);
 	strcat(romtext, temp);
-	sprintf(temp, "\n            Game Code: %s", ROMId);
+	snprintf(temp, sizeof(temp), "\n            Game Code: %s", ROMId);
 	strcat(romtext, temp);
-	sprintf(temp, "\n             Contents: %s", KartContents());
+	snprintf(temp, sizeof(temp), "\n             Contents: %s", KartContents());
 	strcat(romtext, temp);
-	sprintf(temp, "\n                  Map: %s", MapType());
+	snprintf(temp, sizeof(temp), "\n                  Map: %s", MapType());
 	strcat(romtext, temp);
-	sprintf(temp, "\n                Speed: 0x%02X (%s)", ROMSpeed, (ROMSpeed & 0x10) ? "FastROM" : "SlowROM");
+	snprintf(temp, sizeof(temp), "\n                Speed: 0x%02X (%s)", ROMSpeed, (ROMSpeed & 0x10) ? "FastROM" : "SlowROM");
 	strcat(romtext, temp);
-	sprintf(temp, "\n                 Type: 0x%02X", ROMType);
+	snprintf(temp, sizeof(temp), "\n                 Type: 0x%02X", ROMType);
 	strcat(romtext, temp);
-	sprintf(temp, "\n    Size (calculated): %dMbits", CalculatedSize / 0x20000);
+	snprintf(temp, sizeof(temp), "\n    Size (calculated): %dMbits", CalculatedSize / 0x20000);
 	strcat(romtext, temp);
-	sprintf(temp, "\n        Size (header): %s", Size());
+	snprintf(temp, sizeof(temp), "\n        Size (header): %s", Size());
 	strcat(romtext, temp);
-	sprintf(temp, "\n            SRAM size: %s", StaticRAMSize());
+	snprintf(temp, sizeof(temp), "\n            SRAM size: %s", StaticRAMSize());
 	strcat(romtext, temp);
-	sprintf(temp, "\nChecksum (calculated): 0x%04X", CalculatedChecksum);
+	snprintf(temp, sizeof(temp), "\nChecksum (calculated): 0x%04X", CalculatedChecksum);
 	strcat(romtext, temp);
-	sprintf(temp, "\n    Checksum (header): 0x%04X", ROMChecksum);
+	snprintf(temp, sizeof(temp), "\n    Checksum (header): 0x%04X", ROMChecksum);
 	strcat(romtext, temp);
-	sprintf(temp, "\n  Complement (header): 0x%04X", ROMComplementChecksum);
+	snprintf(temp, sizeof(temp), "\n  Complement (header): 0x%04X", ROMComplementChecksum);
 	strcat(romtext, temp);
-	sprintf(temp, "\n         Video Output: %s", (ROMRegion > 12 || ROMRegion < 2) ? "NTSC 60Hz" : "PAL 50Hz");
+	snprintf(temp, sizeof(temp), "\n         Video Output: %s", (ROMRegion > 12 || ROMRegion < 2) ? "NTSC 60Hz" : "PAL 50Hz");
 	strcat(romtext, temp);
-	sprintf(temp, "\n             Revision: %s", Revision());
+	snprintf(temp, sizeof(temp), "\n             Revision: %s", Revision());
 	strcat(romtext, temp);
-	sprintf(temp, "\n             Licensee: %s", PublishingCompany());
+	snprintf(temp, sizeof(temp), "\n             Licensee: %s", PublishingCompany());
 	strcat(romtext, temp);
-	sprintf(temp, "\n               Region: %s", Country());
+	snprintf(temp, sizeof(temp), "\n               Region: %s", Country());
 	strcat(romtext, temp);
-	sprintf(temp, "\n                CRC32: 0x%08X", ROMCRC32);
+	snprintf(temp, sizeof(temp), "\n                CRC32: 0x%08X", ROMCRC32);
 	strcat(romtext, temp);
 }
 

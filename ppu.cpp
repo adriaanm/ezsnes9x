@@ -973,7 +973,7 @@ void S9xSetPPU (uint8 Byte, uint16 Address)
 			missing.unknownppu_write = Address;
 			if (Settings.TraceUnknownRegisters)
 			{
-				sprintf(String, "Unknown register write: $%02X->$%04X\n", Byte, Address);
+				snprintf(String, sizeof(String), "Unknown register write: $%02X->$%04X\n", Byte, Address);
 				S9xMessage(S9X_TRACE, S9X_PPU_TRACE, String);
 			}
 		}

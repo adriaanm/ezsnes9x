@@ -94,7 +94,7 @@ bool8 S9xDoDMA (uint8 Channel)
 	#ifdef DEBUGGER
 		if (Settings.TraceDMA)
 		{
-			sprintf(String, "DMA[%d]: WRAM Bank:%02X->$2180", Channel, d->ABank);
+			snprintf(String, sizeof(String), "DMA[%d]: WRAM Bank:%02X->$2180", Channel, d->ABank);
 			S9xMessage(S9X_TRACE, S9X_DMA_TRACE, String);
 		}
 	#endif
@@ -145,7 +145,7 @@ bool8 S9xDoDMA (uint8 Channel)
 		#ifdef DEBUGGER
 			else
 			{
-				sprintf(String, "S-DD1: DMA from non-block address $%02X:%04X", d->ABank, d->AAddress);
+				snprintf(String, sizeof(String), "S-DD1: DMA from non-block address $%02X:%04X", d->ABank, d->AAddress);
 				S9xMessage(S9X_WARNING, S9X_DMA_TRACE, String);
 			}
 		#endif
@@ -198,7 +198,7 @@ bool8 S9xDoDMA (uint8 Channel)
 			uint8	*base = S9xGetBasePointer((d->ABank << 16) + addr);
 			if (!base)
 			{
-				sprintf(String, "SA-1: DMA from non-block address $%02X:%04X", d->ABank, addr);
+				snprintf(String, sizeof(String), "SA-1: DMA from non-block address $%02X:%04X", d->ABank, addr);
 				S9xMessage(S9X_WARNING, S9X_DMA_TRACE, String);
 				base = Memory.ROM;
 			}
@@ -317,19 +317,19 @@ bool8 S9xDoDMA (uint8 Channel)
 #ifdef DEBUGGER
 	if (Settings.TraceDMA)
 	{
-		sprintf(String, "DMA[%d]: %s Mode:%d 0x%02X%04X->0x21%02X Bytes:%d (%s) V:%03d",
+		int len = snprintf(String, sizeof(String), "DMA[%d]: %s Mode:%d 0x%02X%04X->0x21%02X Bytes:%d (%s) V:%03d",
 			Channel, d->ReverseTransfer ? "PPU->CPU" : "CPU->PPU", d->TransferMode, d->ABank, d->AAddress, d->BAddress,
 			d->TransferBytes, d->AAddressFixed ? "fixed" : (d->AAddressDecrement ? "dec" : "inc"), CPU.V_Counter);
 
 		if (d->BAddress == 0x18 || d->BAddress == 0x19 || d->BAddress == 0x39 || d->BAddress == 0x3a)
-			sprintf(String, "%s VRAM: %04X (%d,%d) %s", String,
+			snprintf(String + len, sizeof(String) - len, " VRAM: %04X (%d,%d) %s",
 				PPU.VMA.Address, PPU.VMA.Increment, PPU.VMA.FullGraphicCount, PPU.VMA.High ? "word" : "byte");
 		else
 		if (d->BAddress == 0x22 || d->BAddress == 0x3b)
-			sprintf(String, "%s CGRAM: %02X (%x)", String, PPU.CGADD, PPU.CGFLIP);
+			snprintf(String + len, sizeof(String) - len, " CGRAM: %02X (%x)", PPU.CGADD, PPU.CGFLIP);
 		else
 		if (d->BAddress == 0x04 || d->BAddress == 0x38)
-			sprintf(String, "%s OBJADDR: %04X", String, PPU.OAMAddr);
+			snprintf(String + len, sizeof(String) - len, " OBJADDR: %04X", PPU.OAMAddr);
 
 		S9xMessage(S9X_TRACE, S9X_DMA_TRACE, String);
 	}
@@ -546,7 +546,7 @@ bool8 S9xDoDMA (uint8 Channel)
 			#ifdef DEBUGGER
 				else
 				{
-					sprintf(String, "Unknown DMA transfer mode: %d on channel %d\n", d->TransferMode, Channel);
+					snprintf(String, sizeof(String), "Unknown DMA transfer mode: %d on channel %d\n", d->TransferMode, Channel);
 					S9xMessage(S9X_TRACE, S9X_DMA_TRACE, String);
 				}
 			#endif
@@ -853,7 +853,7 @@ bool8 S9xDoDMA (uint8 Channel)
 			#ifdef DEBUGGER
 				else
 				{
-					sprintf(String, "Unknown DMA transfer mode: %d on channel %d\n", d->TransferMode, Channel);
+					snprintf(String, sizeof(String), "Unknown DMA transfer mode: %d on channel %d\n", d->TransferMode, Channel);
 					S9xMessage(S9X_TRACE, S9X_DMA_TRACE, String);
 				}
 			#endif
@@ -985,7 +985,7 @@ bool8 S9xDoDMA (uint8 Channel)
 
 					default:
 					#ifdef DEBUGGER
-						sprintf(String, "Unknown DMA transfer mode: %d on channel %d\n", d->TransferMode, Channel);
+						snprintf(String, sizeof(String), "Unknown DMA transfer mode: %d on channel %d\n", d->TransferMode, Channel);
 						S9xMessage(S9X_TRACE, S9X_DMA_TRACE, String);
 					#endif
 						while (count)
@@ -1086,7 +1086,7 @@ bool8 S9xDoDMA (uint8 Channel)
 
 					default:
 					#ifdef DEBUGGER
-						sprintf(String, "Unknown DMA transfer mode: %d on channel %d\n", d->TransferMode, Channel);
+						snprintf(String, sizeof(String), "Unknown DMA transfer mode: %d on channel %d\n", d->TransferMode, Channel);
 						S9xMessage(S9X_TRACE, S9X_DMA_TRACE, String);
 					#endif
 						while (count)
@@ -1289,7 +1289,7 @@ uint8 S9xDoHDMA (uint8 byte)
 			#ifdef DEBUGGER
 				if (Settings.TraceHDMA && p->DoTransfer)
 				{
-					sprintf(String, "H-DMA[%d] %s (%d) 0x%06X->0x21%02X %s, Count: %3d, Rep: %s, V-LINE: %3ld %02X%04X",
+					snprintf(String, sizeof(String), "H-DMA[%d] %s (%d) 0x%06X->0x21%02X %s, Count: %3d, Rep: %s, V-LINE: %3ld %02X%04X",
 							p-DMA, p->ReverseTransfer? "read" : "write",
 							p->TransferMode, ShiftedIBank+IAddr, p->BAddress,
 							p->HDMAIndirectAddressing ? "ind" : "abs",

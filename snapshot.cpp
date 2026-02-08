@@ -1085,7 +1085,7 @@ bool8 S9xFreezeGame (const char *filename)
 		S9xResetSaveTimer(TRUE);
 
 		auto base = S9xBasename(filename);
-		sprintf(String, SAVE_INFO_SNAPSHOT " %s", base.c_str());
+		snprintf(String, sizeof(String), SAVE_INFO_SNAPSHOT " %s", base.c_str());
 
 		S9xMessage(S9X_INFO, S9X_FREEZE_FILE_INFO, String);
 
@@ -1117,7 +1117,7 @@ void S9xMessageFromResult(int result, const char* base)
 
         case FILE_NOT_FOUND:
         default:
-            sprintf(String, SAVE_ERR_ROM_NOT_FOUND, base);
+            snprintf(String, sizeof(String), SAVE_ERR_ROM_NOT_FOUND, base);
             S9xMessage(S9X_ERROR, S9X_ROM_NOT_FOUND, String);
             break;
     }
@@ -1144,14 +1144,14 @@ bool8 S9xUnfreezeGame (const char *filename)
 			return (FALSE);
 		}
 
-		sprintf(String, SAVE_INFO_LOAD " %s", base.c_str());
+		snprintf(String, sizeof(String), SAVE_INFO_LOAD " %s", base.c_str());
 
 		S9xMessage(S9X_INFO, S9X_FREEZE_FILE_INFO, String);
 
 		return (TRUE);
 	}
 
-	sprintf(String, SAVE_ERR_SAVE_NOT_FOUND, base.c_str());
+	snprintf(String, sizeof(String), SAVE_ERR_SAVE_NOT_FOUND, base.c_str());
 	S9xMessage(S9X_INFO, S9X_FREEZE_FILE_INFO, String);
 
 	return (FALSE);
@@ -1179,7 +1179,7 @@ bool8 S9xUnfreezeScreenshot(const char *filename, uint16 **image_buffer, int &wi
         return (TRUE);
     }
 
-    sprintf(String, SAVE_ERR_SAVE_NOT_FOUND, base.c_str());
+    snprintf(String, sizeof(String), SAVE_ERR_SAVE_NOT_FOUND, base.c_str());
     S9xMessage(S9X_INFO, S9X_FREEZE_FILE_INFO, String);
 
     return (FALSE);
@@ -1190,10 +1190,10 @@ void S9xFreezeToStream (STREAM stream)
 	char	buffer[8192];
 	uint8	*soundsnapshot = new uint8[SPC_SAVE_STATE_BLOCK_SIZE];
 
-	sprintf(buffer, "%s:%04d\n", SNAPSHOT_MAGIC, SNAPSHOT_VERSION);
+	snprintf(buffer, sizeof(buffer), "%s:%04d\n", SNAPSHOT_MAGIC, SNAPSHOT_VERSION);
 	WRITE_STREAM(buffer, strlen(buffer), stream);
 
-	sprintf(buffer, "NAM:%06d:%s%c", 8, "Removed", 0);
+	snprintf(buffer, sizeof(buffer), "NAM:%06d:%s%c", 8, "Removed", 0);
 	WRITE_STREAM(buffer, strlen(buffer) + 1, stream);
 
 	FreezeStruct(stream, "CPU", &CPU, SnapCPU, COUNT(SnapCPU));
@@ -2012,11 +2012,11 @@ static void FreezeBlock (STREAM stream, const char *name, uint8 *block, int size
 
 	// check if it fits in 6 digits. (letting it go over and using strlen isn't safe)
 	if (size <= 999999)
-		sprintf(buffer, "%s:%06d:", name, size);
+		snprintf(buffer, sizeof(buffer), "%s:%06d:", name, size);
 	else
 	{
 		// to make it fit, pack it in the bytes instead of as digits
-		sprintf(buffer, "%s:------:", name);
+		snprintf(buffer, sizeof(buffer), "%s:------:", name);
 		buffer[6] = (unsigned char) ((unsigned) size >> 24);
 		buffer[7] = (unsigned char) ((unsigned) size >> 16);
 		buffer[8] = (unsigned char) ((unsigned) size >> 8);

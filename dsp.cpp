@@ -34,7 +34,7 @@ uint8 S9xGetDSP (uint16 address)
 #ifdef DEBUGGER
 	if (Settings.TraceDSP)
 	{
-		sprintf(String, "DSP read: 0x%04X", address);
+		snprintf(String, sizeof(String), "DSP read: 0x%04X", address);
 		S9xMessage(S9X_TRACE, S9X_TRACE_DSP1, String);
 	}
 #endif
@@ -48,7 +48,7 @@ void S9xSetDSP (uint8 byte, uint16 address)
 	missing.unknowndsp_write = address;
 	if (Settings.TraceDSP)
 	{
-		sprintf(String, "DSP write: 0x%04X=0x%02X", address, byte);
+		snprintf(String, sizeof(String), "DSP write: 0x%04X=0x%02X", address, byte);
 		S9xMessage(S9X_TRACE, S9X_TRACE_DSP1, String);
 	}
 #endif
