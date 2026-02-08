@@ -1,61 +1,115 @@
-# Snes9x
-*Snes9x - Portable Super Nintendo Entertainment System (TM) emulator*
+# Snes9x — Simplified Fork
 
-This is the official source code repository for the Snes9x project.
+> A stripped-down SNES emulator targeting absolute simplicity with two indulgences: suspend/resume and rewind.
 
-Please check the [Wiki](https://github.com/snes9xgit/snes9x/wiki) for additional information.
+This is a fork of [Snes9x](https://github.com/snes9xgit/snes9x) focused on a "plug in a cartridge and play" philosophy. It supports exactly two platforms:
+- **macOS** — Metal rendering, GCController input
+- **Android gaming handhelds** — OpenGL ES, gamepad input
 
-## Nightly builds
+## Philosophy
 
-Download nightly builds from continuous integration:
+- **No UI complexity**: No menus, configuration screens, or on-screen displays
+- **Gamepad-only**: Keyboard for development/testing, but designed for controllers
+- **Two quality-of-life features**:
+  - **Suspend/Resume**: Automatic save state on app suspend
+  - **Rewind**: 30-second rewind buffer (hold L2/ZL trigger)
+- **External configuration**: YAML config file, ROM specified at launch
+- **Modern codebase**: Removed debugger, netplay, movie recording, cheats, light gun support, display overlays, compressed ROM loading, CPU overclock, turbo mode, screenshots
 
-### snes9x
+## Building
 
-| OS            | status                                           |
-|---------------|--------------------------------------------------|
-| Windows       | [![Status][s9x-win-all]][appveyor]               |
-| Linux (GTK)   | [![Status][snes9x_linux-gtk-amd64]][cirrus-ci]   |
-| Linux (X11)   | [![Status][snes9x_linux-x11-amd64]][cirrus-ci]   |
-| FreeBSD (X11) | [![Status][snes9x_freebsd-x11-amd64]][cirrus-ci] |
-| macOS         | [![Status][snes9x_macOS-amd64]][cirrus-ci]       |
+### macOS
 
-[appveyor]: https://ci.appveyor.com/project/snes9x/snes9x
-[cirrus-ci]: http://cirrus-ci.com/github/snes9xgit/snes9x
+```bash
+cmake -G "Unix Makefiles" -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build -j$(sysctl -n hw.ncpu)
+./build/platform/macos/snes9x-macos.app/Contents/MacOS/snes9x-macos path/to/rom.sfc
+```
 
-[s9x-win-all]: https://ci.appveyor.com/api/projects/status/github/snes9xgit/snes9x?branch=master&svg=true
-[snes9x_linux-gtk-amd64]: https://api.cirrus-ci.com/github/snes9xgit/snes9x.svg?task=snes9x_linux-gtk-amd64
-[snes9x_linux-x11-amd64]: https://api.cirrus-ci.com/github/snes9xgit/snes9x.svg?task=snes9x_linux-x11-amd64
-[snes9x_freebsd-x11-amd64]: https://api.cirrus-ci.com/github/snes9xgit/snes9x.svg?task=snes9x_freebsd-x11-amd64
-[snes9x_macOS-amd64]: https://api.cirrus-ci.com/github/snes9xgit/snes9x.svg?task=snes9x_macOS-amd64
+Optional flags:
+- `--config path/to/config.yaml` — Load configuration file
+- `--debug` — Enable debug logging
 
-### libretro core
+### Android
 
-| OS                  | status                                                  |
-|---------------------|---------------------------------------------------------|
-| Linux/amd64         | [![Status][libretro_linux-amd64]][cirrus-ci]            |
-| Linux/i386          | [![Status][libretro_linux-i386]][cirrus-ci]             |
-| Linux/armhf         | [![Status][libretro_linux-armhf]][cirrus-ci]            |
-| Linux/armv7-neon-hf | [![Status][libretro_linux-armv7-neon-hf]][cirrus-ci]    |
-| Linux/arm64         | [![Status][libretro_linux-arm64]][cirrus-ci]            |
-| Android/arm         | [![Status][libretro_android-arm]][cirrus-ci]            |
-| Android/arm64       | [![Status][libretro_android-arm64]][cirrus-ci]          |
-| Emscripten          | [![Status][libretro_emscripten]][cirrus-ci]             |
-| macOS/amd64         | [![Status][libretro_macOS-amd64]][cirrus-ci]            |
-| Nintendo Wii        | [![Status][libretro_nintendo-wii]][cirrus-ci]           |
-| Nintendo Switch     | [![Status][libretro_nintendo-switch-libnx]][cirrus-ci]  |
-| Nintendo GameCube   | [![Status][libretro_nintendo-ngc]][cirrus-ci]           |
-| PSP                 | [![Status][libretro_playstation-psp]][cirrus-ci]        |
+*Coming soon*
 
-[libretro_linux-amd64]: https://api.cirrus-ci.com/github/snes9xgit/snes9x.svg?task=libretro_linux-amd64
-[libretro_linux-i386]: https://api.cirrus-ci.com/github/snes9xgit/snes9x.svg?task=libretro_linux-i386
-[libretro_linux-armhf]: https://api.cirrus-ci.com/github/snes9xgit/snes9x.svg?task=libretro_linux-armhf
-[libretro_linux-armv7-neon-hf]: https://api.cirrus-ci.com/github/snes9xgit/snes9x.svg?task=libretro_linux-armv7-neon-hf
-[libretro_linux-arm64]: https://api.cirrus-ci.com/github/snes9xgit/snes9x.svg?task=libretro_linux-arm64
-[libretro_android-arm]: https://api.cirrus-ci.com/github/snes9xgit/snes9x.svg?task=libretro_android-arm
-[libretro_android-arm64]: https://api.cirrus-ci.com/github/snes9xgit/snes9x.svg?task=libretro_android-arm64
-[libretro_emscripten]: https://api.cirrus-ci.com/github/snes9xgit/snes9x.svg?task=libretro_emscripten
-[libretro_macOS-amd64]: https://api.cirrus-ci.com/github/snes9xgit/snes9x.svg?task=libretro_macOS-amd64
-[libretro_nintendo-wii]: https://api.cirrus-ci.com/github/snes9xgit/snes9x.svg?task=libretro_nintendo-wii
-[libretro_nintendo-switch-libnx]: https://api.cirrus-ci.com/github/snes9xgit/snes9x.svg?task=libretro_nintendo-switch-libnx
-[libretro_nintendo-ngc]: https://api.cirrus-ci.com/github/snes9xgit/snes9x.svg?task=libretro_nintendo-ngc
-[libretro_playstation-psp]: https://api.cirrus-ci.com/github/snes9xgit/snes9x.svg?task=libretro_playstation-psp
+## Configuration
+
+Configuration is optional. See `config.example.yaml` for available settings. Config is searched in:
+1. Path specified with `--config`
+2. Current working directory (`snes9x.yaml`)
+3. `~/.snes9x/config.yaml`
+4. XDG config directory
+
+## Controls
+
+### macOS
+
+**Keyboard** (development/testing):
+- Arrow keys / WASD: D-pad
+- L/K: A/B
+- I/O or J: X/Y
+- F/P: L/R
+- Enter: Start
+- Space/Tab: Select
+
+**Game Controller**:
+- D-pad: D-pad
+- A/B/X/Y: SNES A/B/X/Y
+- L1/R1: SNES L/R
+- Menu: Start
+- Options: Select
+- **L2/ZL**: Rewind (hold to rewind, release to resume)
+
+**Mouse**:
+- Click: Toggle pause
+
+## Project Status
+
+**Phase 1** (Strip Core): ✅ Complete
+- Removed debugger, netplay, movie recording, cheats, light gun peripherals, overlays, compressed ROM loading, old config system, CPU overclock, turbo mode, screenshots
+- Cleaned up Settings struct
+
+**Phase 2** (Build System & Rewind): ✅ Complete
+- CMake build producing static core library
+- YAML configuration parser (no external deps)
+- XOR-delta compressed rewind engine (600 snapshots, ~30 seconds)
+- Deleted all old frontends and most external dependencies
+
+**Phase 3** (New Frontends): 🚧 In Progress
+- macOS frontend: ✅ Complete (Metal, AVAudioEngine, GCController, suspend/resume, rewind with progress bar)
+- Android frontend: ⏳ Pending
+
+## Architecture
+
+```
+snes9x/
+├── CMakeLists.txt           # Core library build
+├── *.cpp, *.h               # Core emulation (CPU, PPU, DMA, cartridge chips)
+├── apu/                     # Audio processing unit
+├── config.cpp/h             # YAML config parser
+├── rewind.cpp/h             # Rewind ring buffer with XOR-delta compression
+├── external/stb/            # stb_image (minimal dependency)
+├── platform/
+│   ├── shared/              # Shared emulator wrapper API
+│   │   ├── emulator.cpp/h   # Init, run frame, rewind, suspend/resume
+│   └── macos/               # macOS Metal frontend
+│       └── main.mm          # Single-file Metal+Audio+Input app
+└── data/                    # Resources (icons, etc.)
+```
+
+The core emulator builds as a static library (`libsnes9x-core`). Platform frontends link against it and implement the port interface functions declared in `display.h`.
+
+## Documentation
+
+- **[CLAUDE.md](CLAUDE.md)** — Guide for Claude Code when working with this repository
+- **[PLAN.md](PLAN.md)** — Detailed simplification plan with progress tracking
+- **[LEARNINGS.md](LEARNINGS.md)** — Critical codebase patterns and gotchas
+- **[LICENSE](LICENSE)** — Snes9x license
+
+## Credits
+
+Based on [Snes9x](https://github.com/snes9xgit/snes9x) by the Snes9x team.
+
+This fork simplifies the codebase for personal use on macOS and Android gaming handhelds.

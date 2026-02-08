@@ -4,6 +4,64 @@
    For further information, consult the LICENSE file in the root directory.
 \*****************************************************************************/
 
+/*
+ * SNAPSHOT FILE FORMAT
+ * ====================
+ *
+ * Snes9x snapshot files may be gzip-compressed and begin with a fixed-length
+ * signature: string, ':', 4-digit decimal version, '\n'.
+ *
+ *   #!s9xsnp:0006\n
+ *
+ * Blocks follow in a defined order. Block format: 3-char name, ':', 6-digit
+ * length, ':', data. Structs are written packed with members in defined order,
+ * big-endian where applicable.
+ *
+ *   NAM:000019:Chrono Trigger.zip
+ *
+ * Essential blocks (always present):
+ *   NAM - ROM filename (Memory.ROMFilename), 0-terminated string
+ *   CPU - struct SCPUState, CPU internal state
+ *   REG - struct SRegisters, emulated CPU registers
+ *   PPU - struct SPPU, PPU internal variables (IPPU never saved)
+ *   DMA - struct SDMA, DMA/HDMA state
+ *   VRA - Memory.VRAM, 0x10000 bytes
+ *   RAM - Memory.RAM, 0x20000 bytes (WRAM)
+ *   SRA - Memory.SRAM, 0x20000 bytes
+ *   FIL - Memory.FillRAM, 0x8000 bytes (register backing store)
+ *   SND - All sound emulated registers and state variables
+ *   CTL - struct SControlSnapshot, controller emulation
+ *   TIM - struct STimings, timings between emulated events
+ *
+ * Optional blocks (cartridge-dependent):
+ *   SFX - struct FxRegs_s, Super FX
+ *   SA1 - struct SSA1, SA1 internal state
+ *   SAR - struct SSA1Registers, SA1 emulated registers
+ *   DP1 - struct SDSP1, DSP-1
+ *   DP2 - struct SDSP2, DSP-2
+ *   DP4 - struct SDSP4, DSP-4
+ *   CX4 - Memory.C4RAM, 0x2000 bytes
+ *   ST0 - struct SST010, ST-010
+ *   OBC - struct SOBC1, OBC1 internal state
+ *   OBM - Memory.OBC1RAM, 0x2000 bytes
+ *   S71 - struct SSPC7110Snapshot, SPC7110
+ *   SRT - struct SSRTCSnapshot, S-RTC internal state
+ *   CLK - struct SRTCData, S-RTC emulated registers
+ *   BSX - struct SBSX, BS-X
+ *   SHO - rendered SNES screen (only in user save states, not rewind)
+ *   MOV - struct SnapshotMovieInfo (removed in this fork)
+ *   MID - Movie subsystem data (removed in this fork)
+ *
+ * Version compatibility:
+ *   - Blocks may be added at END without version bump
+ *   - Blocks may increase in size (must handle old shorter sizes)
+ *   - Blocks may NOT decrease in size or be moved/removed
+ *   - Struct members may NOT change interpretation
+ *   - New struct members only at END, must handle binary-0 in old saves
+ *   - Version bump required for: removing blocks, decreasing size,
+ *     changing struct member types, reordering anything
+ */
+
 #include <assert.h>
 #include "snes9x.h"
 #include "memmap.h"
