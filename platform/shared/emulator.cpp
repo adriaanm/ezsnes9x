@@ -59,6 +59,7 @@ bool Init(const char *config_path)
     Settings.SixteenBitSound     = TRUE;
     Settings.FrameTime           = 16667; // ~60 fps
     Settings.StopEmulation       = TRUE;
+    Settings.MaxSpriteTilesPerLine = 34; // Enable sprite rendering (34 = standard limit)
 
     // Default controller setup: pad0 on port 0, pad1 on port 1
     S9xSetController(0, CTL_JOYPAD, 0, -1, -1, -1);
