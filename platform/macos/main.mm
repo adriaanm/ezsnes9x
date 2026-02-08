@@ -263,6 +263,7 @@ static S9xKeyboardMapping g_keyboardMapping;
 // ---------------------------------------------------------------------------
 
 static uint16_t g_keyboardButtons = 0;
+static bool g_keyboardEnabled = true;
 
 // Default keyboard mapping (macOS keycodes)
 static void InitDefaultKeyboardMapping() {
@@ -281,6 +282,9 @@ static void InitDefaultKeyboardMapping() {
 }
 
 static void HandleKeyEvent(NSEvent *event, BOOL pressed) {
+    if (!g_keyboardEnabled)
+        return;
+
     int keyCode = event.keyCode;
     uint16_t mask = 0;
     const char *button = nullptr;
@@ -654,10 +658,15 @@ static void HandleKeyEvent(NSEvent *event, BOOL pressed) {
     // Load keyboard mapping from config or use defaults
     InitDefaultKeyboardMapping();
     const S9xConfig *config = Emulator::GetConfig();
-    if (config && !config->keyboard.button_to_keycode.empty()) {
-        g_keyboardMapping = config->keyboard;
+    if (config) {
+        g_keyboardEnabled = config->keyboard.enabled;
+        if (!config->keyboard.button_to_keycode.empty()) {
+            g_keyboardMapping = config->keyboard;
+            if (g_debug)
+                printf("[Input] Loaded custom keyboard mapping from config\n");
+        }
         if (g_debug)
-            printf("[Input] Loaded custom keyboard mapping from config\n");
+            printf("[Input] Keyboard enabled: %s\n", g_keyboardEnabled ? "yes" : "no");
     }
 
     if (!Emulator::LoadROM([romPath UTF8String])) {

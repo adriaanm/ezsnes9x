@@ -63,34 +63,6 @@ static bool file_exists(const std::string &path)
 }
 
 // ---------------------------------------------------------------------------
-// Map a controller string ("pad1", "none", "mp5", etc.) to a controller enum
-// and id values suitable for S9xSetController.
-// ---------------------------------------------------------------------------
-
-static void parse_controller(int port, const std::string &value)
-{
-    std::string v = value;
-    std::transform(v.begin(), v.end(), v.begin(), ::tolower);
-
-    if (v == "none" || v == "")
-    {
-        S9xSetController(port, CTL_NONE, -1, -1, -1, -1);
-    }
-    else
-    {
-        // Joypad only. Parse "pad0" through "pad7"
-        int id = 0;
-        if (v.size() >= 4 && v.substr(0, 3) == "pad")
-        {
-            int n = 0;
-            if (parse_int(v.substr(3), n) && n >= 0 && n <= 7)
-                id = n;
-        }
-        S9xSetController(port, CTL_JOYPAD, id, -1, -1, -1);
-    }
-}
-
-// ---------------------------------------------------------------------------
 // Apply a parsed key-value pair to Settings / S9xConfig
 // ---------------------------------------------------------------------------
 
@@ -110,18 +82,16 @@ static void apply_setting(const std::string &section,
     }
     else if (section == "keyboard")
     {
-        // Store keycode for this button mapping
-        if (parse_int(value, ival))
+        if (key == "enabled" && parse_bool(value, bval))
+            config.keyboard.enabled = bval;
+        else if (parse_int(value, ival))
+            // Store keycode for this button mapping
             config.keyboard.button_to_keycode[key] = ival;
     }
     else if (section == "input")
     {
         if (key == "up_and_down" && parse_bool(value, bval))
             Settings.UpAndDown = bval ? TRUE : FALSE;
-        else if (key == "player1")
-            parse_controller(0, value);
-        else if (key == "player2")
-            parse_controller(1, value);
     }
 }
 

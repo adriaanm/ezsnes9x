@@ -12,6 +12,7 @@
 #include <map>
 
 struct S9xKeyboardMapping {
+    bool enabled = true;  // Whether keyboard input is enabled
     std::map<std::string, int> button_to_keycode; // e.g., "up" -> 126
 };
 

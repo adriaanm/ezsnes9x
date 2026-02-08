@@ -42,8 +42,11 @@ Configuration is optional. The emulator uses sensible defaults. If you need to c
 # Where to store .srm save files (default: same directory as ROM)
 save_dir: /path/to/saves
 
-# Keyboard mapping (macOS keycodes)
+# Keyboard controls player 1 by default
 keyboard:
+  enabled: true   # Set to false to disable keyboard input
+
+  # Customize key mappings (macOS keycodes shown)
   up: 126         # Arrow up
   down: 125       # Arrow down
   left: 123       # Arrow left
@@ -58,15 +61,13 @@ keyboard:
   select: 49      # Space
 
 input:
-  # Controller assignments (default: pad0 on port 1, pad1 on port 2)
-  player1: pad0   # Options: pad0-7, none
-  player2: pad1   # Options: pad0-7, none
-
   # Allow simultaneous opposing directions (default: false)
   up_and_down: false
 ```
 
-**Keyboard mapping:** Use macOS keycodes. To find keycodes, run with `--debug` and press unmapped keys - the keycode will be printed to console.
+**Finding keycodes:** Run with `--debug` and press keys - unmapped keycodes will be printed to console.
+
+**Controller assignment:** Game controllers are automatically assigned to player 1 and player 2 in connection order. Keyboard always controls player 1 (unless disabled).
 
 Config file is searched in order:
 1. Path specified with `--config`
