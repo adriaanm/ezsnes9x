@@ -138,11 +138,9 @@ typedef struct
 	};
 }	s9xcommand_t;
 
-// Starting out...
-
-void S9xUnmapAllControls (void);
-
-// Setting which controllers are plugged in.
+//////////
+// Controller configuration
+//////////
 
 enum controllers
 {
@@ -151,128 +149,66 @@ enum controllers
 	CTL_MOUSE,		// use id1 to specify 0-1
 	CTL_SUPERSCOPE,
 	CTL_JUSTIFIER,	// use id1: 0=one justifier, 1=two justifiers
-	CTL_MP5,			// use id1-id4 to specify pad 0-7 (or -1)
+	CTL_MP5,		// use id1-id4 to specify pad 0-7 (or -1)
 	CTL_MACSRIFLE
 };
 
+// Configure which controller is plugged into port 0 or 1
+// Called by: platform/shared/emulator.cpp (setup)
 void S9xSetController (int port, enum controllers controller, int8 id1, int8 id2, int8 id3, int8 id4); // port=0-1
-void S9xGetController (int port, enum controllers *controller, int8 *id1, int8 *id2, int8 *id3, int8 *id4);
-void S9xReportControllers (void);
 
-// Call this when you're done with S9xSetController, or if you change any of the controller Settings.*Master flags. 
-// Returns true if something was disabled.
-
+// Verify controller configuration is valid, returns true if something was disabled
+// Called by: platform/shared/emulator.cpp, memmap.cpp
 bool S9xVerifyControllers (void);
 
-// Functions for translation s9xcommand_t's into strings, and vice versa.
-// free() the returned string after you're done with it.
-
-char * S9xGetCommandName (s9xcommand_t command);
-s9xcommand_t S9xGetCommandT (const char *name);
-
-// Returns an array of strings naming all the snes9x commands.
-// Note that this is only the strings for S9xButtonCommand!
-// The idea is that this would be used for a pull-down list in a config GUI. DO NOT free() the returned value.
-
-const char ** S9xGetAllSnes9xCommands (void);
-
-// Generic mapping functions
-
-s9xcommand_t S9xGetMapping (uint32 id);
-void S9xUnmapID (uint32 id);
-
-// Button mapping functions.
-// If a button is mapped with poll=TRUE, then S9xPollButton will be called whenever snes9x feels a need for that mapping.
-// Otherwise, snes9x will assume you will call S9xReportButton() whenever the button state changes.
-// S9xMapButton() will fail and return FALSE if mapping.type isn't an S9xButton* type.
-
-bool S9xMapButton (uint32 id, s9xcommand_t mapping, bool poll);
-void S9xReportButton (uint32 id, bool pressed);
-
-// Pointer mapping functions.
-// If a pointer is mapped with poll=TRUE, then S9xPollPointer will be called whenever snes9x feels a need for that mapping.
-// Otherwise, snes9x will assume you will call S9xReportPointer() whenever the pointer position changes.
-// S9xMapPointer() will fail and return FALSE if mapping.type isn't an S9xPointer* type.
-
-// Note that position [0,0] is considered the upper-left corner of the 'screen',
-// and either [255,223] or [255,239] is the lower-right.
-// Note that the SNES mouse doesn't aim at a particular point,
-// so the SNES's idea of where the mouse pointer is will probably differ from your OS's idea.
-
-bool S9xMapPointer (uint32 id, s9xcommand_t mapping, bool poll);
-void S9xReportPointer (uint32 id, int16 x, int16 y);
-
-// Axis mapping functions.
-// If an axis is mapped with poll=TRUE, then S9xPollAxis will be called whenever snes9x feels a need for that mapping.
-// Otherwise, snes9x will assume you will call S9xReportAxis() whenever the axis deflection changes.
-// S9xMapAxis() will fail and return FALSE if mapping.type isn't an S9xAxis* type.
-
-// Note that value is linear -32767 through 32767 with 0 being no deflection.
-// If your axis reports differently you should transform the value before passing it to S9xReportAxis().
-
-bool S9xMapAxis (uint32 id, s9xcommand_t mapping, bool poll);
-void S9xReportAxis (uint32 id, int16 value);
-
-// Do whatever the s9xcommand_t says to do.
-// If cmd.type is a button type, data1 should be TRUE (non-0) or FALSE (0) to indicate whether the 'button' is pressed or released.
-// If cmd.type is an axis, data1 holds the deflection value.
-// If cmd.type is a pointer, data1 and data2 are the positions of the pointer.
-
-void S9xApplyCommand (s9xcommand_t cmd, int16 data1, int16 data2);
-
 //////////
-// These functions are called by snes9x into your port, so each port should implement them.
+// Port interface stubs (implemented by frontend)
+//////////
 
-// If something was mapped with poll=TRUE, these functions will be called when snes9x needs the button/axis/pointer state.
-// Fill in the reference options as appropriate.
-
+// Port command handling - empty stubs in emulator.cpp
+// Called by: controls.cpp internally
 bool S9xPollButton (uint32 id, bool *pressed);
 bool S9xPollPointer (uint32 id, int16 *x, int16 *y);
 bool S9xPollAxis (uint32 id, int16 *value);
-
-// These are called when snes9x tries to apply a command with a S9x*Port type.
-// data1 and data2 are filled in like S9xApplyCommand.
-
 void S9xHandlePortCommand (s9xcommand_t cmd, int16 data1, int16 data2);
-
-// Called before already-read SNES joypad data is being used by the game if your port defines SNES_JOY_READ_CALLBACKS.
-
-#ifdef SNES_JOY_READ_CALLBACKS
-void S9xOnSNESPadRead (void);
-#endif
-
-// These are for your use.
-
 s9xcommand_t S9xGetPortCommandT (const char *name);
 char * S9xGetPortCommandName (s9xcommand_t command);
 void S9xSetupDefaultKeymap (void);
 bool8 S9xMapInput (const char *name, s9xcommand_t *cmd);
 
-// Direct joypad button state setter for platform wrappers.
+#ifdef SNES_JOY_READ_CALLBACKS
+void S9xOnSNESPadRead (void);
+#endif
+
+//////////
+// Direct joypad interface (preferred for new frontends)
+//////////
+
+// Set joypad button state directly - this is the main input function for new frontends
+// Called by: platform/shared/emulator.cpp
 // pad: 0-7, buttons: SNES_*_MASK bitmask from snes9x.h
 void S9xSetJoypadButtons (int pad, uint16 buttons);
 
 //////////
-// These functions are called from snes9x into this subsystem. No need to use them from a port.
+// Core emulator callbacks (called by PPU/CPU/etc)
+//////////
 
-// Use when resetting snes9x.
-
+// Called by: ppu.cpp on reset
 void S9xControlsReset (void);
 void S9xControlsSoftReset (void);
 
-// Use when writing to $4016.
-
+// Called by: ppu.cpp when writing to $4016 (joypad latch)
 void S9xSetJoypadLatch (bool latch);
 
-// Use when reading $4016/7 (JOYSER0 and JOYSER1).
-
+// Called by: ppu.cpp when reading $4016/$4017 (joypad serial)
 uint8 S9xReadJOYSERn (int n);
 
-// End-Of-Frame processing. Sets gun latch variables and tries to draw crosshairs
-
+// Called by: gfx.cpp at end of frame (gun latch, crosshairs)
 void S9xControlEOF (void);
 
-// Functions and a structure for snapshot.
+//////////
+// Save state support
+//////////
 
 struct SControlSnapshot
 {
@@ -289,6 +225,7 @@ struct SControlSnapshot
 	uint8   internal_macs[5];
 };
 
+// Called by: snapshot.cpp
 void S9xControlPreSaveState (struct SControlSnapshot *s);
 void S9xControlPostLoadState (struct SControlSnapshot *s);
 

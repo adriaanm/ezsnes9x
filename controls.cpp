@@ -262,39 +262,6 @@ void S9xControlsSoftReset (void)
 	curcontrollers[1] = newcontrollers[1];
 }
 
-void S9xUnmapAllControls (void)
-{
-	S9xControlsReset();
-
-	keymap.clear();
-
-	for (int i = 0; i < (int) multis.size(); i++)
-		free(multis[i]);
-	multis.clear();
-
-	for (int i = 0; i < NUMCTLS + 1; i++)
-		pollmap[i].clear();
-
-	for (int i = 0; i < 8; i++)
-	{
-		pseudopointer[i].x = 0;
-		pseudopointer[i].y = 0;
-		pseudopointer[i].H_adj = 0;
-		pseudopointer[i].V_adj = 0;
-		pseudopointer[i].H_var = 0;
-		pseudopointer[i].V_var = 0;
-		pseudopointer[i].mapped = false;
-
-		joypad[i].buttons  = 0;
-		joypad[i].turbos   = 0;
-		joypad[i].turbo_ct = 0;
-	}
-
-	memset(pseudobuttons, 0, sizeof(pseudobuttons));
-
-	turbo_time = 1;
-}
-
 void S9xSetController (int port, enum controllers controller, int8 id1, int8 id2, int8 id3, int8 id4)
 {
 	if (port < 0 || port > 1)
@@ -404,87 +371,6 @@ bool S9xVerifyControllers (void)
 	}
 
 	return (ret);
-}
-
-void S9xGetController (int port, enum controllers *controller, int8 *id1, int8 *id2, int8 *id3, int8 *id4)
-{
-	int	i;
-
-	*controller = CTL_NONE;
-	*id1 = *id2 = *id3 = *id4 = -1;
-
-	if (port < 0 || port > 1)
-		return;
-
-	switch (i = newcontrollers[port])
-	{
-		case MP5:
-			*controller = CTL_MP5;
-			*id1 = (mp5[port].pads[0] == NONE) ? -1 : mp5[port].pads[0] - JOYPAD0;
-			*id2 = (mp5[port].pads[1] == NONE) ? -1 : mp5[port].pads[1] - JOYPAD0;
-			*id3 = (mp5[port].pads[2] == NONE) ? -1 : mp5[port].pads[2] - JOYPAD0;
-			*id4 = (mp5[port].pads[3] == NONE) ? -1 : mp5[port].pads[3] - JOYPAD0;
-			return;
-
-		case JOYPAD0:
-		case JOYPAD1:
-		case JOYPAD2:
-		case JOYPAD3:
-		case JOYPAD4:
-		case JOYPAD5:
-		case JOYPAD6:
-		case JOYPAD7:
-			*controller = CTL_JOYPAD;
-			*id1 = i - JOYPAD0;
-			return;
-
-	}
-}
-
-void S9xReportControllers (void)
-{
-	static char	mes[128];
-	char		*c = mes;
-
-	S9xVerifyControllers();
-
-	for (int port = 0; port < 2; port++)
-	{
-		c += sprintf(c, "Port %d: ", port + 1);
-
-		switch (newcontrollers[port])
-		{
-			case NONE:
-				c += sprintf(c, "<none>. ");
-				break;
-
-			case MP5:
-				c += sprintf(c, "MP5 with pads");
-				for (int i = 0; i < 4; i++)
-				{
-					if (mp5[port].pads[i] == NONE)
-						c += sprintf(c, " <none>. ");
-					else
-						c += sprintf(c, " #%d. ", mp5[port].pads[i] + 1 - JOYPAD0);
-				}
-
-				break;
-
-			case JOYPAD0:
-			case JOYPAD1:
-			case JOYPAD2:
-			case JOYPAD3:
-			case JOYPAD4:
-			case JOYPAD5:
-			case JOYPAD6:
-			case JOYPAD7:
-				c += sprintf(c, "Pad #%d. ", (int) (newcontrollers[port] - JOYPAD0 + 1));
-				break;
-
-		}
-	}
-
-	S9xMessage(S9X_INFO, S9X_CONFIG_INFO, mes);
 }
 
 char * S9xGetCommandName (s9xcommand_t command)
@@ -1050,11 +936,6 @@ s9xcommand_t S9xGetCommandT (const char *name)
 	return (cmd);
 }
 
-const char ** S9xGetAllSnes9xCommands (void)
-{
-	return (command_names);
-}
-
 s9xcommand_t S9xGetMapping (uint32 id)
 {
 	if (keymap.count(id) == 0)
@@ -1088,246 +969,6 @@ void S9xUnmapID (uint32 id)
 		pseudopointer[id - PseudoPointerBase].mapped = false;
 
 	keymap.erase(id);
-}
-
-bool S9xMapButton (uint32 id, s9xcommand_t mapping, bool poll)
-{
-	int	t;
-
-	if (id == InvalidControlID)
-	{
-		fprintf(stderr, "Cannot map InvalidControlID\n");
-		return (false);
-	}
-
-	t = maptype(mapping.type);
-
-	if (t == MAP_NONE)
-	{
-		S9xUnmapID(id);
-		return (true);
-	}
-
-	if (t != MAP_BUTTON)
-		return (false);
-
-	t = maptype(S9xGetMapping(id).type);
-
-	if (t != MAP_NONE && t != MAP_BUTTON)
-		fprintf(stderr, "WARNING: Remapping ID 0x%08x from %s to button\n", id, maptypename(t));
-
-	if (id >= PseudoPointerBase)
-	{
-		fprintf(stderr, "ERROR: Refusing to map pseudo-pointer #%d as a button\n", id - PseudoPointerBase);
-		return (false);
-	}
-
-	t = -1;
-
-	if (poll)
-	{
-		if (id >= PseudoButtonBase)
-			fprintf(stderr, "INFO: Ignoring attempt to set pseudo-button #%d to polling\n", id - PseudoButtonBase);
-		else
-		{
-			switch (mapping.type)
-			{
-				case S9xButtonJoypad:
-					t = JOYPAD0 + mapping.button.joypad.idx;
-					break;
-
-				case S9xButtonCommand:
-				case S9xButtonPseudopointer:
-				case S9xButtonPort:
-				case S9xButtonMulti:
-					t = POLL_ALL;
-					break;
-			}
-		}
-	}
-
-	S9xUnmapID(id);
-
-	keymap[id] = mapping;
-
-	if (t >= 0)
-		pollmap[t].insert(id);
-
-	return (true);
-}
-
-void S9xReportButton (uint32 id, bool pressed)
-{
-	if (keymap.count(id) == 0)
-		return;
-
-	if (keymap[id].type == S9xNoMapping)
-		return;
-
-	if (maptype(keymap[id].type) != MAP_BUTTON)
-	{
-		fprintf(stderr, "ERROR: S9xReportButton called on %s ID 0x%08x\n", maptypename(maptype(keymap[id].type)), id);
-		return;
-	}
-
-	if (keymap[id].type == S9xButtonCommand)	// skips the "already-pressed check" unless it's a command, as a hack to work around the following problem:
-		if (keymap[id].button_norpt == pressed)	// FIXME: this makes the controls "stick" after loading a savestate while holding any button
-			return;
-
-	keymap[id].button_norpt = pressed;
-
-	S9xApplyCommand(keymap[id], pressed, 0);
-}
-
-bool S9xMapPointer (uint32 id, s9xcommand_t mapping, bool poll)
-{
-	int	t;
-
-	if (id == InvalidControlID)
-	{
-		fprintf(stderr, "Cannot map InvalidControlID\n");
-		return (false);
-	}
-
-	t = maptype(mapping.type);
-
-	if (t == MAP_NONE)
-	{
-		S9xUnmapID(id);
-		return (true);
-	}
-
-	if (t != MAP_POINTER)
-		return (false);
-
-	t = maptype(S9xGetMapping(id).type);
-
-	if (t != MAP_NONE && t != MAP_POINTER)
-		fprintf(stderr, "WARNING: Remapping ID 0x%08x from %s to pointer\n", id, maptypename(t));
-
-	if (id < PseudoPointerBase && id >= PseudoButtonBase)
-	{
-		fprintf(stderr, "ERROR: Refusing to map pseudo-button #%d as a pointer\n", id - PseudoButtonBase);
-		return (false);
-	}
-
-	S9xUnmapID(id);
-
-	if (poll)
-	{
-		if (id >= PseudoPointerBase)
-			fprintf(stderr, "INFO: Ignoring attempt to set pseudo-pointer #%d to polling\n", id - PseudoPointerBase);
-		else
-		{
-			switch (mapping.type)
-			{
-				case S9xPointerPort:
-					pollmap[POLL_ALL].insert(id);
-					break;
-			}
-		}
-	}
-
-	if (id >= PseudoPointerBase)
-		pseudopointer[id - PseudoPointerBase].mapped = true;
-
-	keymap[id] = mapping;
-
-	return (true);
-}
-
-void S9xReportPointer (uint32 id, int16 x, int16 y)
-{
-	if (keymap.count(id) == 0)
-		return;
-
-	if (keymap[id].type == S9xNoMapping)
-		return;
-
-	if (maptype(keymap[id].type) != MAP_POINTER)
-	{
-		fprintf(stderr, "ERROR: S9xReportPointer called on %s ID 0x%08x\n", maptypename(maptype(keymap[id].type)), id);
-		return;
-	}
-
-	S9xApplyCommand(keymap[id], x, y);
-}
-
-bool S9xMapAxis (uint32 id, s9xcommand_t mapping, bool poll)
-{
-	int	t;
-
-	if (id == InvalidControlID)
-	{
-		fprintf(stderr, "Cannot map InvalidControlID\n");
-		return (false);
-	}
-
-	t = maptype(mapping.type);
-
-	if (t == MAP_NONE)
-	{
-		S9xUnmapID(id);
-		return (true);
-	}
-
-	if (t != MAP_AXIS)
-		return (false);
-
-	t = maptype(S9xGetMapping(id).type);
-
-	if (t != MAP_NONE && t != MAP_AXIS)
-		fprintf(stderr, "WARNING: Remapping ID 0x%08x from %s to axis\n", id, maptypename(t));
-
-	if (id >= PseudoPointerBase)
-	{
-		fprintf(stderr, "ERROR: Refusing to map pseudo-pointer #%d as an axis\n", id - PseudoPointerBase);
-		return (false);
-	}
-
-	t = -1;
-
-	if (poll)
-	{
-		switch (mapping.type)
-		{
-			case S9xAxisJoypad:
-				t = JOYPAD0 + mapping.axis.joypad.idx;
-				break;
-
-			case S9xAxisPseudopointer:
-			case S9xAxisPseudobuttons:
-			case S9xAxisPort:
-				t=POLL_ALL;
-				break;
-		}
-	}
-
-	S9xUnmapID(id);
-
-	keymap[id] = mapping;
-
-	if (t >= 0)
-		pollmap[t].insert(id);
-
-	return (true);
-}
-
-void S9xReportAxis (uint32 id, int16 value)
-{
-	if (keymap.count(id) == 0)
-		return;
-
-	if (keymap[id].type == S9xNoMapping)
-		return;
-
-	if (maptype(keymap[id].type) != MAP_AXIS)
-	{
-		fprintf(stderr, "ERROR: S9xReportAxis called on %s ID 0x%08x\n", maptypename(maptype(keymap[id].type)), id);
-		return;
-	}
-
-	S9xApplyCommand(keymap[id], value, 0);
 }
 
 static int32 ApplyMulti (s9xcommand_t *multi, int32 pos, int16 data1)
@@ -1928,43 +1569,9 @@ void S9xApplyCommand (s9xcommand_t cmd, int16 data1, int16 data2)
 
 static void do_polling (int mp)
 {
-	set<uint32>::iterator	itr;
-
-	if (pollmap[mp].empty())
-		return;
-
-	for (itr = pollmap[mp].begin(); itr != pollmap[mp].end(); itr++)
-	{
-		switch (maptype(keymap[*itr].type))
-		{
-			case MAP_BUTTON:
-			{
-				bool	pressed = false;
-				if (S9xPollButton(*itr, &pressed))
-					S9xReportButton(*itr, pressed);
-				break;
-			}
-
-			case MAP_AXIS:
-			{
-				int16	value = 0;
-				if (S9xPollAxis(*itr, &value))
-					S9xReportAxis(*itr, value);
-				break;
-			}
-
-			case MAP_POINTER:
-			{
-				int16	x = 0, y = 0;
-				if (S9xPollPointer(*itr, &x, &y))
-					S9xReportPointer(*itr, x, y);
-				break;
-			}
-
-			default:
-				break;
-		}
-	}
+	// Stub: old mapping system removed, pollmap is always empty.
+	// New frontends use S9xSetJoypadButtons() directly instead of the mapping system.
+	(void)mp;
 }
 
 void S9xSetJoypadLatch (bool latch)
@@ -2243,7 +1850,7 @@ void S9xControlEOF (void)
 			}
 		}
 
-		S9xReportPointer(PseudoPointerBase + n, pseudopointer[n].x, pseudopointer[n].y);
+		// S9xReportPointer removed (old mapping system). pseudopointer[n].mapped is always false anyway.
 	}
 
 	set<struct exemulti *>::iterator	it, jt;
