@@ -267,13 +267,20 @@ static bool g_running = false;
         return;
     }
 
-    // Create texture for SNES framebuffer (RGB555 = A1BGR5 on macOS)
+    // Create texture for SNES framebuffer
+    // SNES uses RGB555 but Metal A1BGR5 is BGR order, so we'll swizzle in shader
     MTLTextureDescriptor *texDesc = [MTLTextureDescriptor
         texture2DDescriptorWithPixelFormat:MTLPixelFormatA1BGR5Unorm
                                      width:MAX_SNES_WIDTH
                                     height:MAX_SNES_HEIGHT
                                  mipmapped:NO];
     texDesc.usage = MTLTextureUsageShaderRead;
+    texDesc.swizzle = MTLTextureSwizzleChannelsMake(
+        MTLTextureSwizzleBlue,  // R channel reads from B
+        MTLTextureSwizzleGreen, // G channel reads from G
+        MTLTextureSwizzleRed,   // B channel reads from R
+        MTLTextureSwizzleAlpha  // A channel reads from A
+    );
     self.texture = [self.device newTextureWithDescriptor:texDesc];
 
     // Nearest-neighbor sampler for crisp pixels

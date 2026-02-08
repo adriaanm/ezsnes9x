@@ -54,7 +54,7 @@ bool Init(const char *config_path)
     // Sensible defaults
     Settings.Transparency        = TRUE;
     Settings.AutoDisplayMessages = TRUE;
-    Settings.SoundPlaybackRate   = 48000;
+    Settings.SoundPlaybackRate   = 32040; // SNES native audio rate
     Settings.Stereo              = TRUE;
     Settings.SixteenBitSound     = TRUE;
     Settings.FrameTime           = 16667; // ~60 fps
