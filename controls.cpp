@@ -42,11 +42,14 @@ static bool8		FLAG_LATCH = FALSE;
 static int32		curcontrollers[2] = { NONE, NONE };
 static int32		newcontrollers[2] = { JOYPAD0, NONE };
 
+// Full reset — just delegates to soft reset since there's no additional hardware state to clear.
 void S9xControlsReset (void)
 {
 	S9xControlsSoftReset();
 }
 
+// Soft reset — zeroes the serial read indices, clears the latch, and applies
+// any pending controller configuration (newcontrollers → curcontrollers).
 void S9xControlsSoftReset (void)
 {
 	for (int i = 0; i < 2; i++)
@@ -59,6 +62,9 @@ void S9xControlsSoftReset (void)
 	curcontrollers[1] = newcontrollers[1];
 }
 
+// Configure which controller type is plugged into a SNES port (0 or 1).
+// The change is staged in newcontrollers[] and only takes effect on the next latch
+// transition (1→0) or reset.  id1 selects which joypad slot (0-7) to bind.
 void S9xSetController (int port, enum controllers controller, int8 id1)
 {
 	if (port < 0 || port > 1)
@@ -84,6 +90,9 @@ void S9xSetController (int port, enum controllers controller, int8 id1)
 	}
 }
 
+// Validate the pending controller configuration in newcontrollers[].
+// Disables duplicate joypad assignments (same pad on both ports).
+// Returns true if any configuration was changed.
 bool S9xVerifyControllers (void)
 {
 	bool	ret = false;
@@ -121,6 +130,10 @@ bool S9xVerifyControllers (void)
 	return (ret);
 }
 
+// Handle writes to $4016 (joypad latch register).
+// On rising edge (0→1): resets the serial read indices so the next reads
+// start from bit 0.  On falling edge (1→0): applies any pending controller
+// configuration from newcontrollers[] into curcontrollers[].
 void S9xSetJoypadLatch (bool latch)
 {
 	if (latch && !FLAG_LATCH)
@@ -140,6 +153,9 @@ void S9xSetJoypadLatch (bool latch)
 	FLAG_LATCH = latch;
 }
 
+// Post-increment a serial read index, clamping at 255 to prevent wrap-around.
+// Returns the value before incrementing.  Once the index passes 16 (all button
+// bits read), subsequent S9xReadJOYSERn calls return 1s — matching real hardware.
 static inline uint8 IncreaseReadIdxPost(uint8 &var)
 {
 	uint8 oldval = var;
@@ -148,6 +164,13 @@ static inline uint8 IncreaseReadIdxPost(uint8 &var)
 	return oldval;
 }
 
+// Handle reads from $4016 (port 0) or $4017 (port 1).
+// If the latch is high, returns the current state of button B (bit 15) repeatedly.
+// If the latch is low, returns joypad button bits serially (MSB first, one bit per
+// read) via the read index.  After all 16 bits are read, returns 1.
+// The upper bits of the return value preserve the open bus, with port 1 also
+// setting bits 2-4 (matching SNES hardware).
+// Accepts n as 0/1 (port index) or 0x4016/0x4017 (register address).
 uint8 S9xReadJOYSERn (int n)
 {
 	int	i;
@@ -203,6 +226,10 @@ uint8 S9xReadJOYSERn (int n)
 	}
 }
 
+// Perform the SNES auto-joypad read (triggered when bit 0 of $4200 is set).
+// Strobes the latch (1 then 0), then copies each port's full 16-bit button
+// state into the hardware auto-read registers ($4218-$421f) and marks the
+// serial read index as fully consumed (16).
 void S9xDoAutoJoypad (void)
 {
 	S9xSetJoypadLatch(1);
@@ -233,12 +260,18 @@ void S9xDoAutoJoypad (void)
 	}
 }
 
+// Called at the end of each frame.  Tracks whether the game read the joypad
+// during this frame (pad_read) vs the previous frame (pad_read_last), which
+// is used elsewhere to detect when a game is actively polling input.
 void S9xControlEOF (void)
 {
 	pad_read_last = pad_read;
 	pad_read      = false;
 }
 
+// Serialize controller state into a snapshot struct for save states.
+// Stores: format version, serial read indices, all 8 joypad button states,
+// and the pad_read flags.
 void S9xControlPreSaveState (struct SControlSnapshot *s)
 {
 	memset(s, 0, sizeof(*s));
@@ -258,6 +291,10 @@ void S9xControlPreSaveState (struct SControlSnapshot *s)
 	s->pad_read_last = pad_read_last;
 }
 
+// Restore controller state from a save state snapshot.  Handles backward
+// compatibility with older snapshot versions (v5 and earlier had different
+// layouts with mouse/superscope/MP5 data, but the first 16 bytes were always
+// the 8 joypad button states).  Also reconstructs FLAG_LATCH from $4016.
 void S9xControlPostLoadState (struct SControlSnapshot *s)
 {
 	for (int j = 0; j < 2; j++)
@@ -295,6 +332,9 @@ void S9xControlPostLoadState (struct SControlSnapshot *s)
 	}
 }
 
+// Set the button state for a joypad slot (0-7) directly.
+// This is the primary input entry point for frontends — call once per frame
+// with a bitmask of SNES_*_MASK values from snes9x.h.
 void S9xSetJoypadButtons (int pad, uint16 buttons)
 {
 	if (pad < 0 || pad > 7)
