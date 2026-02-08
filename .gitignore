@@ -507,5 +507,7 @@ profile
 # Claude Code / development files
 .claude/
 .vibe/
+.vibe_*/
 *.jpg
+*.raw
 
