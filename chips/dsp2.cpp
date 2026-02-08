@@ -228,7 +228,7 @@ void DSP2SetByte (uint8 byte, uint16 address)
 		{
 			DSP2.command         = byte;
 			DSP2.in_index        = 0;
-			DSP2.waiting4command = FALSE;
+			DSP2.waiting4command = false;
 
 			switch (byte)
 			{
@@ -253,7 +253,7 @@ void DSP2SetByte (uint8 byte, uint16 address)
 
 		if (DSP2.in_count == DSP2.in_index)
 		{
-			DSP2.waiting4command = TRUE;
+			DSP2.waiting4command = true;
 			DSP2.out_index       = 0;
 
 			switch (DSP2.command)
@@ -270,7 +270,7 @@ void DSP2SetByte (uint8 byte, uint16 address)
 				case 0x05:
 					if (DSP2.Op05HasLen)
 					{
-						DSP2.Op05HasLen = FALSE;
+						DSP2.Op05HasLen = false;
 						DSP2.out_count  = DSP2.Op05Len;
 						DSP2_Op05();
 					}
@@ -279,9 +279,9 @@ void DSP2SetByte (uint8 byte, uint16 address)
 						DSP2.Op05Len    = DSP2.parameters[0];
 						DSP2.in_index   = 0;
 						DSP2.in_count   = 2 * DSP2.Op05Len;
-						DSP2.Op05HasLen = TRUE;
+						DSP2.Op05HasLen = true;
 						if (byte)
-							DSP2.waiting4command = FALSE;
+							DSP2.waiting4command = false;
 					}
 
 					break;
@@ -289,7 +289,7 @@ void DSP2SetByte (uint8 byte, uint16 address)
 				case 0x06:
 					if (DSP2.Op06HasLen)
 					{
-						DSP2.Op06HasLen = FALSE;
+						DSP2.Op06HasLen = false;
 						DSP2.out_count  = DSP2.Op06Len;
 						DSP2_Op06();
 					}
@@ -298,9 +298,9 @@ void DSP2SetByte (uint8 byte, uint16 address)
 						DSP2.Op06Len    = DSP2.parameters[0];
 						DSP2.in_index   = 0;
 						DSP2.in_count   = DSP2.Op06Len;
-						DSP2.Op06HasLen = TRUE;
+						DSP2.Op06HasLen = true;
 						if (byte)
-							DSP2.waiting4command = FALSE;
+							DSP2.waiting4command = false;
 					}
 
 					break;
@@ -313,7 +313,7 @@ void DSP2SetByte (uint8 byte, uint16 address)
 				case 0x0D:
 					if (DSP2.Op0DHasLen)
 					{
-						DSP2.Op0DHasLen = FALSE;
+						DSP2.Op0DHasLen = false;
 						DSP2.out_count  = DSP2.Op0DOutLen;
 						DSP2_Op0D();
 					}
@@ -323,9 +323,9 @@ void DSP2SetByte (uint8 byte, uint16 address)
 						DSP2.Op0DOutLen = DSP2.parameters[1];
 						DSP2.in_index   = 0;
 						DSP2.in_count   = (DSP2.Op0DInLen + 1) >> 1;
-						DSP2.Op0DHasLen = TRUE;
+						DSP2.Op0DHasLen = true;
 						if (byte)
-							DSP2.waiting4command = FALSE;
+							DSP2.waiting4command = false;
 					}
 
 					break;

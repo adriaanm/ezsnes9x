@@ -174,8 +174,8 @@ void S9xSPC7110PreSaveState (void)
 
 	s7snap.r481x = s7emu.r481x;
 
-	s7snap.r4814_latch = s7emu.r4814_latch ? TRUE : FALSE;
-	s7snap.r4815_latch = s7emu.r4815_latch ? TRUE : FALSE;
+	s7snap.r4814_latch = s7emu.r4814_latch ? true : false;
+	s7snap.r4815_latch = s7emu.r4815_latch ? true : false;
 
 	s7snap.r4820 = s7emu.r4820;
 	s7snap.r4821 = s7emu.r4821;

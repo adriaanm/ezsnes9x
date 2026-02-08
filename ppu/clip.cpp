@@ -17,7 +17,7 @@ static uint8	region_map[6][6] =
 };
 
 static inline uint8 CalcWindowMask (int, uint8, uint8);
-static inline void StoreWindowRegions (uint8, struct ClipData *, int, int16 *, uint8 *, bool8, bool8 s = FALSE);
+static inline void StoreWindowRegions (uint8, struct ClipData *, int, int16 *, uint8 *, bool8, bool8 s = false);
 
 
 static inline uint8 CalcWindowMask (int i, uint8 W1, uint8 W2)
@@ -215,8 +215,8 @@ void S9xComputeClipWindows (void)
 
 	// Store backdrop clip window (draw everywhere color window allows)
 
-	StoreWindowRegions(0, &IPPU.Clip[0][5], n_regions, windows, drawing_modes, FALSE, TRUE);
-	StoreWindowRegions(0, &IPPU.Clip[1][5], n_regions, windows, drawing_modes, TRUE,  TRUE);
+	StoreWindowRegions(0, &IPPU.Clip[0][5], n_regions, windows, drawing_modes, false, true);
+	StoreWindowRegions(0, &IPPU.Clip[1][5], n_regions, windows, drawing_modes, true,  true);
 
 	// Store per-BG and OBJ clip windows
 

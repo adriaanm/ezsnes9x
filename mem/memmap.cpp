@@ -769,7 +769,7 @@ static bool8 ReadUPSPatch (Stream *, long, int32 &);
 static long ReadInt (Stream *, unsigned);
 static bool8 ReadIPSPatch (Stream *, long, int32 &);
 #ifdef UNZIP_SUPPORT
-static int unzFindExtension (unzFile &, const char *, bool restart = TRUE, bool print = TRUE, bool allowExact = FALSE);
+static int unzFindExtension (unzFile &, const char *, bool restart = true, bool print = true, bool allowExact = false);
 #endif
 
 // deinterleave
@@ -909,7 +909,7 @@ bool8 CMemory::Init (void)
 		!IPPU.TileCached[TILE_4BIT_ODD])
     {
 		Deinit();
-		return (FALSE);
+		return false;
     }
 
 	ROMStorage.resize(MAX_ROM_SIZE + 0x200 + 0x8000);
@@ -959,7 +959,7 @@ bool8 CMemory::Init (void)
 
 	PostRomInitFunc = nullptr;
 
-	return (TRUE);
+	return true;
 }
 
 void CMemory::Deinit (void)
@@ -989,69 +989,69 @@ static bool8 allASCII (uint8 *b, int size)
 	for (int i = 0; i < size; i++)
 	{
 		if (b[i] < 32 || b[i] > 126)
-			return (FALSE);
+			return false;
 	}
 
-	return (TRUE);
+	return true;
 }
 
 static bool8 is_SufamiTurbo_BIOS (const uint8 *data, uint32 size)
 {
 	if (size == 0x40000 &&
 		strncmp((char *) data, "BANDAI SFC-ADX", 14) == 0 && strncmp((char * ) (data + 0x10), "SFC-ADX BACKUP", 14) == 0)
-		return (TRUE);
+		return true;
 	else
-		return (FALSE);
+		return false;
 }
 
 static bool8 is_SufamiTurbo_Cart (const uint8 *data, uint32 size)
 {
 	if (size >= 0x80000 && size <= 0x100000 &&
 		strncmp((char *) data, "BANDAI SFC-ADX", 14) == 0 && strncmp((char * ) (data + 0x10), "SFC-ADX BACKUP", 14) != 0)
-		return (TRUE);
+		return true;
 	else
-		return (FALSE);
+		return false;
 }
 
 static bool8 is_BSCart_BIOS(const uint8 *data, uint32 size)
 {
 	if ((data[0x7FB2] == 0x5A) && (data[0x7FB5] != 0x20) && (data[0x7FDA] == 0x33))
 	{
-		Memory.LoROM = TRUE;
-		Memory.HiROM = FALSE;
+		Memory.LoROM = true;
+		Memory.HiROM = false;
 
-		return (TRUE);
+		return true;
 	}
 	else if ((data[0xFFB2] == 0x5A) && (data[0xFFB5] != 0x20) && (data[0xFFDA] == 0x33))
 	{
-		Memory.LoROM = FALSE;
-		Memory.HiROM = TRUE;
+		Memory.LoROM = false;
+		Memory.HiROM = true;
 
-		return (TRUE);
+		return true;
 	}
 	else
-		return (FALSE);
+		return false;
 }
 
 static bool8 is_BSCartSA1_BIOS (const uint8 *data, uint32 size)
 {
 	//Same basic check as BSCart
 	if (!is_BSCart_BIOS(data, size))
-		return (FALSE);
+		return false;
 
 	//Checks if the game is Itoi's Bass Fishing No. 1 (ZBPJ) or SD Gundam G-NEXT (ZX3J)
 	if (strncmp((char *)(data + 0x7fb2), "ZBPJ", 4) == 0 || strncmp((char *)(data + 0x7fb2), "ZX3J", 4) == 0)
-		return (TRUE);
+		return true;
 	else
-		return (FALSE);
+		return false;
 }
 
 static bool8 is_GNEXT_Add_On (const uint8 *data, uint32 size)
 {
 	if (size == 0x80000)
-		return (TRUE);
+		return true;
 	else
-		return (FALSE);
+		return false;
 }
 
 int CMemory::ScoreHiROM (bool8 skip_header, int32 romoff)
@@ -1286,7 +1286,7 @@ uint32 CMemory::FileLoader (uint8 *buffer, const char *filename, uint32 maxsize)
 bool8 CMemory::LoadROMMem (const uint8 *source, uint32 sourceSize, const char* optional_rom_filename /*= NULL*/)
 {
     if(!source || sourceSize > MAX_ROM_SIZE)
-        return FALSE;
+        return false;
 
     if (optional_rom_filename)
         ROMFilename = optional_rom_filename;
@@ -1301,15 +1301,15 @@ bool8 CMemory::LoadROMMem (const uint8 *source, uint32 sourceSize, const char* o
     }
     while(!LoadROMInt(sourceSize));
 
-    return TRUE;
+    return true;
 }
 
 bool8 CMemory::LoadROM (const char *filename)
 {
     if(!filename || !*filename)
-        return FALSE;
+        return false;
 
-    S9xResetSaveTimer(FALSE); // reset oops timer here so that .oops file has rom name of previous rom
+    S9xResetSaveTimer(false); // reset oops timer here so that .oops file has rom name of previous rom
 
     int32 totalFileSize;
 
@@ -1320,13 +1320,13 @@ bool8 CMemory::LoadROM (const char *filename)
         totalFileSize = FileLoader(ROM, filename, MAX_ROM_SIZE);
 
         if (!totalFileSize)
-            return (FALSE);
+            return false;
 
         CheckForAnyPatch(filename, HeaderCount != 0, totalFileSize);
     }
     while(!LoadROMInt(totalFileSize));
 
-    return TRUE;
+    return true;
 }
 
 bool8 CMemory::LoadROMInt (int32 ROMfillSize)
@@ -1340,10 +1340,10 @@ bool8 CMemory::LoadROMInt (int32 ROMfillSize)
 	int score_headered;
 	int score_nonheadered;
 
-	hi_score = ScoreHiROM(FALSE);
-	lo_score = ScoreLoROM(FALSE);
+	hi_score = ScoreHiROM(false);
+	lo_score = ScoreLoROM(false);
 	score_nonheadered = max(hi_score, lo_score);
-	score_headered = max(ScoreHiROM(TRUE), ScoreLoROM(TRUE));
+	score_headered = max(ScoreHiROM(true), ScoreLoROM(true));
 
 	bool size_is_likely_headered = ((ROMfillSize - 512) & 0xFFFF) == 0;
 	if (size_is_likely_headered) { score_headered += 2; } else { score_headered -= 2; }
@@ -1357,8 +1357,8 @@ bool8 CMemory::LoadROMInt (int32 ROMfillSize)
 		ROMfillSize -= 512;
 		S9xMessage(S9X_INFO, S9X_HEADER_WARNING, "Try 'force no-header' option if the game doesn't work");
 		// modifying ROM, so we need to rescore
-		hi_score = ScoreHiROM(FALSE);
-		lo_score = ScoreLoROM(FALSE);
+		hi_score = ScoreHiROM(false);
+		lo_score = ScoreLoROM(false);
 	}
 
 	CalculatedSize = ((ROMfillSize + 0x1fff) / 0x2000) * 0x2000;
@@ -1386,8 +1386,8 @@ bool8 CMemory::LoadROMInt (int32 ROMfillSize)
 	}
 
 	// CalculatedSize is now set, so rescore
-	hi_score = ScoreHiROM(FALSE);
-	lo_score = ScoreLoROM(FALSE);
+	hi_score = ScoreHiROM(false);
+	lo_score = ScoreLoROM(false);
 
 	uint8	*RomHeader = ROM;
 
@@ -1395,8 +1395,8 @@ bool8 CMemory::LoadROMInt (int32 ROMfillSize)
 	{
 		int	swappedhirom, swappedlorom;
 
-		swappedhirom = ScoreHiROM(FALSE, 0x400000);
-		swappedlorom = ScoreLoROM(FALSE, 0x400000);
+		swappedhirom = ScoreHiROM(false, 0x400000);
+		swappedlorom = ScoreLoROM(false, 0x400000);
 
 		// set swapped here
 		if (max(swappedlorom, swappedhirom) >= max(lo_score, hi_score))
@@ -1410,14 +1410,14 @@ bool8 CMemory::LoadROMInt (int32 ROMfillSize)
 			ExtendedFormat = SMALLFIRST;
 	}
 
-	bool8	interleaved, tales = FALSE;
+	bool8	interleaved, tales = false;
 
     interleaved = Settings.ForceInterleaved || Settings.ForceInterleaved2 || Settings.ForceInterleaveGD24;
 
 	if (Settings.ForceLoROM || (!Settings.ForceHiROM && lo_score >= hi_score))
 	{
-		LoROM = TRUE;
-		HiROM = FALSE;
+		LoROM = true;
+		HiROM = false;
 
 		// ignore map type byte if not 0x2x or 0x3x
 		if ((RomHeader[0x7fd5] & 0xf0) == 0x20 || (RomHeader[0x7fd5] & 0xf0) == 0x30)
@@ -1425,20 +1425,20 @@ bool8 CMemory::LoadROMInt (int32 ROMfillSize)
 			switch (RomHeader[0x7fd5] & 0xf)
 			{
 				case 1:
-					interleaved = TRUE;
+					interleaved = true;
 					break;
 
 				case 5:
-					interleaved = TRUE;
-					tales = TRUE;
+					interleaved = true;
+					tales = true;
 					break;
 			}
 		}
 	}
 	else
 	{
-		LoROM = FALSE;
-		HiROM = TRUE;
+		LoROM = false;
+		HiROM = true;
 
 		if ((RomHeader[0xffd5] & 0xf0) == 0x20 || (RomHeader[0xffd5] & 0xf0) == 0x30)
 		{
@@ -1446,7 +1446,7 @@ bool8 CMemory::LoadROMInt (int32 ROMfillSize)
 			{
 				case 0:
 				case 3:
-					interleaved = TRUE;
+					interleaved = true;
 					break;
 			}
 		}
@@ -1458,10 +1458,10 @@ bool8 CMemory::LoadROMInt (int32 ROMfillSize)
 		if (strncmp((char *) &ROM[0x7fc0], "YUYU NO QUIZ DE GO!GO!", 22) == 0 ||
 		   (strncmp((char *) &ROM[0xffc0], "BATMAN--REVENGE JOKER",  21) == 0))
 		{
-			LoROM = TRUE;
-			HiROM = FALSE;
-			interleaved = FALSE;
-			tales = FALSE;
+			LoROM = true;
+			HiROM = false;
+			interleaved = false;
+			tales = false;
 		}
 	}
 
@@ -1482,8 +1482,8 @@ bool8 CMemory::LoadROMInt (int32 ROMfillSize)
 				S9xDeinterleaveType1(0x400000, ROM + CalculatedSize - 0x400000);
 			}
 
-			LoROM = FALSE;
-			HiROM = TRUE;
+			LoROM = false;
+			HiROM = true;
 		}
 		else if (Settings.ForceInterleaveGD24 && CalculatedSize == 0x300000)
 		{
@@ -1502,21 +1502,21 @@ bool8 CMemory::LoadROMInt (int32 ROMfillSize)
 			S9xDeinterleaveType1(CalculatedSize, ROM);
 		}
 
-		hi_score = ScoreHiROM(FALSE);
-		lo_score = ScoreLoROM(FALSE);
+		hi_score = ScoreHiROM(false);
+		lo_score = ScoreLoROM(false);
 
 		if ((HiROM && (lo_score >= hi_score || hi_score < 0)) ||
 			(LoROM && (hi_score >  lo_score || lo_score < 0)))
 		{
 			S9xMessage(S9X_INFO, S9X_ROM_CONFUSING_FORMAT_INFO, "ROM lied about its type! Trying again.");
-			Settings.ForceNotInterleaved = TRUE;
-			Settings.ForceInterleaved = FALSE;
-            return (FALSE);
+			Settings.ForceNotInterleaved = true;
+			Settings.ForceInterleaved = false;
+            return false;
 		}
     }
 
 	if (ExtendedFormat == SMALLFIRST)
-		tales = TRUE;
+		tales = true;
 
 	if (tales)
 	{
@@ -1538,7 +1538,7 @@ bool8 CMemory::LoadROMInt (int32 ROMfillSize)
 
 	S9xReset();
 
-    return (TRUE);
+    return true;
 }
 
 bool8 CMemory::LoadMultiCartMem (const uint8 *sourceA, uint32 sourceASize,
@@ -1551,7 +1551,7 @@ bool8 CMemory::LoadMultiCartMem (const uint8 *sourceA, uint32 sourceASize,
 
     if(bios) {
         if(!is_SufamiTurbo_BIOS(bios,biosSize))
-            return FALSE;
+            return false;
 
         memcpy(ROM,bios,biosSize);
         offset+=biosSize;
@@ -1578,7 +1578,7 @@ bool8 CMemory::LoadMultiCartMem (const uint8 *sourceA, uint32 sourceASize,
 
 bool8 CMemory::LoadMultiCart (const char *cartA, const char *cartB)
 {
-    S9xResetSaveTimer(FALSE); // reset oops timer here so that .oops file has rom name of previous rom
+    S9xResetSaveTimer(false); // reset oops timer here so that .oops file has rom name of previous rom
 
     memset(ROM, 0, MAX_ROM_SIZE);
 	memset(&Multi, 0, sizeof(Multi));
@@ -1611,7 +1611,7 @@ bool8 CMemory::LoadMultiCart (const char *cartA, const char *cartB)
 
 bool8 CMemory::LoadMultiCartInt ()
 {
-	bool8	r = TRUE;
+	bool8	r = true;
 
 	CalculatedSize = 0;
 	ExtendedFormat = NOPE;
@@ -1654,10 +1654,10 @@ bool8 CMemory::LoadMultiCartInt ()
 		    size = fread((void *) ROM, 1, 0x40000, fp);
 		    fclose(fp);
 		    if (!is_SufamiTurbo_BIOS(ROM, size))
-			    return (FALSE);
+			    return false;
 	    }
 	    else
-		    return (FALSE);
+		    return false;
 
         ROMFilename = path;
     }
@@ -1674,13 +1674,13 @@ bool8 CMemory::LoadMultiCartInt ()
 			break;
 
 		default:
-			r = FALSE;
+			r = false;
 	}
 
 	if (!r)
 	{
 		memset(&Multi, 0, sizeof(Multi));
-		return (FALSE);
+		return false;
 	}
 
 	if (Multi.cartSizeA)
@@ -1695,7 +1695,7 @@ bool8 CMemory::LoadMultiCartInt ()
 
 	S9xReset();
 
-	return (TRUE);
+	return true;
 }
 
 bool8 CMemory::LoadSufamiTurbo ()
@@ -1721,11 +1721,11 @@ bool8 CMemory::LoadSufamiTurbo ()
 		Multi.sramMaskB = Multi.sramSizeB ? ((1 << (Multi.sramSizeB + 3)) * 128 - 1) : 0;
 	}
 
-	LoROM = TRUE;
-	HiROM = FALSE;
+	LoROM = true;
+	HiROM = false;
 	CalculatedSize = 0x40000;
 
-	return (TRUE);
+	return true;
 }
 
 bool8 CMemory::LoadBSCart ()
@@ -1753,7 +1753,7 @@ bool8 CMemory::LoadBSCart ()
 		memset(Memory.ROM + Multi.cartOffsetB, 0xFF, 0x100000);
 	}
 
-	return (TRUE);
+	return true;
 }
 
 bool8 CMemory::LoadGNEXT ()
@@ -1772,11 +1772,11 @@ bool8 CMemory::LoadGNEXT ()
 			Multi.cartSizeB = 0;
 	}
 
-	LoROM = TRUE;
-	HiROM = FALSE;
+	LoROM = true;
+	HiROM = false;
 	CalculatedSize = Multi.cartSizeA;
 
-	return (TRUE);
+	return true;
 }
 
 bool8 CMemory::LoadSRTC (void)
@@ -1785,13 +1785,13 @@ bool8 CMemory::LoadSRTC (void)
 
 	fp = fopen(S9xGetFilename(".rtc", SRAM_DIR).c_str(), "rb");
 	if (!fp)
-		return (FALSE);
+		return false;
 
 	if (fread(RTCData.reg, 1, 20, fp) < 20)
 		memset (RTCData.reg, 0, 20);
 	fclose(fp);
 
-	return (TRUE);
+	return true;
 }
 
 bool8 CMemory::SaveSRTC (void)
@@ -1800,7 +1800,7 @@ bool8 CMemory::SaveSRTC (void)
 
 	fp = fopen(S9xGetFilename(".rtc", SRAM_DIR).c_str(), "wb");
 	if (!fp)
-		return (FALSE);
+		return false;
 
 	if (fwrite(RTCData.reg, 1, 20, fp) < 20)
 	{
@@ -1808,7 +1808,7 @@ bool8 CMemory::SaveSRTC (void)
 	}
 	fclose(fp);
 
-	return (TRUE);
+	return true;
 }
 
 void CMemory::ClearSRAM (bool8 onlyNonSavedSRAM)
@@ -1860,7 +1860,7 @@ bool8 CMemory::LoadSRAM (const char *filename)
 			if (Settings.SRTC || Settings.SPC7110RTC)
 				LoadSRTC();
 
-			return (TRUE);
+			return true;
 		}
 		else if (Settings.BS && !Settings.BSXItself)
 		{
@@ -1877,28 +1877,28 @@ bool8 CMemory::LoadSRAM (const char *filename)
 					memmove(SRAM, SRAM + 512, size);
 
 				S9xMessage(S9X_INFO, S9X_ROM_INFO, "The SRAM file wasn't found: BS-X.srm was read instead.");
-				return (TRUE);
+				return true;
 			}
 			else
 			{
 				S9xMessage(S9X_INFO, S9X_ROM_INFO, "The SRAM file wasn't found, BS-X.srm wasn't found either.");
-				return (FALSE);
+				return false;
 			}
 		}
 
-		return (FALSE);
+		return false;
 	}
 
-	return (TRUE);
+	return true;
 }
 
 bool8 CMemory::SaveSRAM (const char *filename)
 {
 	if (Settings.SuperFX && ROMType < 0x15) // doesn't have SRAM
-		return (TRUE);
+		return true;
 
 	if (Settings.SA1 && ROMType == 0x34)    // doesn't have SRAM
-		return (TRUE);
+		return true;
 
 	FILE	*file;
 	int		size;
@@ -1935,11 +1935,11 @@ bool8 CMemory::SaveSRAM (const char *filename)
 			if (Settings.SRTC || Settings.SPC7110RTC)
 				SaveSRTC();
 
-			return (TRUE);
+			return true;
 		}
 	}
 
-	return (FALSE);
+	return false;
 }
 
 bool8 CMemory::SaveMPAK (const char *filename)
@@ -1963,7 +1963,7 @@ bool8 CMemory::SaveMPAK (const char *filename)
 			}
 		}
 	}
-	return (FALSE);
+	return false;
 }
 
 // initialization
@@ -2025,18 +2025,18 @@ void CMemory::ParseSNESHeader (uint8 *RomHeader)
 
 void CMemory::InitROM (void)
 {
-	Settings.SuperFX = FALSE;
+	Settings.SuperFX = false;
 	Settings.DSP = 0;
-	Settings.SA1 = FALSE;
-	Settings.C4 = FALSE;
-	Settings.SDD1 = FALSE;
-	Settings.SPC7110 = FALSE;
-	Settings.SPC7110RTC = FALSE;
-	Settings.OBC1 = FALSE;
+	Settings.SA1 = false;
+	Settings.C4 = false;
+	Settings.SDD1 = false;
+	Settings.SPC7110 = false;
+	Settings.SPC7110RTC = false;
+	Settings.OBC1 = false;
 	Settings.SETA = 0;
-	Settings.SRTC = FALSE;
-	Settings.BS = FALSE;
-	Settings.MSU1 = FALSE;
+	Settings.SRTC = false;
+	Settings.BS = false;
+	Settings.MSU1 = false;
 
 	SuperFX.nRomBanks = CalculatedSize >> 15;
 
@@ -2132,28 +2132,28 @@ void CMemory::InitROM (void)
 	{
 	    // SRTC
 		case 0x5535:
-			Settings.SRTC = TRUE;
+			Settings.SRTC = true;
 			S9xInitSRTC();
 			break;
 
 		// SPC7110
 		case 0xF93A:
-			Settings.SPC7110RTC = TRUE;
+			Settings.SPC7110RTC = true;
 			// Fall through
 		case 0xF53A:
-			Settings.SPC7110 = TRUE;
+			Settings.SPC7110 = true;
 			S9xInitSPC7110();
 			break;
 
 		// OBC1
 		case 0x2530:
-			Settings.OBC1 = TRUE;
+			Settings.OBC1 = true;
 			break;
 
 		// SA1
 		case 0x3423:
 		case 0x3523:
-			Settings.SA1 = TRUE;
+			Settings.SA1 = true;
 			break;
 
 		// SuperFX
@@ -2166,7 +2166,7 @@ void CMemory::InitROM (void)
 		case 0x1430:
 		case 0x1530:
 		case 0x1A30:
-			Settings.SuperFX = TRUE;
+			Settings.SuperFX = true;
 			S9xInitSuperFX();
 			if (ROM[0x7FDA] == 0x33)
 				SRAMSize = ROM[0x7FBD];
@@ -2177,7 +2177,7 @@ void CMemory::InitROM (void)
 		// SDD1
 		case 0x4332:
 		case 0x4532:
-			Settings.SDD1 = TRUE;
+			Settings.SDD1 = true;
 			break;
 
 		// ST018
@@ -2210,7 +2210,7 @@ void CMemory::InitROM (void)
 
 		// C4
 		case 0xF320:
-			Settings.C4 = TRUE;
+			Settings.C4 = true;
 			break;
 	}
 
@@ -2318,13 +2318,13 @@ void CMemory::InitROM (void)
 
 	// NTSC/PAL
 	if (Settings.ForceNTSC)
-		Settings.PAL = FALSE;
+		Settings.PAL = false;
 	else if (Settings.ForcePAL)
-		Settings.PAL = TRUE;
+		Settings.PAL = true;
 	else if (!Settings.BS && (((ROMRegion >= 2) && (ROMRegion <= 12)) || ROMRegion == 18)) // 18 is used by "Tintin in Tibet (Europe) (En,Es,Sv)"
-		Settings.PAL = TRUE;
+		Settings.PAL = true;
 	else
-		Settings.PAL = FALSE;
+		Settings.PAL = false;
 
 	if (Settings.PAL)
 	{
@@ -2418,16 +2418,16 @@ void CMemory::InitROM (void)
 
 	S9xMessage(S9X_INFO, S9X_ROM_INFO, GetMultilineROMInfo().c_str());
 
-	Settings.ForceLoROM = FALSE;
-	Settings.ForceHiROM = FALSE;
-	Settings.ForceHeader = FALSE;
-	Settings.ForceNoHeader = FALSE;
-	Settings.ForceInterleaved = FALSE;
-	Settings.ForceInterleaved2 = FALSE;
-	Settings.ForceInterleaveGD24 = FALSE;
-	Settings.ForceNotInterleaved = FALSE;
-	Settings.ForcePAL = FALSE;
-	Settings.ForceNTSC = FALSE;
+	Settings.ForceLoROM = false;
+	Settings.ForceHiROM = false;
+	Settings.ForceHeader = false;
+	Settings.ForceNoHeader = false;
+	Settings.ForceInterleaved = false;
+	Settings.ForceInterleaved2 = false;
+	Settings.ForceInterleaveGD24 = false;
+	Settings.ForceNotInterleaved = false;
+	Settings.ForcePAL = false;
+	Settings.ForceNTSC = false;
 
 	if (PostRomInitFunc)
 		PostRomInitFunc();
@@ -2466,8 +2466,8 @@ void CMemory::map_lorom (uint32 bank_s, uint32 bank_e, uint32 addr_s, uint32 add
 			p = (c << 4) | (i >> 12);
 			addr = (c & 0x7f) * 0x8000;
 			Map[p] = ROM + map_mirror(size, addr) - (i & 0x8000);
-			BlockIsROM[p] = TRUE;
-			BlockIsRAM[p] = FALSE;
+			BlockIsROM[p] = true;
+			BlockIsRAM[p] = false;
 		}
 	}
 }
@@ -2483,8 +2483,8 @@ void CMemory::map_hirom (uint32 bank_s, uint32 bank_e, uint32 addr_s, uint32 add
 			p = (c << 4) | (i >> 12);
 			addr = c << 16;
 			Map[p] = ROM + map_mirror(size, addr);
-			BlockIsROM[p] = TRUE;
-			BlockIsRAM[p] = FALSE;
+			BlockIsROM[p] = true;
+			BlockIsRAM[p] = false;
 		}
 	}
 }
@@ -2500,8 +2500,8 @@ void CMemory::map_lorom_offset (uint32 bank_s, uint32 bank_e, uint32 addr_s, uin
 			p = (c << 4) | (i >> 12);
 			addr = ((c - bank_s) & 0x7f) * 0x8000;
 			Map[p] = ROM + offset + map_mirror(size, addr) - (i & 0x8000);
-			BlockIsROM[p] = TRUE;
-			BlockIsRAM[p] = FALSE;
+			BlockIsROM[p] = true;
+			BlockIsRAM[p] = false;
 		}
 	}
 }
@@ -2517,8 +2517,8 @@ void CMemory::map_hirom_offset (uint32 bank_s, uint32 bank_e, uint32 addr_s, uin
 			p = (c << 4) | (i >> 12);
 			addr = (c - bank_s) << 16;
 			Map[p] = ROM + offset + map_mirror(size, addr);
-			BlockIsROM[p] = TRUE;
-			BlockIsRAM[p] = FALSE;
+			BlockIsROM[p] = true;
+			BlockIsRAM[p] = false;
 		}
 	}
 }
@@ -2533,8 +2533,8 @@ void CMemory::map_space (uint32 bank_s, uint32 bank_e, uint32 addr_s, uint32 add
 		{
 			p = (c << 4) | (i >> 12);
 			Map[p] = data;
-			BlockIsROM[p] = FALSE;
-			BlockIsRAM[p] = TRUE;
+			BlockIsROM[p] = false;
+			BlockIsRAM[p] = true;
 		}
 	}
 }
@@ -2544,8 +2544,8 @@ void CMemory::map_index (uint32 bank_s, uint32 bank_e, uint32 addr_s, uint32 add
 	uint32	c, i, p;
 	bool8	isROM, isRAM;
 
-	isROM = ((type == MAP_TYPE_I_O) || (type == MAP_TYPE_RAM)) ? FALSE : TRUE;
-	isRAM = ((type == MAP_TYPE_I_O) || (type == MAP_TYPE_ROM)) ? FALSE : TRUE;
+	isROM = ((type == MAP_TYPE_I_O) || (type == MAP_TYPE_RAM)) ? false : true;
+	isRAM = ((type == MAP_TYPE_I_O) || (type == MAP_TYPE_ROM)) ? false : true;
 
 	for (c = bank_s; c <= bank_e; c++)
 	{
@@ -2682,8 +2682,8 @@ void CMemory::Map_Initialize (void)
 	{
 		Map[c]      = (uint8 *) MAP_NONE;
 		WriteMap[c] = (uint8 *) MAP_NONE;
-		BlockIsROM[c] = FALSE;
-		BlockIsRAM[c] = FALSE;
+		BlockIsROM[c] = false;
+		BlockIsRAM[c] = false;
 	}
 }
 
@@ -3484,7 +3484,7 @@ void CMemory::ApplyROMFixes (void)
 	// seems to need a disproven behavior, so we're definitely overlooking some other bug?
 	if (match_nn("UNIRACERS")) // Uniracers
 	{
-		SNESGameFixes.Uniracers = TRUE;
+		SNESGameFixes.Uniracers = true;
 		printf("Applied Uniracers hack.\n");
 	}
 
@@ -3983,7 +3983,7 @@ void CMemory::CheckForAnyPatch(const char *rom_filename, bool8 header, int32 &ro
     // Mercurial Magic (MSU-1 distribution pack)
     if (path.ext_is(".msu1")) // ROM was *NOT* loaded from a .msu1 pack
     {
-        Stream *s = S9xMSU1OpenFile("patch.bps", TRUE);
+        Stream *s = S9xMSU1OpenFile("patch.bps", true);
         if (s)
         {
             printf("Using BPS patch from msu1");

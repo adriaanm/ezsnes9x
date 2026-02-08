@@ -37,7 +37,7 @@ bool8 S9xGraphicsInit (void)
 	S9xInitTileRenderer();
 	memset(BlackColourMap, 0, 256 * sizeof(uint16));
 
-	IPPU.OBJChanged = TRUE;
+	IPPU.OBJChanged = true;
 	Settings.BG_Forced = 0;
 	Settings.ForcedBackdrop = 0;
 	S9xFixColourBrightness();
@@ -53,7 +53,7 @@ bool8 S9xGraphicsInit (void)
 	if (!GFX.ZERO || !GFX.SubScreen || !GFX.ZBuffer || !GFX.SubZBuffer)
 	{
 		S9xGraphicsDeinit();
-		return (FALSE);
+		return false;
 	}
 
 	// Lookup table for 1/2 color subtraction
@@ -88,7 +88,7 @@ bool8 S9xGraphicsInit (void)
 		}
 	}
 
-	return (TRUE);
+	return true;
 }
 
 void S9xGraphicsDeinit (void)
@@ -109,26 +109,26 @@ void S9xGraphicsScreenResize (void)
 
 	if (PPU.BGMode == 5 || PPU.BGMode == 6 || IPPU.PseudoHires)
 	{
-		IPPU.DoubleWidthPixels = TRUE;
+		IPPU.DoubleWidthPixels = true;
 		IPPU.RenderedScreenWidth = SNES_WIDTH << 1;
 	}
 	else
 	{
-		IPPU.DoubleWidthPixels = FALSE;
+		IPPU.DoubleWidthPixels = false;
 		IPPU.RenderedScreenWidth = SNES_WIDTH;
 	}
 
 	if (IPPU.Interlace)
 	{
 		GFX.PPL = GFX.RealPPL << 1;
-		IPPU.DoubleHeightPixels = TRUE;
+		IPPU.DoubleHeightPixels = true;
 		IPPU.RenderedScreenHeight = PPU.ScreenHeight << 1;
 		GFX.DoInterlace++;
 	}
 	else
 	{
 		GFX.PPL = GFX.RealPPL;
-		IPPU.DoubleHeightPixels = FALSE;
+		IPPU.DoubleHeightPixels = false;
 		IPPU.RenderedScreenHeight = PPU.ScreenHeight;
 	}
 }
@@ -153,7 +153,7 @@ void S9xStartScreenRefresh (void)
 		{
 			if (!S9xInitUpdate())
 			{
-				IPPU.RenderThisFrame = FALSE;
+				IPPU.RenderThisFrame = false;
 				return;
 			}
 
@@ -163,7 +163,7 @@ void S9xStartScreenRefresh (void)
 		}
 
 		PPU.MosaicStart = 0;
-		PPU.RecomputeClipWindows = TRUE;
+		PPU.RecomputeClipWindows = true;
 		IPPU.PreviousLine = IPPU.CurrentLine = 0;
 
 		memset(GFX.ZBuffer, 0, GFX.ScreenSize);
@@ -199,7 +199,7 @@ void S9xEndScreenRefresh (void)
 			if (IPPU.ColorsChanged)
 			{
 				uint32 saved = PPU.CGDATA[0];
-				IPPU.ColorsChanged = FALSE;
+				IPPU.ColorsChanged = false;
 				PPU.CGDATA[0] = saved;
 			}
 
@@ -221,7 +221,7 @@ void S9xEndScreenRefresh (void)
 		if (ICPU.FrameAdvanceCount)
 		{
 			ICPU.FrameAdvanceCount--;
-			IPPU.RenderThisFrame = TRUE;
+			IPPU.RenderThisFrame = true;
 			IPPU.FrameSkip = 0;
 		}
 		else
@@ -237,14 +237,14 @@ void S9xEndScreenRefresh (void)
 		if (!CPU.AutoSaveTimer)
 		{
 			if (!(CPU.AutoSaveTimer = Settings.AutoSaveDelay * Memory.ROMFramesPerSecond))
-				CPU.SRAMModified = FALSE;
+				CPU.SRAMModified = false;
 		}
 		else
 		{
 			if (!--CPU.AutoSaveTimer)
 			{
 				S9xAutoSaveSRAM();
-				CPU.SRAMModified = FALSE;
+				CPU.SRAMModified = false;
 			}
 		}
 	}
@@ -321,13 +321,13 @@ static inline void RenderScreen (bool8 sub)
 		BG.NameSelect = PPU.OBJNameSelect;
 		BG.EnableMath = !sub && (Memory.FillRAM[0x2131] & 0x10);
 		BG.StartPalette = 128;
-		S9xSelectTileConverter(4, FALSE, sub, FALSE);
-		S9xSelectTileRenderers(PPU.BGMode, sub, TRUE);
+		S9xSelectTileConverter(4, false, sub, false);
+		S9xSelectTileRenderers(PPU.BGMode, sub, true);
 		DrawOBJS(D + 4);
 	}
 
 	BG.NameSelect = 0;
-	S9xSelectTileRenderers(PPU.BGMode, sub, FALSE);
+	S9xSelectTileRenderers(PPU.BGMode, sub, false);
 
 	#define DO_BG(n, pal, depth, hires, offset, Zh, Zl, voffoff) \
 		if (BGActive & (1 << (n))) \
@@ -360,40 +360,40 @@ static inline void RenderScreen (bool8 sub)
 	switch (PPU.BGMode)
 	{
 		case 0:
-			DO_BG(0,  0, 2, FALSE, FALSE, 15, 11, 0);
-			DO_BG(1, 32, 2, FALSE, FALSE, 14, 10, 0);
-			DO_BG(2, 64, 2, FALSE, FALSE,  7,  3, 0);
-			DO_BG(3, 96, 2, FALSE, FALSE,  6,  2, 0);
+			DO_BG(0,  0, 2, false, false, 15, 11, 0);
+			DO_BG(1, 32, 2, false, false, 14, 10, 0);
+			DO_BG(2, 64, 2, false, false,  7,  3, 0);
+			DO_BG(3, 96, 2, false, false,  6,  2, 0);
 			break;
 
 		case 1:
-			DO_BG(0,  0, 4, FALSE, FALSE, 15, 11, 0);
-			DO_BG(1,  0, 4, FALSE, FALSE, 14, 10, 0);
-			DO_BG(2,  0, 2, FALSE, FALSE, (PPU.BG3Priority ? 17 : 7), 3, 0);
+			DO_BG(0,  0, 4, false, false, 15, 11, 0);
+			DO_BG(1,  0, 4, false, false, 14, 10, 0);
+			DO_BG(2,  0, 2, false, false, (PPU.BG3Priority ? 17 : 7), 3, 0);
 			break;
 
 		case 2:
-			DO_BG(0,  0, 4, FALSE, TRUE,  15,  7, 8);
-			DO_BG(1,  0, 4, FALSE, TRUE,  11,  3, 8);
+			DO_BG(0,  0, 4, false, true,  15,  7, 8);
+			DO_BG(1,  0, 4, false, true,  11,  3, 8);
 			break;
 
 		case 3:
-			DO_BG(0,  0, 8, FALSE, FALSE, 15,  7, 0);
-			DO_BG(1,  0, 4, FALSE, FALSE, 11,  3, 0);
+			DO_BG(0,  0, 8, false, false, 15,  7, 0);
+			DO_BG(1,  0, 4, false, false, 11,  3, 0);
 			break;
 
 		case 4:
-			DO_BG(0,  0, 8, FALSE, TRUE,  15,  7, 0);
-			DO_BG(1,  0, 2, FALSE, TRUE,  11,  3, 0);
+			DO_BG(0,  0, 8, false, true,  15,  7, 0);
+			DO_BG(1,  0, 2, false, true,  11,  3, 0);
 			break;
 
 		case 5:
-			DO_BG(0,  0, 4, TRUE,  FALSE, 15,  7, 0);
-			DO_BG(1,  0, 2, TRUE,  FALSE, 11,  3, 0);
+			DO_BG(0,  0, 4, true,  false, 15,  7, 0);
+			DO_BG(1,  0, 2, true,  false, 11,  3, 0);
 			break;
 
 		case 6:
-			DO_BG(0,  0, 4, TRUE,  TRUE,  15,  7, 8);
+			DO_BG(0,  0, 4, true,  true,  15,  7, 8);
 			break;
 
 		case 7:
@@ -439,7 +439,7 @@ void S9xUpdateScreen (void)
 		if (PPU.RecomputeClipWindows)
 		{
 			S9xComputeClipWindows();
-			PPU.RecomputeClipWindows = FALSE;
+			PPU.RecomputeClipWindows = false;
 		}
 
 		if (!IPPU.DoubleWidthPixels && (PPU.BGMode == 5 || PPU.BGMode == 6 || IPPU.PseudoHires))
@@ -454,13 +454,13 @@ void S9xUpdateScreen (void)
 					*q = *(q + 1) = *p;
 			}
 
-			IPPU.DoubleWidthPixels = TRUE;
+			IPPU.DoubleWidthPixels = true;
 			IPPU.RenderedScreenWidth = 512;
 		}
 
 		if (!IPPU.DoubleHeightPixels && IPPU.Interlace && (PPU.BGMode == 5 || PPU.BGMode == 6))
 		{
-			IPPU.DoubleHeightPixels = TRUE;
+			IPPU.DoubleHeightPixels = true;
 			IPPU.RenderedScreenHeight = PPU.ScreenHeight << 1;
 			GFX.PPL = GFX.RealPPL << 1;
 			GFX.DoInterlace = 2;
@@ -476,9 +476,9 @@ void S9xUpdateScreen (void)
 			((Memory.FillRAM[0x2130] & 0x30) != 0x30 && (Memory.FillRAM[0x2130] & 2) && (Memory.FillRAM[0x2131] & 0x3f) && (Memory.FillRAM[0x212d] & 0x1f)))
 			// If hires (Mode 5/6 or pseudo-hires) or math is to be done
 			// involving the subscreen, then we need to render the subscreen...
-			RenderScreen(TRUE);
+			RenderScreen(true);
 
-		RenderScreen(FALSE);
+		RenderScreen(false);
 	}
 	else
 	{
@@ -641,7 +641,7 @@ static void SetupOBJ (void)
 		 * Bonus: We can quickly avoid looping if a line has no OBJs.
 		 */
         bool8 AnyOBJOnLine[SNES_HEIGHT_EXTENDED];
-        memset(AnyOBJOnLine, FALSE, sizeof(AnyOBJOnLine)); // better
+        memset(AnyOBJOnLine, false, sizeof(AnyOBJOnLine)); // better
 
 		for (S = 0; S < 128; S++)
 		{
@@ -676,7 +676,7 @@ static void SetupOBJ (void)
 
 					if (!AnyOBJOnLine[Y]) {
 						memset(OBJOnLine[Y], 0, sizeof(OBJOnLine[Y]));
-						AnyOBJOnLine[Y] = TRUE;
+						AnyOBJOnLine[Y] = true;
 					}
 
 					if (PPU.OBJ[S].VFlip)
@@ -728,7 +728,7 @@ static void SetupOBJ (void)
 		}
 	}
 
-	IPPU.OBJChanged = FALSE;
+	IPPU.OBJChanged = false;
 }
 
 #if defined(__GNUC__) && !defined(__clang__)
@@ -1309,7 +1309,7 @@ static void DrawBackgroundOffset (int bg, uint8 Zh, uint8 Zl, int VOffOff)
 					// SNES cannot do OPT for leftmost tile column
 					VOffset = LineData[Y].BG[bg].VOffset;
 					HOffset = HScroll;
-					left_edge = FALSE;
+					left_edge = false;
 				}
 				else
 				{
@@ -1702,7 +1702,7 @@ static inline void DrawBackdrop (void)
 void S9xReRefresh (void)
 {
 	// Be careful when calling this function from the thread other than the emulation one...
-	// Here it's assumed no drawing occurs from the emulation thread when Settings.Paused is TRUE.
+	// Here it's assumed no drawing occurs from the emulation thread when Settings.Paused is true.
 	if (Settings.Paused)
 		S9xDeinitUpdate(IPPU.RenderedScreenWidth, IPPU.RenderedScreenHeight);
 }

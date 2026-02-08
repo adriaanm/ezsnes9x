@@ -52,13 +52,13 @@ bool Init(const char *config_path)
     memset(&Settings, 0, sizeof(Settings));
 
     // Sensible defaults
-    Settings.Transparency        = TRUE;
-    Settings.AutoDisplayMessages = TRUE;
+    Settings.Transparency        = true;
+    Settings.AutoDisplayMessages = true;
     Settings.SoundPlaybackRate   = 32040; // SNES native audio rate
-    Settings.Stereo              = TRUE;
-    Settings.SixteenBitSound     = TRUE;
+    Settings.Stereo              = true;
+    Settings.SixteenBitSound     = true;
     Settings.FrameTime           = 16667; // ~60 fps
-    Settings.StopEmulation       = TRUE;
+    Settings.StopEmulation       = true;
     Settings.MaxSpriteTilesPerLine = 34; // Enable sprite rendering (34 = standard limit)
 
     // Default controller setup: pad0 on port 0, pad1 on port 1
@@ -114,7 +114,7 @@ bool LoadROM(const char *rom_path)
     Memory.LoadSRAM(sram_path.c_str());
 
     S9xReset();
-    Settings.StopEmulation = FALSE;
+    Settings.StopEmulation = false;
 
     S9xVerifyControllers();
 
@@ -135,7 +135,7 @@ void RunFrame()
 
 void Shutdown()
 {
-    Settings.StopEmulation = TRUE;
+    Settings.StopEmulation = true;
 
     // Save SRAM
     std::string sram_path = S9xGetFilename(".srm", SRAM_DIR);
@@ -159,7 +159,7 @@ void RewindStartContinuous()
         return; // Already rewinding
 
     s_rewinding = true;
-    Settings.Rewinding = TRUE;
+    Settings.Rewinding = true;
 
     // Immediately enter rewind mode and jump to most recent snapshot
     RewindStep();
@@ -171,7 +171,7 @@ void RewindStop()
         return;
 
     s_rewinding = false;
-    Settings.Rewinding = FALSE;
+    Settings.Rewinding = false;
     RewindRelease();
 }
 
@@ -378,7 +378,7 @@ void S9xAutoSaveSRAM()
 
 void S9xExit()
 {
-    Settings.StopEmulation = TRUE;
+    Settings.StopEmulation = true;
 }
 
 void S9xSetPause(uint32 mask)

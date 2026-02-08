@@ -372,7 +372,7 @@ static bool8 DSP3_GetBits (uint8 Count)
 		if (!DSP3.BitCount)
 		{
 			DSP3.SR = 0xC0;
-			return (FALSE);
+			return false;
 		}
 
 		DSP3.ReqBits <<= 1;
@@ -386,7 +386,7 @@ static bool8 DSP3_GetBits (uint8 Count)
 	}
 	while (DSP3.BitsLeft);
 
-	return (TRUE);
+	return true;
 }
 
 static void DSP3_Decode_Data (void)

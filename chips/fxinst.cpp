@@ -55,7 +55,7 @@ static void fx_cache (void)
 	{
 		fx_flushCache();
 		GSU.vCacheBaseReg = c;
-		GSU.bCacheActive = TRUE;
+		GSU.bCacheActive = true;
 
 	#if 0
 		if (c < (0x10000 - 512))
@@ -2618,7 +2618,7 @@ static void fx_jmp_r13 (void)
 	GSU.vPrgBankReg = GSU.avReg[reg] & 0x7f; \
 	GSU.pvPrgBank = GSU.apvRomBank[GSU.vPrgBankReg]; \
 	R15 = SREG; \
-	GSU.bCacheActive = FALSE; \
+	GSU.bCacheActive = false; \
 	fx_cache(); \
 	R15--
 

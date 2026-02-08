@@ -23,7 +23,7 @@ void S9xMainLoop (void)
 	{ \
 		if (Timings.IRQFlagChanging & IRQ_TRIGGER_NMI) \
 		{ \
-			CPU.NMIPending = TRUE; \
+			CPU.NMIPending = true; \
 			Timings.NMITriggerPos = CPU.Cycles + 6; \
 		} \
 		if (Timings.IRQFlagChanging & IRQ_CLEAR_FLAG) \
@@ -48,11 +48,11 @@ void S9xMainLoop (void)
 			#endif
 			if (Timings.NMITriggerPos <= CPU.Cycles)
 			{
-				CPU.NMIPending = FALSE;
+				CPU.NMIPending = false;
 				Timings.NMITriggerPos = 0xffff;
 				if (CPU.WaitingForInterrupt)
 				{
-					CPU.WaitingForInterrupt = FALSE;
+					CPU.WaitingForInterrupt = false;
 					Registers.PCw++;
 					CPU.Cycles += TWO_CYCLES + ONE_DOT_CYCLE / 2;
 					while (CPU.Cycles >= CPU.NextEvent)
@@ -71,14 +71,14 @@ void S9xMainLoop (void)
 			#endif
 
 			S9xUpdateIRQPositions(false);
-			CPU.IRQLine = TRUE;
+			CPU.IRQLine = true;
 		}
 
 		if (CPU.IRQLine || CPU.IRQExternal)
 		{
 			if (CPU.WaitingForInterrupt)
 			{
-				CPU.WaitingForInterrupt = FALSE;
+				CPU.WaitingForInterrupt = false;
 				Registers.PCw++;
 				CPU.Cycles += TWO_CYCLES + ONE_DOT_CYCLE / 2;
 				while (CPU.Cycles >= CPU.NextEvent)
@@ -106,7 +106,7 @@ void S9xMainLoop (void)
 					S9xBreakpoint[Break].Address == Registers.PCw)
 				{
 					if (S9xBreakpoint[Break].Enabled == 2)
-						S9xBreakpoint[Break].Enabled = TRUE;
+						S9xBreakpoint[Break].Enabled = true;
 					else
 						CPU.Flags |= DEBUG_MODE_FLAG;
 				}
@@ -255,7 +255,7 @@ void S9xDoHEventProcessing (void)
 			{
 				if (!SuperFX.oneLineDone)
 					S9xSuperFXExec();
-				SuperFX.oneLineDone = FALSE;
+				SuperFX.oneLineDone = false;
 			}
 
 			S9xAPUEndScanline();
@@ -351,7 +351,7 @@ void S9xDoHEventProcessing (void)
 					if ((PPU.OAMFlip & 1) || PPU.FirstSprite != tmp)
 					{
 						PPU.FirstSprite = tmp;
-						IPPU.OBJChanged = TRUE;
+						IPPU.OBJChanged = true;
 					}
 
 					PPU.OAMFlip = 0;
@@ -367,7 +367,7 @@ void S9xDoHEventProcessing (void)
 #endif
 					// FIXME: triggered at HC=6, checked just before the final CPU cycle,
 					// then, when to call S9xOpcode_NMI()?
-					CPU.NMIPending = TRUE;
+					CPU.NMIPending = true;
 					Timings.NMITriggerPos = 6 + 6;
 				}
 

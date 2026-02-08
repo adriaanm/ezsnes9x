@@ -38,7 +38,7 @@ static struct
 	uint16	buttons;
 }	joypad[8];
 
-static bool8		FLAG_LATCH = FALSE;
+static bool8		FLAG_LATCH = false;
 static int32		curcontrollers[2] = { NONE, NONE };
 static int32		newcontrollers[2] = { JOYPAD0, NONE };
 
@@ -56,7 +56,7 @@ void S9xControlsSoftReset (void)
 		for (int j = 0; j < 2; j++)
 			read_idx[i][j] = 0;
 
-	FLAG_LATCH = FALSE;
+	FLAG_LATCH = false;
 
 	curcontrollers[0] = newcontrollers[0];
 	curcontrollers[1] = newcontrollers[1];

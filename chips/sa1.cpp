@@ -21,7 +21,7 @@ void S9xSA1Init (void)
 	SA1.Cycles = 0;
 	SA1.PrevCycles = 0;
 	SA1.Flags = 0;
-	SA1.WaitingForInterrupt = FALSE;
+	SA1.WaitingForInterrupt = false;
 
 	memset(&Memory.FillRAM[0x2200], 0, 0x200);
 	Memory.FillRAM[0x2200] = 0x20;
@@ -31,8 +31,8 @@ void S9xSA1Init (void)
 	Memory.FillRAM[0x2223] = 0x03;
 	Memory.FillRAM[0x2228] = 0x0f;
 
-	SA1.in_char_dma = FALSE;
-	SA1.TimerIRQLastState = FALSE;
+	SA1.in_char_dma = false;
+	SA1.TimerIRQLastState = false;
 	SA1.HTimerIRQPos = 0;
 	SA1.VTimerIRQPos = 0;
 	SA1.HCounter = 0;
@@ -42,7 +42,7 @@ void S9xSA1Init (void)
 	SA1.op1 = 0;
 	SA1.op2 = 0;
 	SA1.sum = 0;
-	SA1.overflow = FALSE;
+	SA1.overflow = false;
 	SA1.VirtualBitmapFormat = 4;
 	SA1.variable_bit_pos = 0;
 
@@ -75,7 +75,7 @@ void S9xSA1Init (void)
 
 	SA1.BWRAM = Memory.SRAM;
 
-	CPU.IRQExternal = FALSE;
+	CPU.IRQExternal = false;
 }
 
 static void S9xSA1SetBWRAMMemMap (uint8 val)
@@ -227,7 +227,7 @@ uint8 S9xGetSA1 (uint32 address)
 			uint8	byte = Memory.FillRAM[0x230d];
 
 			if (Memory.FillRAM[0x2258] & 0x80)
-				S9xSA1ReadVariableLengthData(TRUE, FALSE);
+				S9xSA1ReadVariableLengthData(true, false);
 
 			return (byte);
 		}
@@ -287,14 +287,14 @@ void S9xSetSA1 (uint8 byte, uint32 address)
 			if (((byte ^ Memory.FillRAM[0x2201]) & 0x80) && (Memory.FillRAM[0x2300] & byte & 0x80))
 			{
 				Memory.FillRAM[0x2202] &= ~0x80;
-				CPU.IRQExternal = TRUE;
+				CPU.IRQExternal = true;
 			}
 
 			// S-CPU CHDMA IRQ enable
 			if (((byte ^ Memory.FillRAM[0x2201]) & 0x20) && (Memory.FillRAM[0x2300] & byte & 0x20))
 			{
 				Memory.FillRAM[0x2202] &= ~0x20;
-				CPU.IRQExternal = TRUE;
+				CPU.IRQExternal = true;
 			}
 
 			break;
@@ -309,7 +309,7 @@ void S9xSetSA1 (uint8 byte, uint32 address)
 				Memory.FillRAM[0x2300] &= ~0x20;
 
 			if (!(Memory.FillRAM[0x2300] & 0xa0))
-				CPU.IRQExternal = FALSE;
+				CPU.IRQExternal = false;
 
 			break;
 
@@ -332,7 +332,7 @@ void S9xSetSA1 (uint8 byte, uint32 address)
 				if (Memory.FillRAM[0x2201] & 0x80)
 				{
 					Memory.FillRAM[0x2202] &= ~0x80;
-					CPU.IRQExternal = TRUE;
+					CPU.IRQExternal = true;
 				}
 			}
 
@@ -450,7 +450,7 @@ void S9xSetSA1 (uint8 byte, uint32 address)
 			// 0x03: color mode
 			// (byte >> 2) & 7: virtual VRAM width
 			if (byte & 0x80)
-				SA1.in_char_dma = FALSE;
+				SA1.in_char_dma = false;
 
 			break;
 
@@ -470,13 +470,13 @@ void S9xSetSA1 (uint8 byte, uint32 address)
 			else
 			if ((Memory.FillRAM[0x2230] & 0xb0) == 0xb0) // CC1
 			{
-				SA1.in_char_dma = TRUE;
+				SA1.in_char_dma = true;
 
 				Memory.FillRAM[0x2300] |= 0x20;
 				if (Memory.FillRAM[0x2201] & 0x20)
 				{
 					Memory.FillRAM[0x2202] &= ~0x20;
-					CPU.IRQExternal = TRUE;
+					CPU.IRQExternal = true;
 				}
 			}
 
@@ -586,7 +586,7 @@ void S9xSetSA1 (uint8 byte, uint32 address)
 
 		case 0x2258: // variable bit-field length / auto inc / start
 			Memory.FillRAM[0x2258] = byte;
-			S9xSA1ReadVariableLengthData(TRUE, FALSE);
+			S9xSA1ReadVariableLengthData(true, false);
 			return;
 
 		case 0x2259: // variable bit-field start address (LL)
@@ -595,7 +595,7 @@ void S9xSetSA1 (uint8 byte, uint32 address)
 			Memory.FillRAM[address] = byte;
 			// XXX: ???
 			SA1.variable_bit_pos = 0;
-			S9xSA1ReadVariableLengthData(FALSE, TRUE);
+			S9xSA1ReadVariableLengthData(false, true);
 			return;
 
 		default:

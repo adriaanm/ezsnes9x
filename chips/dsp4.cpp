@@ -118,7 +118,7 @@ static void DSP4_Multiply (int16 Multiplicand, int16 Multiplier, int32 *Product)
 
 static void DSP4_OP01 (void)
 {
-	DSP4.waiting4command = FALSE;
+	DSP4.waiting4command = false;
 
 	// op flow control
 	switch (DSP4.Logic)
@@ -324,7 +324,7 @@ static void DSP4_OP01 (void)
 	while (1);
 
 	// terminate op
-	DSP4.waiting4command = TRUE;
+	DSP4.waiting4command = true;
 }
 
 static void DSP4_OP03 (void)
@@ -349,7 +349,7 @@ static void DSP4_OP06 (void)
 
 static void DSP4_OP07 (void)
 {
-	DSP4.waiting4command = FALSE;
+	DSP4.waiting4command = false;
 
 	// op flow control
 	switch (DSP4.Logic)
@@ -510,7 +510,7 @@ static void DSP4_OP07 (void)
 	}
 	while (1);
 
-	DSP4.waiting4command = TRUE;
+	DSP4.waiting4command = true;
 }
 
 static void DSP4_OP08 (void)
@@ -519,7 +519,7 @@ static void DSP4_OP08 (void)
 	int16	view_x[2], view_y[2];
 	int16	envelope[2][2];
 
-	DSP4.waiting4command = FALSE;
+	DSP4.waiting4command = false;
 
 	// op flow control
 	switch (DSP4.Logic)
@@ -827,12 +827,12 @@ static void DSP4_OP08 (void)
 	DSP4_CLEAR_OUT();
 	DSP4_WRITE_WORD(0);
 
-	DSP4.waiting4command = TRUE;
+	DSP4.waiting4command = true;
 }
 
 static void DSP4_OP09 (void)
 {
-	DSP4.waiting4command = FALSE;
+	DSP4.waiting4command = false;
 
 	// op flow control
 	switch (DSP4.Logic)
@@ -1001,7 +1001,7 @@ static void DSP4_OP09 (void)
 
 			resume5:
 
-			draw = TRUE;
+			draw = true;
 
 			// opcode termination
 			DSP4.raster = DSP4_READ_WORD();
@@ -1037,7 +1037,7 @@ static void DSP4_OP09 (void)
 
 			resume6:
 
-			draw = TRUE;
+			draw = true;
 
 			/////////////////////////////////////
 			// process tile data
@@ -1075,7 +1075,7 @@ static void DSP4_OP09 (void)
 	while (1);
 
 	terminate:
-	DSP4.waiting4command = TRUE;
+	DSP4.waiting4command = true;
 }
 
 static void DSP4_OP0A (int16 n2, int16 *o1, int16 *o2, int16 *o3, int16 *o4)
@@ -1169,7 +1169,7 @@ static void DSP4_OP0B (bool8 *draw, int16 sp_x, int16 sp_y, int16 sp_attr, bool8
 
 static void DSP4_OP0D (void)
 {
-	DSP4.waiting4command = FALSE;
+	DSP4.waiting4command = false;
 
 	// op flow control
 	switch (DSP4.Logic)
@@ -1347,7 +1347,7 @@ static void DSP4_OP0D (void)
 	}
 	while (1);
 
-	DSP4.waiting4command = TRUE;
+	DSP4.waiting4command = true;
 }
 
 static void DSP4_OP0E (void)
@@ -1358,7 +1358,7 @@ static void DSP4_OP0E (void)
 
 static void DSP4_OP0F (void)
 {
-	DSP4.waiting4command = FALSE;
+	DSP4.waiting4command = false;
 
 	// op flow control
 	switch (DSP4.Logic)
@@ -1602,12 +1602,12 @@ static void DSP4_OP0F (void)
 	while (1);
 
 	// terminate op
-	DSP4.waiting4command = TRUE;
+	DSP4.waiting4command = true;
 }
 
 static void DSP4_OP10 (void)
 {
-	DSP4.waiting4command = FALSE;
+	DSP4.waiting4command = false;
 
 	// op flow control
 	switch (DSP4.Logic)
@@ -1809,7 +1809,7 @@ static void DSP4_OP10 (void)
 	}
 	while (1);
 
-	DSP4.waiting4command = TRUE;
+	DSP4.waiting4command = true;
 }
 
 static void DSP4_OP11 (int16 A, int16 B, int16 C, int16 D, int16 *M)
@@ -1833,8 +1833,8 @@ static void DSP4_SetByte (void)
 		{
 			DSP4.command |= (DSP4.byte << 8);
 			DSP4.in_index        = 0;
-			DSP4.waiting4command = FALSE;
-			DSP4.half_command    = FALSE;
+			DSP4.waiting4command = false;
+			DSP4.half_command    = false;
 			DSP4.out_count       = 0;
 			DSP4.out_index       = 0;
 
@@ -1858,14 +1858,14 @@ static void DSP4_SetByte (void)
 				case 0x0010: DSP4.in_count = 36; break;
 				case 0x0011: DSP4.in_count =  8; break;
 				default:
-					DSP4.waiting4command = TRUE;
+					DSP4.waiting4command = true;
 					break;
 			}
 		}
 		else
 		{
 			DSP4.command = DSP4.byte;
-			DSP4.half_command = TRUE;
+			DSP4.half_command = true;
 		}
 	}
 	else
@@ -1877,7 +1877,7 @@ static void DSP4_SetByte (void)
 	if (!DSP4.waiting4command && DSP4.in_count == DSP4.in_index)
 	{
 		// Actually execute the command
-		DSP4.waiting4command = TRUE;
+		DSP4.waiting4command = true;
 		DSP4.out_index       = 0;
 		DSP4.in_index        = 0;
 
@@ -1961,7 +1961,7 @@ static void DSP4_SetByte (void)
 				int16	sp_x    = DSP4_READ_WORD();
 				int16	sp_y    = DSP4_READ_WORD();
 				int16	sp_attr = DSP4_READ_WORD();
-				bool8	draw = TRUE;
+				bool8	draw = true;
 
 				DSP4_CLEAR_OUT();
 				DSP4_OP0B(&draw, sp_x, sp_y, sp_attr, 0, 1);

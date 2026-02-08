@@ -74,7 +74,7 @@ void S9xSA1MainLoop (void)
 
 		if (SA1.WaitingForInterrupt)
 		{
-			SA1.WaitingForInterrupt = FALSE;
+			SA1.WaitingForInterrupt = false;
 			SA1Registers.PCw++;
 		}
 
@@ -90,7 +90,7 @@ void S9xSA1MainLoop (void)
 
 			if (SA1.WaitingForInterrupt)
 			{
-				SA1.WaitingForInterrupt = FALSE;
+				SA1.WaitingForInterrupt = false;
 				SA1Registers.PCw++;
 			}
 
@@ -104,7 +104,7 @@ void S9xSA1MainLoop (void)
 
 			if (SA1.WaitingForInterrupt)
 			{
-				SA1.WaitingForInterrupt = FALSE;
+				SA1.WaitingForInterrupt = false;
 				SA1Registers.PCw++;
 			}
 
@@ -118,7 +118,7 @@ void S9xSA1MainLoop (void)
 
 			if (SA1.WaitingForInterrupt)
 			{
-				SA1.WaitingForInterrupt = FALSE;
+				SA1.WaitingForInterrupt = false;
 				SA1Registers.PCw++;
 			}
 
@@ -201,13 +201,13 @@ static void S9xSA1UpdateTimer (void) // FIXME
 	if (Memory.FillRAM[0x2210] & 0x01)
 	{
 		if (SA1.PrevHCounter >= SA1.HTimerIRQPos * ONE_DOT_CYCLE || SA1.HCounter < SA1.HTimerIRQPos * ONE_DOT_CYCLE)
-			thisIRQ = FALSE;
+			thisIRQ = false;
 	}
 
 	if (Memory.FillRAM[0x2210] & 0x02)
 	{
 		if (SA1.VCounter != SA1.VTimerIRQPos * ONE_DOT_CYCLE)
-			thisIRQ = FALSE;
+			thisIRQ = false;
 	}
 
 	// SA-1 Timer IRQ control

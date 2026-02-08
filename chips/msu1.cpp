@@ -22,7 +22,7 @@ size_t partial_frames;
 static Resampler *msu_resampler = nullptr;
 
 #ifdef UNZIP_SUPPORT
-static int unzFindExtension(unzFile &file, const char *ext, bool restart = TRUE, bool print = TRUE, bool allowExact = FALSE)
+static int unzFindExtension(unzFile &file, const char *ext, bool restart = true, bool print = true, bool allowExact = false)
 {
     unz_file_info	info;
     int				port, l = strlen(ext), e = allowExact ? 0 : 1;

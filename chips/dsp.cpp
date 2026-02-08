@@ -16,17 +16,17 @@ void	(*SetDSP) (uint8, uint16) = nullptr;
 void S9xResetDSP (void)
 {
 	memset(&DSP1, 0, sizeof(DSP1));
-	DSP1.waiting4command = TRUE;
-	DSP1.first_parameter = TRUE;
+	DSP1.waiting4command = true;
+	DSP1.first_parameter = true;
 
 	memset(&DSP2, 0, sizeof(DSP2));
-	DSP2.waiting4command = TRUE;
+	DSP2.waiting4command = true;
 
 	memset(&DSP3, 0, sizeof(DSP3));
 	DSP3_Reset();
 
 	memset(&DSP4, 0, sizeof(DSP4));
-	DSP4.waiting4command = TRUE;
+	DSP4.waiting4command = true;
 }
 
 uint8 S9xGetDSP (uint16 address)

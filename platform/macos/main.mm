@@ -929,19 +929,19 @@ void S9xDeinitDisplay()
 
 bool8 S9xInitUpdate()
 {
-    return TRUE;
+    return true;
 }
 
 bool8 S9xDeinitUpdate(int width, int height)
 {
     EmulatorSetFrameSize(width, height);
-    return TRUE;
+    return true;
 }
 
 bool8 S9xContinueUpdate(int width, int height)
 {
     EmulatorSetFrameSize(width, height);
-    return TRUE;
+    return true;
 }
 
 void S9xSyncSpeed()
@@ -964,7 +964,7 @@ void S9xPutImage(int width, int height)
 
 bool8 S9xOpenSoundDevice()
 {
-    return TRUE;
+    return true;
 }
 
 void S9xInitInputDevices()

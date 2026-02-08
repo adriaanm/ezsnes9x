@@ -44,7 +44,7 @@ namespace {
 			non_zero |= p1 | p2;
 		}
 
-		return (non_zero ? TRUE : BLANK_TILE);
+		return (non_zero ? true : BLANK_TILE);
 	}
 
 	uint8 ConvertTile4 (uint8 *pCache, uint32 TileAddr, uint32)
@@ -69,7 +69,7 @@ namespace {
 			non_zero |= p1 | p2;
 		}
 
-		return (non_zero ? TRUE : BLANK_TILE);
+		return (non_zero ? true : BLANK_TILE);
 	}
 
 	uint8 ConvertTile8 (uint8 *pCache, uint32 TileAddr, uint32)
@@ -98,7 +98,7 @@ namespace {
 			non_zero |= p1 | p2;
 		}
 
-		return (non_zero ? TRUE : BLANK_TILE);
+		return (non_zero ? true : BLANK_TILE);
 	}
 
 	#undef DOBIT
@@ -134,7 +134,7 @@ namespace {
 			non_zero |= p1 | p2;
 		}
 
-		return (non_zero ? TRUE : BLANK_TILE);
+		return (non_zero ? true : BLANK_TILE);
 	}
 
 	uint8 ConvertTile4h_odd (uint8 *pCache, uint32 TileAddr, uint32 Tile)
@@ -164,7 +164,7 @@ namespace {
 			non_zero |= p1 | p2;
 		}
 
-		return (non_zero ? TRUE : BLANK_TILE);
+		return (non_zero ? true : BLANK_TILE);
 	}
 
 	#undef DOBIT
@@ -200,7 +200,7 @@ namespace {
 			non_zero |= p1 | p2;
 		}
 
-		return (non_zero ? TRUE : BLANK_TILE);
+		return (non_zero ? true : BLANK_TILE);
 	}
 
 	uint8 ConvertTile4h_even (uint8 *pCache, uint32 TileAddr, uint32 Tile)
@@ -230,7 +230,7 @@ namespace {
 			non_zero |= p1 | p2;
 		}
 
-		return (non_zero ? TRUE : BLANK_TILE);
+		return (non_zero ? true : BLANK_TILE);
 	}
 
 	#undef DOBIT
@@ -343,7 +343,7 @@ void S9xSelectTileRenderers (int BGMode, bool8 sub, bool8 obj)
 	M7M1 = PPU.BGMosaic[0] && PPU.Mosaic > 1;
 	M7M2 = PPU.BGMosaic[1] && PPU.Mosaic > 1;
 
-	bool8 interlace = obj ? FALSE : IPPU.Interlace;
+	bool8 interlace = obj ? false : IPPU.Interlace;
 	bool8 hires = !sub && (BGMode == 5 || BGMode == 6 || IPPU.PseudoHires);
 
 	if (!IPPU.DoubleWidthPixels)	// normal width
@@ -488,7 +488,7 @@ void S9xSelectTileConverter (int depth, bool8 hires, bool8 sub, bool8 mosaic)
 			BG.TileShift        = 5;
 			BG.PaletteShift     = 10 - 4;
 			BG.PaletteMask      = 7 << 4;
-			BG.DirectColourMode = FALSE;
+			BG.DirectColourMode = false;
 
 			break;
 
@@ -524,7 +524,7 @@ void S9xSelectTileConverter (int depth, bool8 hires, bool8 sub, bool8 mosaic)
 			BG.TileShift        = 4;
 			BG.PaletteShift     = 10 - 2;
 			BG.PaletteMask      = 7 << 2;
-			BG.DirectColourMode = FALSE;
+			BG.DirectColourMode = false;
 
 			break;
 	}

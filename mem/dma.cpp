@@ -41,17 +41,17 @@ static inline bool8 addCyclesInDMA (uint8 dma_channel)
 	#endif
 		// If HDMA triggers in the middle of DMA transfer and it uses the same channel,
 		// it kills the DMA transfer immediately. $43x2 and $43x5 stop updating.
-		return (FALSE);
+		return false;
 	}
 
 	CPU.HDMARanInDMA = 0;
-	return (TRUE);
+	return true;
 }
 
 bool8 S9xDoDMA (uint8 Channel)
 {
-	CPU.InDMA = TRUE;
-    CPU.InDMAorHDMA = TRUE;
+	CPU.InDMA = true;
+    CPU.InDMAorHDMA = true;
 	CPU.CurrentDMAorHDMAChannel = Channel;
 
     SDMA	*d = &DMA[Channel];
@@ -84,10 +84,10 @@ bool8 S9xDoDMA (uint8 Channel)
 			c--;
 			if (!addCyclesInDMA(Channel))
 			{
-				CPU.InDMA = FALSE;
-				CPU.InDMAorHDMA = FALSE;
+				CPU.InDMA = false;
+				CPU.InDMAorHDMA = false;
 				CPU.CurrentDMAorHDMAChannel = -1;
-				return (FALSE);
+				return false;
 			}
 		}
 
@@ -99,10 +99,10 @@ bool8 S9xDoDMA (uint8 Channel)
 		}
 	#endif
 
-		CPU.InDMA = FALSE;
-		CPU.InDMAorHDMA = FALSE;
+		CPU.InDMA = false;
+		CPU.InDMAorHDMA = false;
 		CPU.CurrentDMAorHDMAChannel = -1;
-		return (TRUE);
+		return true;
 	}
 
 	// Prepare for accessing $2118-2119
@@ -180,7 +180,7 @@ bool8 S9xDoDMA (uint8 Channel)
 
 	// SA-1
 
-	bool8	in_sa1_dma = FALSE;
+	bool8	in_sa1_dma = false;
 
 	if (Settings.SA1)
 	{
@@ -210,7 +210,7 @@ bool8 S9xDoDMA (uint8 Channel)
 			uint32	inc_sa1 = char_line_bytes - (d->AAddress % char_line_bytes);
 			uint32	char_count = inc_sa1 / bytes_per_char;
 
-			in_sa1_dma = TRUE;
+			in_sa1_dma = true;
 
 		#if 0
 			printf("SA-1 DMA: %08x,", base);
@@ -351,7 +351,7 @@ bool8 S9xDoDMA (uint8 Channel)
 		bool8	inWRAM_DMA;
 
 		int32	rem = count;
-		// Transfer per block if d->AAdressFixed is FALSE
+		// Transfer per block if d->AAdressFixed is false
 		count = d->AAddressFixed ? rem : (d->AAddressDecrement ? ((p & MEMMAP_MASK) + 1) : (MEMMAP_BLOCK_SIZE - (p & MEMMAP_MASK)));
 
 		// Settings for custom chip DMA
@@ -386,11 +386,11 @@ bool8 S9xDoDMA (uint8 Channel)
 			p += inc; \
 			if (!addCyclesInDMA(Channel)) \
 			{ \
-				CPU.InDMA = FALSE; \
-				CPU.InDMAorHDMA = FALSE; \
-				CPU.InWRAMDMAorHDMA = FALSE; \
+				CPU.InDMA = false; \
+				CPU.InDMAorHDMA = false; \
+				CPU.InWRAMDMAorHDMA = false; \
 				CPU.CurrentDMAorHDMAChannel = -1; \
-				return (FALSE); \
+				return false; \
 			}
 
 		while (1)
@@ -880,11 +880,11 @@ bool8 S9xDoDMA (uint8 Channel)
 			d->AAddress += inc; \
 			if (!addCyclesInDMA(Channel)) \
 			{ \
-				CPU.InDMA = FALSE; \
-				CPU.InDMAorHDMA = FALSE; \
-				CPU.InWRAMDMAorHDMA = FALSE; \
+				CPU.InDMA = false; \
+				CPU.InDMAorHDMA = false; \
+				CPU.InWRAMDMAorHDMA = false; \
 				CPU.CurrentDMAorHDMAChannel = -1; \
-				return (FALSE); \
+				return false; \
 			}
 
 		if (d->BAddress > 0x80 - 4 && d->BAddress <= 0x83 && !(d->ABank & 0x40))
@@ -1119,12 +1119,12 @@ bool8 S9xDoDMA (uint8 Channel)
 		fprintf(stderr,"DMA[%d] TransferBytes not 0! $21%02x Reverse:%d %04x\n", Channel, d->BAddress, d->ReverseTransfer, d->TransferBytes);
 #endif
 
-	CPU.InDMA = FALSE;
-	CPU.InDMAorHDMA = FALSE;
-	CPU.InWRAMDMAorHDMA = FALSE;
+	CPU.InDMA = false;
+	CPU.InDMAorHDMA = false;
+	CPU.InWRAMDMAorHDMA = false;
 	CPU.CurrentDMAorHDMAChannel = -1;
 
-	return (TRUE);
+	return true;
 }
 
 static inline bool8 HDMAReadLineCount (int d)
@@ -1138,7 +1138,7 @@ static inline bool8 HDMAReadLineCount (int d)
 
 	if (!line)
 	{
-		DMA[d].Repeat = FALSE;
+		DMA[d].Repeat = false;
 		DMA[d].LineCount = 128;
 
 		if (DMA[d].HDMAIndirectAddressing)
@@ -1158,12 +1158,12 @@ static inline bool8 HDMAReadLineCount (int d)
 		DMA[d].Address++;
 		HDMAMemPointers[d] = nullptr;
 
-		return (FALSE);
+		return false;
 	}
 	else
 	if (line == 0x80)
 	{
-		DMA[d].Repeat = TRUE;
+		DMA[d].Repeat = true;
 		DMA[d].LineCount = 128;
 	}
 	else
@@ -1173,7 +1173,7 @@ static inline bool8 HDMAReadLineCount (int d)
 	}
 
 	DMA[d].Address++;
-	DMA[d].DoTransfer = TRUE;
+	DMA[d].DoTransfer = true;
 
 	if (DMA[d].HDMAIndirectAddressing)
 	{
@@ -1185,7 +1185,7 @@ static inline bool8 HDMAReadLineCount (int d)
 	else
 		HDMAMemPointers[d] = S9xGetMemPointer((DMA[d].ABank << 16) + DMA[d].Address);
 
-	return (TRUE);
+	return true;
 }
 
 void S9xStartHDMA (void)
@@ -1200,8 +1200,8 @@ void S9xStartHDMA (void)
 
 	int32	tmpch;
 
-	CPU.InHDMA = TRUE;
-	CPU.InDMAorHDMA = TRUE;
+	CPU.InHDMA = true;
+	CPU.InDMAorHDMA = true;
 	tmpch = CPU.CurrentDMAorHDMAChannel;
 
 	// XXX: Not quite right...
@@ -1223,10 +1223,10 @@ void S9xStartHDMA (void)
 			}
 		}
 		else
-			DMA[i].DoTransfer = FALSE;
+			DMA[i].DoTransfer = false;
 	}
 
-	CPU.InHDMA = FALSE;
+	CPU.InHDMA = false;
 	CPU.InDMAorHDMA = CPU.InDMA;
 	CPU.HDMARanInDMA = CPU.InDMA ? PPU.HDMA : 0;
 	CPU.CurrentDMAorHDMAChannel = tmpch;
@@ -1243,8 +1243,8 @@ uint8 S9xDoHDMA (uint8 byte)
 	int	d;
 	uint8	mask;
 
-	CPU.InHDMA = TRUE;
-	CPU.InDMAorHDMA = TRUE;
+	CPU.InHDMA = true;
+	CPU.InDMAorHDMA = true;
 	CPU.HDMARanInDMA = CPU.InDMA ? byte : 0;
 	temp = CPU.InWRAMDMAorHDMA;
 	tmpch = CPU.CurrentDMAorHDMAChannel;
@@ -1256,7 +1256,7 @@ uint8 S9xDoHDMA (uint8 byte)
 	{
 		if (byte & mask)
 		{
-			CPU.InWRAMDMAorHDMA = FALSE;
+			CPU.InWRAMDMAorHDMA = false;
 			CPU.CurrentDMAorHDMAChannel = d;
 
 			if (p->HDMAIndirectAddressing)
@@ -1594,7 +1594,7 @@ uint8 S9xDoHDMA (uint8 byte)
 				{
 					byte &= ~mask;
 					PPU.HDMAEnded |= mask;
-					p->DoTransfer = FALSE;
+					p->DoTransfer = false;
 				}
 			}
 			else
@@ -1602,7 +1602,7 @@ uint8 S9xDoHDMA (uint8 byte)
 		}
 	}
 
-	CPU.InHDMA = FALSE;
+	CPU.InHDMA = false;
 	CPU.InDMAorHDMA = CPU.InDMA;
 	CPU.InWRAMDMAorHDMA = temp;
 	CPU.CurrentDMAorHDMAChannel = tmpch;
@@ -1614,10 +1614,10 @@ void S9xResetDMA (void)
 {
 	for (int d = 0; d < 8; d++)
 	{
-		DMA[d].ReverseTransfer = TRUE;
-		DMA[d].HDMAIndirectAddressing = TRUE;
-		DMA[d].AAddressFixed = TRUE;
-		DMA[d].AAddressDecrement = TRUE;
+		DMA[d].ReverseTransfer = true;
+		DMA[d].HDMAIndirectAddressing = true;
+		DMA[d].AAddressFixed = true;
+		DMA[d].AAddressDecrement = true;
 		DMA[d].TransferMode = 7;
 		DMA[d].BAddress = 0xff;
 		DMA[d].AAddress = 0xffff;
@@ -1625,10 +1625,10 @@ void S9xResetDMA (void)
 		DMA[d].DMACount_Or_HDMAIndirectAddress = 0xffff;
 		DMA[d].IndirectBank = 0xff;
 		DMA[d].Address = 0xffff;
-		DMA[d].Repeat = FALSE;
+		DMA[d].Repeat = false;
 		DMA[d].LineCount = 0x7f;
 		DMA[d].UnknownByte = 0xff;
-		DMA[d].DoTransfer = FALSE;
+		DMA[d].DoTransfer = false;
 		DMA[d].UnusedBit43x0 = 1;
 	}
 }

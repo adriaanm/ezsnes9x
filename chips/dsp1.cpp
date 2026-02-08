@@ -1145,8 +1145,8 @@ void DSP1SetByte (uint8 byte, uint16 address)
 		{
 			DSP1.command         = byte;
 			DSP1.in_index        = 0;
-			DSP1.waiting4command = FALSE;
-			DSP1.first_parameter = TRUE;
+			DSP1.waiting4command = false;
+			DSP1.first_parameter = true;
 			#ifdef DEBUGGER
 				//printf("OP%02X\n",byte);
 			#endif
@@ -1227,8 +1227,8 @@ void DSP1SetByte (uint8 byte, uint16 address)
 				#endif
 				case 0x80:
 					DSP1.in_count        = 0;
-					DSP1.waiting4command = TRUE;
-					DSP1.first_parameter = TRUE;
+					DSP1.waiting4command = true;
+					DSP1.first_parameter = true;
 					break;
 			}
 
@@ -1237,14 +1237,14 @@ void DSP1SetByte (uint8 byte, uint16 address)
 		else
 		{
 			DSP1.parameters[DSP1.in_index] = byte;
-			DSP1.first_parameter = FALSE;
+			DSP1.first_parameter = false;
 			DSP1.in_index++;
 		}
 
 		if (DSP1.waiting4command || (DSP1.first_parameter && byte == 0x80))
 		{
-			DSP1.waiting4command = TRUE;
-			DSP1.first_parameter = FALSE;
+			DSP1.waiting4command = true;
+			DSP1.first_parameter = false;
 		}
 		else
 		if (DSP1.first_parameter && (DSP1.in_count != 0 || (DSP1.in_count == 0 && DSP1.in_index == 0)))
@@ -1256,7 +1256,7 @@ void DSP1SetByte (uint8 byte, uint16 address)
 				if (--DSP1.in_count == 0)
 				{
 					// Actually execute the command
-					DSP1.waiting4command = TRUE;
+					DSP1.waiting4command = true;
 					DSP1.out_index       = 0;
 
 					switch (DSP1.command)
@@ -1692,7 +1692,7 @@ uint8 DSP1GetByte (uint16 address)
 				}
 			}
 
-			DSP1.waiting4command = TRUE;
+			DSP1.waiting4command = true;
 		}
 		else
 			t = 0x80;

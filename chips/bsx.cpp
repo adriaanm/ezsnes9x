@@ -102,8 +102,8 @@ static void BSX_Map_SNES (void)
 	{
 		Map[c + 0] = Map[c + 0x800] = RAM;
 		Map[c + 1] = Map[c + 0x801] = RAM;
-		BlockIsRAM[c + 0] = BlockIsRAM[c + 0x800] = TRUE;
-		BlockIsRAM[c + 1] = BlockIsRAM[c + 0x801] = TRUE;
+		BlockIsRAM[c + 0] = BlockIsRAM[c + 0x800] = true;
+		BlockIsRAM[c + 1] = BlockIsRAM[c + 0x801] = true;
 
 		Map[c + 2] = Map[c + 0x802] = (uint8 *) MAP_PPU;
 		Map[c + 3] = Map[c + 0x803] = (uint8 *) MAP_PPU;
@@ -185,7 +185,7 @@ static void BSX_Map_MMC (void)
 	for (c = 0x010; c < 0x0F0; c += 16)
 	{
 		Map[c + 5] = (uint8 *) MAP_BSX;
-		BlockIsRAM[c + 5] = BlockIsROM[c + 5] = FALSE;
+		BlockIsRAM[c + 5] = BlockIsROM[c + 5] = false;
 	}
 }
 
@@ -201,8 +201,8 @@ static void BSX_Map_FlashIO (void)
 			for (i = c + 8; i < c + 16; i++)
 			{
 				Map[i] = Map[i + 0x800] = (uint8 *)MAP_BSX;
-				BlockIsRAM[i] = BlockIsRAM[i + 0x800] = TRUE;
-				BlockIsROM[i] = BlockIsROM[i + 0x800] = FALSE;
+				BlockIsRAM[i] = BlockIsRAM[i + 0x800] = true;
+				BlockIsROM[i] = BlockIsROM[i + 0x800] = false;
 			}
 		}
 
@@ -212,8 +212,8 @@ static void BSX_Map_FlashIO (void)
 			for (i = c; i < c + 16; i++)
 			{
 				Map[i + 0x400] = Map[i + 0xC00] = (uint8 *)MAP_BSX;
-				BlockIsRAM[i + 0x400] = BlockIsRAM[i + 0xC00] = TRUE;
-				BlockIsROM[i + 0x400] = BlockIsROM[i + 0xC00] = FALSE;
+				BlockIsRAM[i + 0x400] = BlockIsRAM[i + 0xC00] = true;
+				BlockIsROM[i + 0x400] = BlockIsROM[i + 0xC00] = false;
 			}
 		}
 	}	
@@ -227,8 +227,8 @@ static void BSX_Map_SRAM (void)
 	for (c = 0x100; c < 0x180; c += 16)
 	{
 		Map[c + 5] = (uint8 *) SRAM + ((c & 0x70) << 8) - 0x5000;
-		BlockIsRAM[c + 5] = TRUE;
-		BlockIsROM[c + 5] = FALSE;
+		BlockIsRAM[c + 5] = true;
+		BlockIsROM[c + 5] = false;
 	}
 }
 
@@ -248,8 +248,8 @@ static void map_psram_mirror_sub (uint32 bank)
 				for (i = c; i < c + 16; i++)
 				{
 					Map[i + bank] = &PSRAM[(c << 12) % PSRAM_SIZE];
-					BlockIsRAM[i + bank] = TRUE;
-					BlockIsROM[i + bank] = FALSE;
+					BlockIsRAM[i + bank] = true;
+					BlockIsROM[i + bank] = false;
 				}
 			}
 			else
@@ -257,8 +257,8 @@ static void map_psram_mirror_sub (uint32 bank)
 				for (i = c + 8; i < c + 16; i++)
 				{
 					Map[i + bank] = &PSRAM[(c << 12) % PSRAM_SIZE];
-					BlockIsRAM[i + bank] = TRUE;
-					BlockIsROM[i + bank] = FALSE;
+					BlockIsRAM[i + bank] = true;
+					BlockIsROM[i + bank] = false;
 				}
 			}
 		}
@@ -273,16 +273,16 @@ static void map_psram_mirror_sub (uint32 bank)
 				for (i = c; i < c + 8; i++)
 				{
 					Map[i + bank] = &PSRAM[(c << 11) % PSRAM_SIZE];
-					BlockIsRAM[i + bank] = TRUE;
-					BlockIsROM[i + bank] = FALSE;
+					BlockIsRAM[i + bank] = true;
+					BlockIsROM[i + bank] = false;
 				}
 			}
 
 			for (i = c + 8; i < c + 16; i++)
 			{
 				Map[i + bank] = &PSRAM[(c << 11) % PSRAM_SIZE] - 0x8000;
-				BlockIsRAM[i + bank] = TRUE;
-				BlockIsROM[i + bank] = FALSE;
+				BlockIsRAM[i + bank] = true;
+				BlockIsROM[i + bank] = false;
 			}
 		}
 	}
@@ -410,10 +410,10 @@ static void BSX_Map_PSRAM(void)
 			{
 				Map[c + 6] = &PSRAM[((c & 0x70) << 12) % PSRAM_SIZE];
 				Map[c + 7] = &PSRAM[((c & 0x70) << 12) % PSRAM_SIZE];
-				BlockIsRAM[c + 6] = TRUE;
-				BlockIsRAM[c + 7] = TRUE;
-				BlockIsROM[c + 6] = FALSE;
-				BlockIsROM[c + 7] = FALSE;
+				BlockIsRAM[c + 6] = true;
+				BlockIsRAM[c + 7] = true;
+				BlockIsROM[c + 6] = false;
+				BlockIsROM[c + 7] = false;
 			}
 		}
 
@@ -424,10 +424,10 @@ static void BSX_Map_PSRAM(void)
 			{
 				Map[c + 6] = &PSRAM[((c & 0x70) << 12) % PSRAM_SIZE];
 				Map[c + 7] = &PSRAM[((c & 0x70) << 12) % PSRAM_SIZE];
-				BlockIsRAM[c + 6] = TRUE;
-				BlockIsRAM[c + 7] = TRUE;
-				BlockIsROM[c + 6] = FALSE;
-				BlockIsROM[c + 7] = FALSE;
+				BlockIsRAM[c + 6] = true;
+				BlockIsRAM[c + 7] = true;
+				BlockIsROM[c + 6] = false;
+				BlockIsROM[c + 7] = false;
 			}
 		}
 	}
@@ -445,8 +445,8 @@ static void BSX_Map_BIOS (void)
 			for (i = c + 8; i < c + 16; i++)
 			{
 				Map[i] = &BIOSROM[(c << 11) % BIOS_SIZE] - 0x8000;
-				BlockIsRAM[i] = FALSE;
-				BlockIsROM[i] = TRUE;
+				BlockIsRAM[i] = false;
+				BlockIsROM[i] = true;
 			}
 		}
 	}
@@ -459,8 +459,8 @@ static void BSX_Map_BIOS (void)
 			for (i = c + 8; i < c + 16; i++)
 			{
 				Map[i + 0x800] = &BIOSROM[(c << 11) % BIOS_SIZE] - 0x8000;
-				BlockIsRAM[i + 0x800] = FALSE;
-				BlockIsROM[i + 0x800] = TRUE;
+				BlockIsRAM[i + 0x800] = false;
+				BlockIsROM[i + 0x800] = true;
 			}
 		}
 	}
@@ -475,10 +475,10 @@ static void BSX_Map_RAM (void)
 	{
 		Map[c + 0x7E0] = RAM;
 		Map[c + 0x7F0] = RAM + 0x10000;
-		BlockIsRAM[c + 0x7E0] = TRUE;
-		BlockIsRAM[c + 0x7F0] = TRUE;
-		BlockIsROM[c + 0x7E0] = FALSE;
-		BlockIsROM[c + 0x7F0] = FALSE;
+		BlockIsRAM[c + 0x7E0] = true;
+		BlockIsRAM[c + 0x7F0] = true;
+		BlockIsROM[c + 0x7E0] = false;
+		BlockIsROM[c + 0x7F0] = false;
 	}
 }
 
@@ -511,8 +511,8 @@ static void BSX_Map (void)
 	BSX_Map_MMC();
 
 	// Monitor new register changes
-	BSX.dirty  = FALSE;
-	BSX.dirty2 = FALSE;
+	BSX.dirty  = false;
+	BSX.dirty2 = false;
 
 	Memory.map_WriteProtectROM();
 }
@@ -610,11 +610,11 @@ void S9xSetBSX (uint8 byte, uint32 address)
 		if (bank == 0x0E && BSX.dirty)
 		{
 			BSX_Map();
-			BSX.dirty = FALSE;
+			BSX.dirty = false;
 		}
 		else if (bank != 0x0E && BSX.MMC[bank] != byte)
 		{
-			BSX.dirty = TRUE;
+			BSX.dirty = true;
 		}
 
 		BSX.MMC[bank] = byte;
@@ -752,12 +752,12 @@ void S9xBSXSetStream1 (uint8 count)
 		float QueueSize = str1size / 22.;
 		BSX.sat_stream1_queue = (uint16)(ceil(QueueSize));
 		BSX.PPU[0x218D - BSXPPUBASE] = 0;
-		BSX.sat_stream1_first = TRUE;
-		BSX.sat_stream1_loaded = TRUE;
+		BSX.sat_stream1_first = true;
+		BSX.sat_stream1_loaded = true;
 	}
 	else
 	{
-		BSX.sat_stream1_loaded = FALSE;
+		BSX.sat_stream1_loaded = false;
 	}
 }
 
@@ -783,12 +783,12 @@ void S9xBSXSetStream2 (uint8 count)
 		float QueueSize = str2size / 22.;
 		BSX.sat_stream2_queue = (uint16)(ceil(QueueSize));
 		BSX.PPU[0x2193 - BSXPPUBASE] = 0;
-		BSX.sat_stream2_first = TRUE;
-		BSX.sat_stream2_loaded = TRUE;
+		BSX.sat_stream2_first = true;
+		BSX.sat_stream2_loaded = true;
 	}
 	else
 	{
-		BSX.sat_stream2_loaded = FALSE;
+		BSX.sat_stream2_loaded = false;
 	}
 }
 
@@ -902,7 +902,7 @@ uint8 S9xGetBSXPPU (uint16 address)
 					{
 						// First packet
 						temp |= 0x10;
-						BSX.sat_stream1_first = FALSE;
+						BSX.sat_stream1_first = false;
 					}
 
 					BSX.sat_stream1_queue--;
@@ -1019,7 +1019,7 @@ uint8 S9xGetBSXPPU (uint16 address)
 					{
 						// First packet
 						temp |= 0x10;
-						BSX.sat_stream2_first = FALSE;
+						BSX.sat_stream2_first = false;
 					}
 
 					BSX.sat_stream2_queue--;
@@ -1202,7 +1202,7 @@ uint8 * S9xGetBasePointerBSX (uint32 address)
 static bool8 BSX_LoadBIOS (void)
 {
 	FILE	*fp;
-	bool8	r = FALSE;
+	bool8	r = false;
 
 	std::string name = S9xGetDirectory(BIOS_DIR) + SLASH_STR + "BS-X.bin";
 
@@ -1220,7 +1220,7 @@ static bool8 BSX_LoadBIOS (void)
 		size = fread((void *) BIOSROM, 1, BIOS_SIZE, fp);
 		fclose(fp);
 		if (size == BIOS_SIZE)
-			r = TRUE;
+			r = true;
 	}
 
 #ifdef BSX_DEBUG
@@ -1236,52 +1236,52 @@ static bool8 BSX_LoadBIOS (void)
 static bool8 is_BSX_BIOS (const uint8 *data, uint32 size)
 {
 	if (size == BIOS_SIZE && strncmp((char *) (data + 0x7FC0), "Satellaview BS-X     ", 21) == 0)
-		return (TRUE);
+		return true;
 	else
-		return (FALSE);
+		return false;
 }
 
 void S9xInitBSX (void)
 {
-	Settings.BS = FALSE;
+	Settings.BS = false;
 
 	if (is_BSX_BIOS(Memory.ROM,Memory.CalculatedSize))
 	{
 		// BS-X itself
 
-		Settings.BS = TRUE;
-		Settings.BSXItself = TRUE;
+		Settings.BS = true;
+		Settings.BSXItself = true;
 
-		Memory.LoROM = TRUE;
-		Memory.HiROM = FALSE;
+		Memory.LoROM = true;
+		Memory.HiROM = false;
 
 		memmove(BIOSROM, Memory.ROM, BIOS_SIZE);
 
-		FlashMode = FALSE;
+		FlashMode = false;
 		FlashSize = FLASH_SIZE;
 
-		BSX.bootup = TRUE;
+		BSX.bootup = true;
 	}
 	else
 	{
-		Settings.BSXItself = FALSE;
+		Settings.BSXItself = false;
 
 		int	r1, r2;
 
 		r1 = (is_bsx(Memory.ROM + 0x7FC0) == 1);
 		r2 = (is_bsx(Memory.ROM + 0xFFC0) == 1);
-		Settings.BS = (r1 | r2) ? TRUE : FALSE;
+		Settings.BS = (r1 | r2) ? true : false;
 
 		if (Settings.BS)
 		{
 			// BS games
 
-			Memory.LoROM = r1 ? TRUE : FALSE;
-			Memory.HiROM = r2 ? TRUE : FALSE;
+			Memory.LoROM = r1 ? true : false;
+			Memory.HiROM = r2 ? true : false;
 
 			uint8	*header = r1 ? Memory.ROM + 0x7FC0 : Memory.ROM + 0xFFC0;
 
-			FlashMode = (header[0x18] & 0xEF) == 0x20 ? FALSE : TRUE;
+			FlashMode = (header[0x18] & 0xEF) == 0x20 ? false : true;
 			FlashSize = FLASH_SIZE;
 
 			// Fix Block Allocation Flags
@@ -1300,7 +1300,7 @@ void S9xInitBSX (void)
 
 			if (!BSX_LoadBIOS() && !is_BSX_BIOS(BIOSROM,BIOS_SIZE))
 			{
-				BSX.bootup = FALSE;
+				BSX.bootup = false;
 				memset(BIOSROM, 0, BIOS_SIZE);
 			}
 		}
@@ -1339,11 +1339,11 @@ void S9xResetBSX (void)
 	memset(BSX.MMC, 0, sizeof(BSX.MMC));
 	memset(BSX.prevMMC, 0, sizeof(BSX.prevMMC));
 
-	BSX.dirty         = FALSE;
-	BSX.dirty2        = FALSE;
-	BSX.flash_enable  = FALSE;
-	BSX.write_enable  = FALSE;
-	BSX.read_enable   = FALSE;
+	BSX.dirty         = false;
+	BSX.dirty2        = false;
+	BSX.flash_enable  = false;
+	BSX.write_enable  = false;
+	BSX.read_enable   = false;
 	BSX.flash_command = 0;
 	BSX.old_write     = 0;
 	BSX.new_write     = 0;
@@ -1363,11 +1363,11 @@ void S9xResetBSX (void)
 	BSX.PPU[0x2197 - BSXPPUBASE] = 0x80;
 
 	// stream reset
-	BSX.sat_pf_latch1_enable = BSX.sat_dt_latch1_enable = FALSE;
-	BSX.sat_pf_latch2_enable = BSX.sat_dt_latch2_enable = FALSE;
+	BSX.sat_pf_latch1_enable = BSX.sat_dt_latch1_enable = false;
+	BSX.sat_pf_latch2_enable = BSX.sat_dt_latch2_enable = false;
 
-	BSX.sat_stream1_loaded = BSX.sat_stream2_loaded = FALSE;
-	BSX.sat_stream1_first = BSX.sat_stream2_first = FALSE;
+	BSX.sat_stream1_loaded = BSX.sat_stream2_loaded = false;
+	BSX.sat_stream1_first = BSX.sat_stream2_first = false;
 	BSX.sat_stream1_count = BSX.sat_stream2_count = 0;
 
     if (BSX.sat_stream1.is_open())
@@ -1402,11 +1402,11 @@ static bool valid_normal_bank (unsigned char bankbyte)
 	switch (bankbyte)
 	{
 		case 32: case 33: case 48: case 49:
-			return (true);
+			return true;
 			break;
 	}
 
-	return (false);
+	return false;
 }
 
 static int is_bsx (unsigned char *p)

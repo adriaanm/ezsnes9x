@@ -368,7 +368,7 @@ void S9xSetST010 (uint32 Address, uint8 Byte)
 {
 	if (!(Address & 0x80000))
 	{
-		ST010.control_enable = TRUE;
+		ST010.control_enable = true;
 		return;
 	}
 

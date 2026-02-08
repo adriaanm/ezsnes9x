@@ -1070,29 +1070,29 @@ bool8 S9xFreezeGameMem (uint8 *buf, uint32 bufSize)
     memStream mStream(buf, bufSize);
 	S9xFreezeToStream(&mStream);
 
-	return (TRUE);
+	return true;
 }
 
 bool8 S9xFreezeGame (const char *filename)
 {
 	STREAM	stream = nullptr;
 
-	if (S9xOpenSnapshotFile(filename, FALSE, &stream))
+	if (S9xOpenSnapshotFile(filename, false, &stream))
 	{
 		S9xFreezeToStream(stream);
 		S9xCloseSnapshotFile(stream);
 
-		S9xResetSaveTimer(TRUE);
+		S9xResetSaveTimer(true);
 
 		auto base = S9xBasename(filename);
 		snprintf(String, sizeof(String), SAVE_INFO_SNAPSHOT " %s", base.c_str());
 
 		S9xMessage(S9X_INFO, S9X_FREEZE_FILE_INFO, String);
 
-		return (TRUE);
+		return true;
 	}
 
-	return (FALSE);
+	return false;
 }
 
 int S9xUnfreezeGameMem (const uint8 *buf, uint32 bufSize)
@@ -1131,7 +1131,7 @@ bool8 S9xUnfreezeGame (const char *filename)
 	auto path = splitpath(filename);
 	S9xResetSaveTimer(path.ext_is(".oops") || path.ext_is(".oop"));
 
-	if (S9xOpenSnapshotFile(filename, TRUE, &stream))
+	if (S9xOpenSnapshotFile(filename, true, &stream))
 	{
 		int	result;
 
@@ -1141,20 +1141,20 @@ bool8 S9xUnfreezeGame (const char *filename)
 		if (result != SUCCESS)
 		{
             S9xMessageFromResult(result, base.c_str());
-			return (FALSE);
+			return false;
 		}
 
 		snprintf(String, sizeof(String), SAVE_INFO_LOAD " %s", base.c_str());
 
 		S9xMessage(S9X_INFO, S9X_FREEZE_FILE_INFO, String);
 
-		return (TRUE);
+		return true;
 	}
 
 	snprintf(String, sizeof(String), SAVE_ERR_SAVE_NOT_FOUND, base.c_str());
 	S9xMessage(S9X_INFO, S9X_FREEZE_FILE_INFO, String);
 
-	return (FALSE);
+	return false;
 }
 
 bool8 S9xUnfreezeScreenshot(const char *filename, uint16 **image_buffer, int &width, int &height)
@@ -1163,7 +1163,7 @@ bool8 S9xUnfreezeScreenshot(const char *filename, uint16 **image_buffer, int &wi
 
     auto base = S9xBasename(filename);
 
-    if(S9xOpenSnapshotFile(filename, TRUE, &stream))
+    if(S9xOpenSnapshotFile(filename, true, &stream))
     {
         int	result;
 
@@ -1173,16 +1173,16 @@ bool8 S9xUnfreezeScreenshot(const char *filename, uint16 **image_buffer, int &wi
         if(result != SUCCESS)
         {
             S9xMessageFromResult(result, base.c_str());
-            return (FALSE);
+            return false;
         }
 
-        return (TRUE);
+        return true;
     }
 
     snprintf(String, sizeof(String), SAVE_ERR_SAVE_NOT_FOUND, base.c_str());
     S9xMessage(S9X_INFO, S9X_FREEZE_FILE_INFO, String);
 
-    return (FALSE);
+    return false;
 }
 
 void S9xFreezeToStream (STREAM stream)
@@ -1601,11 +1601,11 @@ int S9xUnfreezeFromStream (STREAM stream)
 		{
 			printf("Converting old snapshot version %d to %d\n...", version, SNAPSHOT_VERSION);
 
-			CPU.NMIPending = (CPU.Flags & (1 <<  7)) ? TRUE : FALSE;
-			CPU.IRQLine = (CPU.Flags & (1 << 11)) ? TRUE : FALSE;
-			CPU.IRQTransition = FALSE;
-			CPU.IRQLastState = FALSE;
-			CPU.IRQExternal = (Obsolete.CPU_IRQActive & ~(1 << 1)) ? TRUE : FALSE;
+			CPU.NMIPending = (CPU.Flags & (1 <<  7)) ? true : false;
+			CPU.IRQLine = (CPU.Flags & (1 << 11)) ? true : false;
+			CPU.IRQTransition = false;
+			CPU.IRQLastState = false;
+			CPU.IRQExternal = (Obsolete.CPU_IRQActive & ~(1 << 1)) ? true : false;
 
 			switch (CPU.WhichEvent)
 			{
@@ -1620,7 +1620,7 @@ int S9xUnfreezeFromStream (STREAM stream)
 			if (local_sa1) // FIXME
 			{
 				SA1.Cycles = SA1.PrevCycles = 0;
-				SA1.TimerIRQLastState = FALSE;
+				SA1.TimerIRQLastState = false;
 				SA1.HTimerIRQPos = Memory.FillRAM[0x2212] | (Memory.FillRAM[0x2213] << 8);
 				SA1.VTimerIRQPos = Memory.FillRAM[0x2214] | (Memory.FillRAM[0x2215] << 8);
 				SA1.HCounter = 0;
@@ -1643,15 +1643,15 @@ int S9xUnfreezeFromStream (STREAM stream)
 		for (int d = 0; d < 8; d++)
 			DMA[d] = dma_snap.dma[d];
 		// TODO: these should already be correct since they are stored in the snapshot
-		CPU.InDMA = CPU.InHDMA = FALSE;
-		CPU.InDMAorHDMA = CPU.InWRAMDMAorHDMA = FALSE;
+		CPU.InDMA = CPU.InHDMA = false;
+		CPU.InDMAorHDMA = CPU.InWRAMDMAorHDMA = false;
 		CPU.HDMARanInDMA = 0;
 
 		S9xFixColourBrightness();
 		S9xBuildDirectColourMaps();
-		IPPU.ColorsChanged = TRUE;
-		IPPU.OBJChanged = TRUE;
-		IPPU.RenderThisFrame = TRUE;
+		IPPU.ColorsChanged = true;
+		IPPU.OBJChanged = true;
+		IPPU.RenderThisFrame = true;
 
 		GFX.DoInterlace = 0;
 

@@ -264,7 +264,7 @@ static inline void REGISTER_2104 (uint8 Byte)
 		{
 			FLUSH_REDRAW();
 			PPU.OAMData[addr] = Byte;
-			IPPU.OBJChanged = TRUE;
+			IPPU.OBJChanged = true;
 
 			// X position high bit, and sprite size (x4)
 			struct SOBJ *pObj = &PPU.OBJ[(addr & 0x1f) * 4];
@@ -292,7 +292,7 @@ static inline void REGISTER_2104 (uint8 Byte)
 			FLUSH_REDRAW();
 			PPU.OAMData[addr] = lowbyte;
 			PPU.OAMData[addr + 1] = highbyte;
-			IPPU.OBJChanged = TRUE;
+			IPPU.OBJChanged = true;
 			if (addr & 2)
 			{
 				// Tile
@@ -322,13 +322,13 @@ static inline void REGISTER_2104 (uint8 Byte)
 		if (PPU.OAMPriorityRotation && PPU.FirstSprite != (PPU.OAMAddr >> 1))
 		{
 			PPU.FirstSprite = (PPU.OAMAddr & 0xfe) >> 1;
-			IPPU.OBJChanged = TRUE;
+			IPPU.OBJChanged = true;
 		}
 	}
 	else
 	{
 		if (PPU.OAMPriorityRotation && (PPU.OAMAddr & 1))
-			IPPU.OBJChanged = TRUE;
+			IPPU.OBJChanged = true;
 	}
 }
 
@@ -368,17 +368,17 @@ static inline void REGISTER_2118 (uint8 Byte)
 	else
 		Memory.VRAM[address = (PPU.VMA.Address << 1) & 0xffff] = Byte;
 
-	IPPU.TileCached[TILE_2BIT][address >> 4] = FALSE;
-	IPPU.TileCached[TILE_4BIT][address >> 5] = FALSE;
-	IPPU.TileCached[TILE_8BIT][address >> 6] = FALSE;
-	IPPU.TileCached[TILE_2BIT_EVEN][address >> 4] = FALSE;
-	IPPU.TileCached[TILE_2BIT_EVEN][((address >> 4) - 1) & (MAX_2BIT_TILES - 1)] = FALSE;
-	IPPU.TileCached[TILE_2BIT_ODD] [address >> 4] = FALSE;
-	IPPU.TileCached[TILE_2BIT_ODD] [((address >> 4) - 1) & (MAX_2BIT_TILES - 1)] = FALSE;
-	IPPU.TileCached[TILE_4BIT_EVEN][address >> 5] = FALSE;
-	IPPU.TileCached[TILE_4BIT_EVEN][((address >> 5) - 1) & (MAX_4BIT_TILES - 1)] = FALSE;
-	IPPU.TileCached[TILE_4BIT_ODD] [address >> 5] = FALSE;
-	IPPU.TileCached[TILE_4BIT_ODD] [((address >> 5) - 1) & (MAX_4BIT_TILES - 1)] = FALSE;
+	IPPU.TileCached[TILE_2BIT][address >> 4] = false;
+	IPPU.TileCached[TILE_4BIT][address >> 5] = false;
+	IPPU.TileCached[TILE_8BIT][address >> 6] = false;
+	IPPU.TileCached[TILE_2BIT_EVEN][address >> 4] = false;
+	IPPU.TileCached[TILE_2BIT_EVEN][((address >> 4) - 1) & (MAX_2BIT_TILES - 1)] = false;
+	IPPU.TileCached[TILE_2BIT_ODD] [address >> 4] = false;
+	IPPU.TileCached[TILE_2BIT_ODD] [((address >> 4) - 1) & (MAX_2BIT_TILES - 1)] = false;
+	IPPU.TileCached[TILE_4BIT_EVEN][address >> 5] = false;
+	IPPU.TileCached[TILE_4BIT_EVEN][((address >> 5) - 1) & (MAX_4BIT_TILES - 1)] = false;
+	IPPU.TileCached[TILE_4BIT_ODD] [address >> 5] = false;
+	IPPU.TileCached[TILE_4BIT_ODD] [((address >> 5) - 1) & (MAX_4BIT_TILES - 1)] = false;
 
 	if (!PPU.VMA.High)
 	{
@@ -399,17 +399,17 @@ static inline void REGISTER_2118_tile (uint8 Byte)
 
 	Memory.VRAM[address] = Byte;
 
-	IPPU.TileCached[TILE_2BIT][address >> 4] = FALSE;
-	IPPU.TileCached[TILE_4BIT][address >> 5] = FALSE;
-	IPPU.TileCached[TILE_8BIT][address >> 6] = FALSE;
-	IPPU.TileCached[TILE_2BIT_EVEN][address >> 4] = FALSE;
-	IPPU.TileCached[TILE_2BIT_EVEN][((address >> 4) - 1) & (MAX_2BIT_TILES - 1)] = FALSE;
-	IPPU.TileCached[TILE_2BIT_ODD] [address >> 4] = FALSE;
-	IPPU.TileCached[TILE_2BIT_ODD] [((address >> 4) - 1) & (MAX_2BIT_TILES - 1)] = FALSE;
-	IPPU.TileCached[TILE_4BIT_EVEN][address >> 5] = FALSE;
-	IPPU.TileCached[TILE_4BIT_EVEN][((address >> 5) - 1) & (MAX_4BIT_TILES - 1)] = FALSE;
-	IPPU.TileCached[TILE_4BIT_ODD] [address >> 5] = FALSE;
-	IPPU.TileCached[TILE_4BIT_ODD] [((address >> 5) - 1) & (MAX_4BIT_TILES - 1)] = FALSE;
+	IPPU.TileCached[TILE_2BIT][address >> 4] = false;
+	IPPU.TileCached[TILE_4BIT][address >> 5] = false;
+	IPPU.TileCached[TILE_8BIT][address >> 6] = false;
+	IPPU.TileCached[TILE_2BIT_EVEN][address >> 4] = false;
+	IPPU.TileCached[TILE_2BIT_EVEN][((address >> 4) - 1) & (MAX_2BIT_TILES - 1)] = false;
+	IPPU.TileCached[TILE_2BIT_ODD] [address >> 4] = false;
+	IPPU.TileCached[TILE_2BIT_ODD] [((address >> 4) - 1) & (MAX_2BIT_TILES - 1)] = false;
+	IPPU.TileCached[TILE_4BIT_EVEN][address >> 5] = false;
+	IPPU.TileCached[TILE_4BIT_EVEN][((address >> 5) - 1) & (MAX_4BIT_TILES - 1)] = false;
+	IPPU.TileCached[TILE_4BIT_ODD] [address >> 5] = false;
+	IPPU.TileCached[TILE_4BIT_ODD] [((address >> 5) - 1) & (MAX_4BIT_TILES - 1)] = false;
 
 	if (!PPU.VMA.High)
 		PPU.VMA.Address += PPU.VMA.Increment;
@@ -423,17 +423,17 @@ static inline void REGISTER_2118_linear (uint8 Byte)
 
 	Memory.VRAM[address = (PPU.VMA.Address << 1) & 0xffff] = Byte;
 
-	IPPU.TileCached[TILE_2BIT][address >> 4] = FALSE;
-	IPPU.TileCached[TILE_4BIT][address >> 5] = FALSE;
-	IPPU.TileCached[TILE_8BIT][address >> 6] = FALSE;
-	IPPU.TileCached[TILE_2BIT_EVEN][address >> 4] = FALSE;
-	IPPU.TileCached[TILE_2BIT_EVEN][((address >> 4) - 1) & (MAX_2BIT_TILES - 1)] = FALSE;
-	IPPU.TileCached[TILE_2BIT_ODD] [address >> 4] = FALSE;
-	IPPU.TileCached[TILE_2BIT_ODD] [((address >> 4) - 1) & (MAX_2BIT_TILES - 1)] = FALSE;
-	IPPU.TileCached[TILE_4BIT_EVEN][address >> 5] = FALSE;
-	IPPU.TileCached[TILE_4BIT_EVEN][((address >> 5) - 1) & (MAX_4BIT_TILES - 1)] = FALSE;
-	IPPU.TileCached[TILE_4BIT_ODD] [address >> 5] = FALSE;
-	IPPU.TileCached[TILE_4BIT_ODD] [((address >> 5) - 1) & (MAX_4BIT_TILES - 1)] = FALSE;
+	IPPU.TileCached[TILE_2BIT][address >> 4] = false;
+	IPPU.TileCached[TILE_4BIT][address >> 5] = false;
+	IPPU.TileCached[TILE_8BIT][address >> 6] = false;
+	IPPU.TileCached[TILE_2BIT_EVEN][address >> 4] = false;
+	IPPU.TileCached[TILE_2BIT_EVEN][((address >> 4) - 1) & (MAX_2BIT_TILES - 1)] = false;
+	IPPU.TileCached[TILE_2BIT_ODD] [address >> 4] = false;
+	IPPU.TileCached[TILE_2BIT_ODD] [((address >> 4) - 1) & (MAX_2BIT_TILES - 1)] = false;
+	IPPU.TileCached[TILE_4BIT_EVEN][address >> 5] = false;
+	IPPU.TileCached[TILE_4BIT_EVEN][((address >> 5) - 1) & (MAX_4BIT_TILES - 1)] = false;
+	IPPU.TileCached[TILE_4BIT_ODD] [address >> 5] = false;
+	IPPU.TileCached[TILE_4BIT_ODD] [((address >> 5) - 1) & (MAX_4BIT_TILES - 1)] = false;
 
 	if (!PPU.VMA.High)
 		PPU.VMA.Address += PPU.VMA.Increment;
@@ -475,17 +475,17 @@ static inline void REGISTER_2119 (uint8 Byte)
 	else
 		Memory.VRAM[address = ((PPU.VMA.Address << 1) + 1) & 0xffff] = Byte;
 
-	IPPU.TileCached[TILE_2BIT][address >> 4] = FALSE;
-	IPPU.TileCached[TILE_4BIT][address >> 5] = FALSE;
-	IPPU.TileCached[TILE_8BIT][address >> 6] = FALSE;
-	IPPU.TileCached[TILE_2BIT_EVEN][address >> 4] = FALSE;
-	IPPU.TileCached[TILE_2BIT_EVEN][((address >> 4) - 1) & (MAX_2BIT_TILES - 1)] = FALSE;
-	IPPU.TileCached[TILE_2BIT_ODD] [address >> 4] = FALSE;
-	IPPU.TileCached[TILE_2BIT_ODD] [((address >> 4) - 1) & (MAX_2BIT_TILES - 1)] = FALSE;
-	IPPU.TileCached[TILE_4BIT_EVEN][address >> 5] = FALSE;
-	IPPU.TileCached[TILE_4BIT_EVEN][((address >> 5) - 1) & (MAX_4BIT_TILES - 1)] = FALSE;
-	IPPU.TileCached[TILE_4BIT_ODD] [address >> 5] = FALSE;
-	IPPU.TileCached[TILE_4BIT_ODD] [((address >> 5) - 1) & (MAX_4BIT_TILES - 1)] = FALSE;
+	IPPU.TileCached[TILE_2BIT][address >> 4] = false;
+	IPPU.TileCached[TILE_4BIT][address >> 5] = false;
+	IPPU.TileCached[TILE_8BIT][address >> 6] = false;
+	IPPU.TileCached[TILE_2BIT_EVEN][address >> 4] = false;
+	IPPU.TileCached[TILE_2BIT_EVEN][((address >> 4) - 1) & (MAX_2BIT_TILES - 1)] = false;
+	IPPU.TileCached[TILE_2BIT_ODD] [address >> 4] = false;
+	IPPU.TileCached[TILE_2BIT_ODD] [((address >> 4) - 1) & (MAX_2BIT_TILES - 1)] = false;
+	IPPU.TileCached[TILE_4BIT_EVEN][address >> 5] = false;
+	IPPU.TileCached[TILE_4BIT_EVEN][((address >> 5) - 1) & (MAX_4BIT_TILES - 1)] = false;
+	IPPU.TileCached[TILE_4BIT_ODD] [address >> 5] = false;
+	IPPU.TileCached[TILE_4BIT_ODD] [((address >> 5) - 1) & (MAX_4BIT_TILES - 1)] = false;
 
 	if (PPU.VMA.High)
 	{
@@ -506,17 +506,17 @@ static inline void REGISTER_2119_tile (uint8 Byte)
 
 	Memory.VRAM[address] = Byte;
 
-	IPPU.TileCached[TILE_2BIT][address >> 4] = FALSE;
-	IPPU.TileCached[TILE_4BIT][address >> 5] = FALSE;
-	IPPU.TileCached[TILE_8BIT][address >> 6] = FALSE;
-	IPPU.TileCached[TILE_2BIT_EVEN][address >> 4] = FALSE;
-	IPPU.TileCached[TILE_2BIT_EVEN][((address >> 4) - 1) & (MAX_2BIT_TILES - 1)] = FALSE;
-	IPPU.TileCached[TILE_2BIT_ODD] [address >> 4] = FALSE;
-	IPPU.TileCached[TILE_2BIT_ODD] [((address >> 4) - 1) & (MAX_2BIT_TILES - 1)] = FALSE;
-	IPPU.TileCached[TILE_4BIT_EVEN][address >> 5] = FALSE;
-	IPPU.TileCached[TILE_4BIT_EVEN][((address >> 5) - 1) & (MAX_4BIT_TILES - 1)] = FALSE;
-	IPPU.TileCached[TILE_4BIT_ODD] [address >> 5] = FALSE;
-	IPPU.TileCached[TILE_4BIT_ODD] [((address >> 5) - 1) & (MAX_4BIT_TILES - 1)] = FALSE;
+	IPPU.TileCached[TILE_2BIT][address >> 4] = false;
+	IPPU.TileCached[TILE_4BIT][address >> 5] = false;
+	IPPU.TileCached[TILE_8BIT][address >> 6] = false;
+	IPPU.TileCached[TILE_2BIT_EVEN][address >> 4] = false;
+	IPPU.TileCached[TILE_2BIT_EVEN][((address >> 4) - 1) & (MAX_2BIT_TILES - 1)] = false;
+	IPPU.TileCached[TILE_2BIT_ODD] [address >> 4] = false;
+	IPPU.TileCached[TILE_2BIT_ODD] [((address >> 4) - 1) & (MAX_2BIT_TILES - 1)] = false;
+	IPPU.TileCached[TILE_4BIT_EVEN][address >> 5] = false;
+	IPPU.TileCached[TILE_4BIT_EVEN][((address >> 5) - 1) & (MAX_4BIT_TILES - 1)] = false;
+	IPPU.TileCached[TILE_4BIT_ODD] [address >> 5] = false;
+	IPPU.TileCached[TILE_4BIT_ODD] [((address >> 5) - 1) & (MAX_4BIT_TILES - 1)] = false;
 
 	if (PPU.VMA.High)
 		PPU.VMA.Address += PPU.VMA.Increment;
@@ -530,17 +530,17 @@ static inline void REGISTER_2119_linear (uint8 Byte)
 
 	Memory.VRAM[address = ((PPU.VMA.Address << 1) + 1) & 0xffff] = Byte;
 
-	IPPU.TileCached[TILE_2BIT][address >> 4] = FALSE;
-	IPPU.TileCached[TILE_4BIT][address >> 5] = FALSE;
-	IPPU.TileCached[TILE_8BIT][address >> 6] = FALSE;
-	IPPU.TileCached[TILE_2BIT_EVEN][address >> 4] = FALSE;
-	IPPU.TileCached[TILE_2BIT_EVEN][((address >> 4) - 1) & (MAX_2BIT_TILES - 1)] = FALSE;
-	IPPU.TileCached[TILE_2BIT_ODD] [address >> 4] = FALSE;
-	IPPU.TileCached[TILE_2BIT_ODD] [((address >> 4) - 1) & (MAX_2BIT_TILES - 1)] = FALSE;
-	IPPU.TileCached[TILE_4BIT_EVEN][address >> 5] = FALSE;
-	IPPU.TileCached[TILE_4BIT_EVEN][((address >> 5) - 1) & (MAX_4BIT_TILES - 1)] = FALSE;
-	IPPU.TileCached[TILE_4BIT_ODD] [address >> 5] = FALSE;
-	IPPU.TileCached[TILE_4BIT_ODD] [((address >> 5) - 1) & (MAX_4BIT_TILES - 1)] = FALSE;
+	IPPU.TileCached[TILE_2BIT][address >> 4] = false;
+	IPPU.TileCached[TILE_4BIT][address >> 5] = false;
+	IPPU.TileCached[TILE_8BIT][address >> 6] = false;
+	IPPU.TileCached[TILE_2BIT_EVEN][address >> 4] = false;
+	IPPU.TileCached[TILE_2BIT_EVEN][((address >> 4) - 1) & (MAX_2BIT_TILES - 1)] = false;
+	IPPU.TileCached[TILE_2BIT_ODD] [address >> 4] = false;
+	IPPU.TileCached[TILE_2BIT_ODD] [((address >> 4) - 1) & (MAX_2BIT_TILES - 1)] = false;
+	IPPU.TileCached[TILE_4BIT_EVEN][address >> 5] = false;
+	IPPU.TileCached[TILE_4BIT_EVEN][((address >> 5) - 1) & (MAX_4BIT_TILES - 1)] = false;
+	IPPU.TileCached[TILE_4BIT_ODD] [address >> 5] = false;
+	IPPU.TileCached[TILE_4BIT_ODD] [((address >> 5) - 1) & (MAX_4BIT_TILES - 1)] = false;
 
 	if (PPU.VMA.High)
 		PPU.VMA.Address += PPU.VMA.Increment;
@@ -554,7 +554,7 @@ static inline void REGISTER_2122 (uint8 Byte)
 		{
 			FLUSH_REDRAW();
 			PPU.CGDATA[PPU.CGADD] = (Byte & 0x7f) << 8 | PPU.CGSavedByte;
-			IPPU.ColorsChanged = TRUE;
+			IPPU.ColorsChanged = true;
 			IPPU.Red[PPU.CGADD] = IPPU.XB[PPU.CGSavedByte & 0x1f];
 			IPPU.Blue[PPU.CGADD] = IPPU.XB[(Byte >> 2) & 0x1f];
 			IPPU.Green[PPU.CGADD] = IPPU.XB[(PPU.CGDATA[PPU.CGADD] >> 5) & 0x1f];

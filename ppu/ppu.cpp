@@ -256,7 +256,7 @@ void S9xSetPPU (uint8 Byte, uint16 Address)
 
 					if (PPU.Brightness != (Byte & 0xf))
 					{
-						IPPU.ColorsChanged = TRUE;
+						IPPU.ColorsChanged = true;
 						PPU.Brightness = Byte & 0xf;
 						S9xFixColourBrightness();
 						S9xBuildDirectColourMaps();
@@ -266,7 +266,7 @@ void S9xSetPPU (uint8 Byte, uint16 Address)
 
 					if ((Memory.FillRAM[0x2100] & 0x80) != (Byte & 0x80))
 					{
-						IPPU.ColorsChanged = TRUE;
+						IPPU.ColorsChanged = true;
 						PPU.ForcedBlanking = (Byte >> 7) & 1;
 					}
 				}
@@ -281,7 +281,7 @@ void S9xSetPPU (uint8 Byte, uint16 Address)
 					if ((PPU.OAMFlip & 1) || PPU.FirstSprite != tmp)
 					{
 						PPU.FirstSprite = tmp;
-						IPPU.OBJChanged = TRUE;
+						IPPU.OBJChanged = true;
 					}
 
 					PPU.OAMFlip = 0;
@@ -296,7 +296,7 @@ void S9xSetPPU (uint8 Byte, uint16 Address)
 					PPU.OBJNameBase = (Byte & 3) << 14;
 					PPU.OBJNameSelect = ((Byte >> 3) & 3) << 13;
 					PPU.OBJSizeSelect = (Byte >> 5) & 7;
-					IPPU.OBJChanged = TRUE;
+					IPPU.OBJChanged = true;
 				}
 
 				break;
@@ -309,7 +309,7 @@ void S9xSetPPU (uint8 Byte, uint16 Address)
 				if (PPU.OAMPriorityRotation && PPU.FirstSprite != (PPU.OAMAddr >> 1))
 				{
 					PPU.FirstSprite = (PPU.OAMAddr & 0xfe) >> 1;
-					IPPU.OBJChanged = TRUE;
+					IPPU.OBJChanged = true;
 				#ifdef DEBUGGER
 					missing.sprite_priority_rotation = 1;
 				#endif
@@ -325,7 +325,7 @@ void S9xSetPPU (uint8 Byte, uint16 Address)
 					if (PPU.FirstSprite != (PPU.OAMAddr >> 1))
 					{
 						PPU.FirstSprite = (PPU.OAMAddr & 0xfe) >> 1;
-						IPPU.OBJChanged = TRUE;
+						IPPU.OBJChanged = true;
 					#ifdef DEBUGGER
 						missing.sprite_priority_rotation = 1;
 					#endif
@@ -336,7 +336,7 @@ void S9xSetPPU (uint8 Byte, uint16 Address)
 					if (PPU.FirstSprite != 0)
 					{
 						PPU.FirstSprite = 0;
-						IPPU.OBJChanged = TRUE;
+						IPPU.OBJChanged = true;
 					#ifdef DEBUGGER
 						missing.sprite_priority_rotation = 1;
 					#endif
@@ -500,7 +500,7 @@ void S9xSetPPU (uint8 Byte, uint16 Address)
 				break;
 
 			case 0x2115: // VMAIN
-				PPU.VMA.High = (Byte & 0x80) == 0 ? FALSE : TRUE;
+				PPU.VMA.High = (Byte & 0x80) == 0 ? false : true;
 				switch (Byte & 3)
 				{
 					case 0: PPU.VMA.Increment = 1;   break;
@@ -569,13 +569,13 @@ void S9xSetPPU (uint8 Byte, uint16 Address)
 
 			case 0x211b: // M7A
 				PPU.MatrixA = PPU.M7byte | (Byte << 8);
-				PPU.Need16x8Mulitply = TRUE;
+				PPU.Need16x8Mulitply = true;
 				PPU.M7byte = Byte;
 				break;
 
 			case 0x211c: // M7B
 				PPU.MatrixB = PPU.M7byte | (Byte << 8);
-				PPU.Need16x8Mulitply = TRUE;
+				PPU.Need16x8Mulitply = true;
 				PPU.M7byte = Byte;
 				break;
 
@@ -621,7 +621,7 @@ void S9xSetPPU (uint8 Byte, uint16 Address)
 					PPU.ClipWindow1Inside[1] = !(Byte & 0x10);
 					PPU.ClipWindow2Inside[0] = !(Byte & 0x04);
 					PPU.ClipWindow2Inside[1] = !(Byte & 0x40);
-					PPU.RecomputeClipWindows = TRUE;
+					PPU.RecomputeClipWindows = true;
 				#ifdef DEBUGGER
 					if (Byte & 0x80)
 						missing.window2[1] = 1;
@@ -648,7 +648,7 @@ void S9xSetPPU (uint8 Byte, uint16 Address)
 					PPU.ClipWindow1Inside[3] = !(Byte & 0x10);
 					PPU.ClipWindow2Inside[2] = !(Byte & 0x04);
 					PPU.ClipWindow2Inside[3] = !(Byte & 0x40);
-					PPU.RecomputeClipWindows = TRUE;
+					PPU.RecomputeClipWindows = true;
 				#ifdef DEBUGGER
 					if (Byte & 0x80)
 						missing.window2[3] = 1;
@@ -675,7 +675,7 @@ void S9xSetPPU (uint8 Byte, uint16 Address)
 					PPU.ClipWindow1Inside[5] = !(Byte & 0x10);
 					PPU.ClipWindow2Inside[4] = !(Byte & 0x04);
 					PPU.ClipWindow2Inside[5] = !(Byte & 0x40);
-					PPU.RecomputeClipWindows = TRUE;
+					PPU.RecomputeClipWindows = true;
 				#ifdef DEBUGGER
 					if (Byte & 0x80)
 						missing.window2[5] = 1;
@@ -695,7 +695,7 @@ void S9xSetPPU (uint8 Byte, uint16 Address)
 				{
 					FLUSH_REDRAW();
 					PPU.Window1Left = Byte;
-					PPU.RecomputeClipWindows = TRUE;
+					PPU.RecomputeClipWindows = true;
 				}
 
 				break;
@@ -705,7 +705,7 @@ void S9xSetPPU (uint8 Byte, uint16 Address)
 				{
 					FLUSH_REDRAW();
 					PPU.Window1Right = Byte;
-					PPU.RecomputeClipWindows = TRUE;
+					PPU.RecomputeClipWindows = true;
 				}
 
 				break;
@@ -715,7 +715,7 @@ void S9xSetPPU (uint8 Byte, uint16 Address)
 				{
 					FLUSH_REDRAW();
 					PPU.Window2Left = Byte;
-					PPU.RecomputeClipWindows = TRUE;
+					PPU.RecomputeClipWindows = true;
 				}
 
 				break;
@@ -725,7 +725,7 @@ void S9xSetPPU (uint8 Byte, uint16 Address)
 				{
 					FLUSH_REDRAW();
 					PPU.Window2Right = Byte;
-					PPU.RecomputeClipWindows = TRUE;
+					PPU.RecomputeClipWindows = true;
 				}
 
 				break;
@@ -738,7 +738,7 @@ void S9xSetPPU (uint8 Byte, uint16 Address)
 					PPU.ClipWindowOverlapLogic[1] = (Byte & 0x0c) >> 2;
 					PPU.ClipWindowOverlapLogic[2] = (Byte & 0x30) >> 4;
 					PPU.ClipWindowOverlapLogic[3] = (Byte & 0xc0) >> 6;
-					PPU.RecomputeClipWindows = TRUE;
+					PPU.RecomputeClipWindows = true;
 				}
 
 				break;
@@ -749,7 +749,7 @@ void S9xSetPPU (uint8 Byte, uint16 Address)
 					FLUSH_REDRAW();
 					PPU.ClipWindowOverlapLogic[4] = (Byte & 0x03);
 					PPU.ClipWindowOverlapLogic[5] = (Byte & 0x0c) >> 2;
-					PPU.RecomputeClipWindows = TRUE;
+					PPU.RecomputeClipWindows = true;
 				}
 
 				break;
@@ -758,7 +758,7 @@ void S9xSetPPU (uint8 Byte, uint16 Address)
 				if (Byte != Memory.FillRAM[0x212c])
 				{
 					FLUSH_REDRAW();
-					PPU.RecomputeClipWindows = TRUE;
+					PPU.RecomputeClipWindows = true;
 				}
 
 				break;
@@ -767,7 +767,7 @@ void S9xSetPPU (uint8 Byte, uint16 Address)
 				if (Byte != Memory.FillRAM[0x212d])
 				{
 					FLUSH_REDRAW();
-					PPU.RecomputeClipWindows = TRUE;
+					PPU.RecomputeClipWindows = true;
 				#ifdef DEBUGGER
 					if (Byte & 0x1f)
 						missing.subscreen = 1;
@@ -780,7 +780,7 @@ void S9xSetPPU (uint8 Byte, uint16 Address)
 				if (Byte != Memory.FillRAM[0x212e])
 				{
 					FLUSH_REDRAW();
-					PPU.RecomputeClipWindows = TRUE;
+					PPU.RecomputeClipWindows = true;
 				}
 
 				break;
@@ -789,7 +789,7 @@ void S9xSetPPU (uint8 Byte, uint16 Address)
 				if (Byte != Memory.FillRAM[0x212f])
 				{
 					FLUSH_REDRAW();
-					PPU.RecomputeClipWindows = TRUE;
+					PPU.RecomputeClipWindows = true;
 				}
 
 				break;
@@ -798,7 +798,7 @@ void S9xSetPPU (uint8 Byte, uint16 Address)
 				if (Byte != Memory.FillRAM[0x2130])
 				{
 					FLUSH_REDRAW();
-					PPU.RecomputeClipWindows = TRUE;
+					PPU.RecomputeClipWindows = true;
 				#ifdef DEBUGGER
 					if ((Byte & 1) && (PPU.BGMode == 3 || PPU.BGMode == 4 || PPU.BGMode == 7))
 						missing.direct = 1;
@@ -878,7 +878,7 @@ void S9xSetPPU (uint8 Byte, uint16 Address)
 					{
 						FLUSH_REDRAW();
 						if ((Memory.FillRAM[0x2133] ^ Byte) & 2)
-							IPPU.OBJChanged = TRUE;
+							IPPU.OBJChanged = true;
 
 						IPPU.Interlace = Byte & 1;
 						IPPU.InterlaceOBJ = Byte & 2;
@@ -1054,7 +1054,7 @@ uint8 S9xGetPPU (uint16 Address)
 					Memory.FillRAM[0x2134] = (uint8) r;
 					Memory.FillRAM[0x2135] = (uint8) (r >> 8);
 					Memory.FillRAM[0x2136] = (uint8) (r >> 16);
-					PPU.Need16x8Mulitply = FALSE;
+					PPU.Need16x8Mulitply = false;
 				}
 			#ifdef DEBUGGER
 				missing.matrix_multiply = 1;
@@ -1077,7 +1077,7 @@ uint8 S9xGetPPU (uint16 Address)
 						if (PPU.OAMPriorityRotation && PPU.FirstSprite != (PPU.OAMAddr >> 1))
 						{
 							PPU.FirstSprite = (PPU.OAMAddr & 0xfe) >> 1;
-							IPPU.OBJChanged = TRUE;
+							IPPU.OBJChanged = true;
 						#ifdef DEBUGGER
 							missing.sprite_priority_rotation = 1;
 						#endif
@@ -1095,7 +1095,7 @@ uint8 S9xGetPPU (uint16 Address)
 						if (PPU.OAMPriorityRotation && PPU.FirstSprite != (PPU.OAMAddr >> 1))
 						{
 							PPU.FirstSprite = (PPU.OAMAddr & 0xfe) >> 1;
-							IPPU.OBJChanged = TRUE;
+							IPPU.OBJChanged = true;
 						#ifdef DEBUGGER
 							missing.sprite_priority_rotation = 1;
 						#endif
@@ -1260,11 +1260,11 @@ void S9xSetCPU (uint8 Byte, uint16 Address)
 		switch (Address & 0xf)
 		{
 			case 0x0: // 0x43x0: DMAPx
-				DMA[d].ReverseTransfer        = (Byte & 0x80) ? TRUE : FALSE;
-				DMA[d].HDMAIndirectAddressing = (Byte & 0x40) ? TRUE : FALSE;
-				DMA[d].UnusedBit43x0          = (Byte & 0x20) ? TRUE : FALSE;
-				DMA[d].AAddressDecrement      = (Byte & 0x10) ? TRUE : FALSE;
-				DMA[d].AAddressFixed          = (Byte & 0x08) ? TRUE : FALSE;
+				DMA[d].ReverseTransfer        = (Byte & 0x80) ? true : false;
+				DMA[d].HDMAIndirectAddressing = (Byte & 0x40) ? true : false;
+				DMA[d].UnusedBit43x0          = (Byte & 0x20) ? true : false;
+				DMA[d].AAddressDecrement      = (Byte & 0x10) ? true : false;
+				DMA[d].AAddressFixed          = (Byte & 0x08) ? true : false;
 				DMA[d].TransferMode           = (Byte & 7);
 				return;
 
@@ -1356,7 +1356,7 @@ void S9xSetCPU (uint8 Byte, uint16 Address)
 
 				if (Byte & 0x20)
 				{
-					PPU.VTimerEnabled = TRUE;
+					PPU.VTimerEnabled = true;
 
 					#ifdef DEBUGGER
 					missing.virq = 1;
@@ -1364,11 +1364,11 @@ void S9xSetCPU (uint8 Byte, uint16 Address)
 					#endif
 				}
 				else
-					PPU.VTimerEnabled = FALSE;
+					PPU.VTimerEnabled = false;
 
 				if (Byte & 0x10)
 				{
-					PPU.HTimerEnabled = TRUE;
+					PPU.HTimerEnabled = true;
 
 					#ifdef DEBUGGER
 					missing.hirq = 1;
@@ -1376,12 +1376,12 @@ void S9xSetCPU (uint8 Byte, uint16 Address)
 					#endif
 				}
 				else
-					PPU.HTimerEnabled = FALSE;
+					PPU.HTimerEnabled = false;
 
 				if (!(Byte & 0x10) && !(Byte & 0x20))
 				{
-					CPU.IRQLine = FALSE;
-					CPU.IRQTransition = FALSE;
+					CPU.IRQLine = false;
+					CPU.IRQTransition = false;
 				}
 
 				if ((Byte & 0x30) != (Memory.FillRAM[0x4200] & 0x30))
@@ -1590,7 +1590,7 @@ uint8 S9xGetCPU (uint16 Address)
 		if (Address == 0x4016 || Address == 0x4017)
 		{
 			S9xOnSNESPadRead();
-			pad_read = TRUE;
+			pad_read = true;
 		}
 	#endif
 
@@ -1676,8 +1676,8 @@ uint8 S9xGetCPU (uint16 Address)
 				if (CPU.IRQLine)
 				{
 					byte = 0x80;
-					CPU.IRQLine = FALSE;
-					CPU.IRQTransition = FALSE;
+					CPU.IRQLine = false;
+					CPU.IRQTransition = false;
 				}
 
 				return (byte | (OpenBus & 0x7f));
@@ -1707,7 +1707,7 @@ uint8 S9xGetCPU (uint16 Address)
 				if (Memory.FillRAM[0x4200] & 1)
 				{
 					S9xOnSNESPadRead();
-					pad_read = TRUE;
+					pad_read = true;
 				}
 			#endif
 				return (Memory.FillRAM[Address]);
@@ -1733,9 +1733,9 @@ void S9xResetPPU (void)
 
 void S9xResetPPUFast (void)
 {
-	PPU.RecomputeClipWindows = TRUE;
-	IPPU.ColorsChanged = TRUE;
-	IPPU.OBJChanged = TRUE;
+	PPU.RecomputeClipWindows = true;
+	IPPU.ColorsChanged = true;
+	IPPU.OBJChanged = true;
 	memset(IPPU.TileCached[TILE_2BIT], 0, MAX_2BIT_TILES);
 	memset(IPPU.TileCached[TILE_4BIT], 0, MAX_4BIT_TILES);
 	memset(IPPU.TileCached[TILE_8BIT], 0, MAX_8BIT_TILES);
@@ -1794,9 +1794,9 @@ void S9xSoftResetPPU (void)
 		PPU.OBJ[c].Size = 0;
 	}
 
-	PPU.OBJThroughMain = FALSE;
-	PPU.OBJThroughSub = FALSE;
-	PPU.OBJAddition = FALSE;
+	PPU.OBJThroughMain = false;
+	PPU.OBJThroughSub = false;
+	PPU.OBJAddition = false;
 	PPU.OBJNameBase = 0;
 	PPU.OBJNameSelect = 0;
 	PPU.OBJSizeSelect = 0;
@@ -1814,8 +1814,8 @@ void S9xSoftResetPPU (void)
 	PPU.LastSprite = 127;
 	PPU.RangeTimeOver = 0;
 
-	PPU.HTimerEnabled = FALSE;
-	PPU.VTimerEnabled = FALSE;
+	PPU.HTimerEnabled = false;
+	PPU.VTimerEnabled = false;
 	PPU.HTimerPosition = Timings.H_Max + 1;
 	PPU.VTimerPosition = Timings.V_Max + 1;
 	PPU.IRQHBeamPos = 0x1ff;
@@ -1829,8 +1829,8 @@ void S9xSoftResetPPU (void)
 	PPU.GunVLatch = 1000;
 	PPU.HVBeamCounterLatched = 0;
 
-	PPU.Mode7HFlip = FALSE;
-	PPU.Mode7VFlip = FALSE;
+	PPU.Mode7HFlip = false;
+	PPU.Mode7VFlip = false;
 	PPU.Mode7Repeat = 0;
 	PPU.MatrixA = 0;
 	PPU.MatrixB = 0;
@@ -1840,28 +1840,28 @@ void S9xSoftResetPPU (void)
 	PPU.CentreY = 0;
 
 	PPU.Mosaic = 0;
-	PPU.BGMosaic[0] = FALSE;
-	PPU.BGMosaic[1] = FALSE;
-	PPU.BGMosaic[2] = FALSE;
-	PPU.BGMosaic[3] = FALSE;
+	PPU.BGMosaic[0] = false;
+	PPU.BGMosaic[1] = false;
+	PPU.BGMosaic[2] = false;
+	PPU.BGMosaic[3] = false;
 
 	PPU.Window1Left = 1;
 	PPU.Window1Right = 0;
 	PPU.Window2Left = 1;
 	PPU.Window2Right = 0;
-	PPU.RecomputeClipWindows = TRUE;
+	PPU.RecomputeClipWindows = true;
 
 	for (int c = 0; c < 6; c++)
 	{
 		PPU.ClipCounts[c] = 0;
 		PPU.ClipWindowOverlapLogic[c] = CLIP_OR;
-		PPU.ClipWindow1Enable[c] = FALSE;
-		PPU.ClipWindow2Enable[c] = FALSE;
-		PPU.ClipWindow1Inside[c] = TRUE;
-		PPU.ClipWindow2Inside[c] = TRUE;
+		PPU.ClipWindow1Enable[c] = false;
+		PPU.ClipWindow2Enable[c] = false;
+		PPU.ClipWindow1Inside[c] = true;
+		PPU.ClipWindow2Inside[c] = true;
 	}
 
-	PPU.ForcedBlanking = TRUE;
+	PPU.ForcedBlanking = true;
 
 	PPU.FixedColourRed = 0;
 	PPU.FixedColourGreen = 0;
@@ -1869,7 +1869,7 @@ void S9xSoftResetPPU (void)
 	PPU.Brightness = 0;
 	PPU.ScreenHeight = SNES_HEIGHT;
 
-	PPU.Need16x8Mulitply = FALSE;
+	PPU.Need16x8Mulitply = false;
 	PPU.BGnxOFSbyte = 0;
 
 	PPU.HDMA = 0;
@@ -1880,8 +1880,8 @@ void S9xSoftResetPPU (void)
 
 	for (int c = 0; c < 2; c++)
 		memset(&IPPU.Clip[c], 0, sizeof(struct ClipData));
-	IPPU.ColorsChanged = TRUE;
-	IPPU.OBJChanged = TRUE;
+	IPPU.ColorsChanged = true;
+	IPPU.OBJChanged = true;
 	memset(IPPU.TileCached[TILE_2BIT], 0, MAX_2BIT_TILES);
 	memset(IPPU.TileCached[TILE_4BIT], 0, MAX_4BIT_TILES);
 	memset(IPPU.TileCached[TILE_8BIT], 0, MAX_8BIT_TILES);
@@ -1891,17 +1891,17 @@ void S9xSoftResetPPU (void)
 	memset(IPPU.TileCached[TILE_4BIT_ODD], 0,  MAX_4BIT_TILES);
 	PPU.VRAMReadBuffer = 0; // XXX: FIXME: anything better?
 	GFX.DoInterlace = 0;
-	IPPU.Interlace = FALSE;
-	IPPU.InterlaceOBJ = FALSE;
-	IPPU.DoubleWidthPixels = FALSE;
-	IPPU.DoubleHeightPixels = FALSE;
+	IPPU.Interlace = false;
+	IPPU.InterlaceOBJ = false;
+	IPPU.DoubleWidthPixels = false;
+	IPPU.DoubleHeightPixels = false;
 	IPPU.CurrentLine = 0;
 	IPPU.PreviousLine = 0;
 	IPPU.XB = nullptr;
 	for (int c = 0; c < 256; c++)
 		IPPU.ScreenColors[c] = c;
 	IPPU.MaxBrightness = 0;
-	IPPU.RenderThisFrame = TRUE;
+	IPPU.RenderThisFrame = true;
 	IPPU.RenderedScreenWidth = SNES_WIDTH;
 	IPPU.RenderedScreenHeight = SNES_HEIGHT;
 	IPPU.FrameCount = 0;

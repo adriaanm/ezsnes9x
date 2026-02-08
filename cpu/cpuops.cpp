@@ -3316,11 +3316,11 @@ static void Op40Slow (void)
 static void OpCB (void)
 {
 #ifdef SA1_OPCODES
-	SA1.WaitingForInterrupt = TRUE;
+	SA1.WaitingForInterrupt = true;
 	Registers.PCw--;
 	AddCycles(TWO_CYCLES);
 #else
-	CPU.WaitingForInterrupt = TRUE;
+	CPU.WaitingForInterrupt = true;
 
 	Registers.PCw--;
 	AddCycles(ONE_CYCLE);

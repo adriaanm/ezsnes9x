@@ -30,9 +30,9 @@ void S9xResetSuperFX (void)
 	// FIXME: Snes9x only runs the SuperFX at the end of every line.
 	// 5823405 is a magic number that seems to work for most games.
 	SuperFX.speedPerLine = (uint32) (5823405 * ((1.0 / (float) Memory.ROMFramesPerSecond) / ((float) (Timings.V_Max))));
-	SuperFX.oneLineDone = FALSE;
+	SuperFX.oneLineDone = false;
 	SuperFX.vFlags = 0;
-	CPU.IRQExternal = FALSE;
+	CPU.IRQExternal = false;
 	FxReset(&SuperFX);
 }
 
@@ -49,7 +49,7 @@ void S9xSetSuperFX (uint8 byte, uint16 address)
 					if (!SuperFX.oneLineDone)
 					{
 						S9xSuperFXExec();
-						SuperFX.oneLineDone = TRUE;
+						SuperFX.oneLineDone = true;
 					}
 				}
 				else
@@ -111,7 +111,7 @@ void S9xSetSuperFX (uint8 byte, uint16 address)
 			if (!SuperFX.oneLineDone)
 			{
 				S9xSuperFXExec();
-				SuperFX.oneLineDone = TRUE;
+				SuperFX.oneLineDone = true;
 			}
 
 			break;
@@ -133,7 +133,7 @@ uint8 S9xGetSuperFX (uint16 address)
 
 	if (address == 0x3031)
 	{
-		CPU.IRQExternal = FALSE;
+		CPU.IRQExternal = false;
 		Memory.FillRAM[0x3031] = byte & 0x7f;
 	}
 
@@ -148,7 +148,7 @@ void S9xSuperFXExec (void)
 
 		uint16 GSUStatus = Memory.FillRAM[0x3000 + GSU_SFR] | (Memory.FillRAM[0x3000 + GSU_SFR + 1] << 8);
 		if ((GSUStatus & (FLG_G | FLG_IRQ)) == FLG_IRQ)
-			CPU.IRQExternal = TRUE;
+			CPU.IRQExternal = true;
 	}
 }
 
@@ -332,7 +332,7 @@ static void fx_updateRamBank (uint8 byte)
 // SCBR write seen. We need to update our cached screen pointers
 static void fx_dirtySCBR (void)
 {
-	GSU.vSCBRDirty = TRUE;
+	GSU.vSCBRDirty = true;
 }
 
 static bool8 fx_checkStartAddress (void)
@@ -399,7 +399,7 @@ void fx_computeScreenPointers (void)
 {
 	if (GSU.vMode != GSU.vPrevMode || GSU.vPrevScreenHeight != GSU.vScreenHeight || GSU.vSCBRDirty)
 	{
-		GSU.vSCBRDirty = FALSE;
+		GSU.vSCBRDirty = false;
 
 		// Make a list of pointers to the start of each screen column
 		switch (GSU.vScreenHeight)
@@ -566,7 +566,7 @@ static void FxFlushCache (void)
 {
 	GSU.vCacheFlags = 0;
 	GSU.vCacheBaseReg = 0;
-	GSU.bCacheActive = FALSE;
+	GSU.bCacheActive = false;
 	//GSU.vPipe = 0x1;
 }
 
@@ -574,7 +574,7 @@ void fx_flushCache (void)
 {
 	//fx_restoreCache();
 	GSU.vCacheFlags = 0;
-	GSU.bCacheActive = FALSE;
+	GSU.bCacheActive = false;
 }
 
 /*
@@ -582,7 +582,7 @@ static void fx_setCache (void)
 {
 	uint32	c;
 
-	GSU.bCacheActive = TRUE;
+	GSU.bCacheActive = true;
 	GSU.pvRegisters[0x3e] &= 0xf0;
 
 	c  =  (uint32) GSU.pvRegisters[0x3e];
@@ -693,7 +693,7 @@ static void fx_restoreCache()
 /*
 static void FxBreakPointSet (uint32 vAddress)
 {
-	GSU.bBreakPoint = TRUE;
+	GSU.bBreakPoint = true;
 	GSU.vBreakPoint = USEX16(vAddress);
 }
 */
@@ -701,7 +701,7 @@ static void FxBreakPointSet (uint32 vAddress)
 /*
 static void FxBreakPointClear (void)
 {
-	GSU.bBreakPoint = FALSE;
+	GSU.bBreakPoint = false;
 }
 */
 

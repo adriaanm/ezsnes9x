@@ -46,24 +46,24 @@ static void S9xSoftResetCPU (void)
 	CPU.V_Counter = 0;
 	CPU.Flags = CPU.Flags & (DEBUG_MODE_FLAG | TRACE_FLAG);
 	CPU.PCBase = nullptr;
-	CPU.NMIPending = FALSE;
-	CPU.IRQLine = FALSE;
-	CPU.IRQTransition = FALSE;
-	CPU.IRQExternal = FALSE;
+	CPU.NMIPending = false;
+	CPU.IRQLine = false;
+	CPU.IRQTransition = false;
+	CPU.IRQExternal = false;
 	CPU.MemSpeed = SLOW_ONE_CYCLE;
 	CPU.MemSpeedx2 = SLOW_ONE_CYCLE * 2;
 	CPU.FastROMSpeed = SLOW_ONE_CYCLE;
-	CPU.InDMA = FALSE;
-	CPU.InHDMA = FALSE;
-	CPU.InDMAorHDMA = FALSE;
-	CPU.InWRAMDMAorHDMA = FALSE;
+	CPU.InDMA = false;
+	CPU.InHDMA = false;
+	CPU.InDMAorHDMA = false;
+	CPU.InWRAMDMAorHDMA = false;
 	CPU.HDMARanInDMA = 0;
 	CPU.CurrentDMAorHDMAChannel = -1;
 	CPU.WhichEvent = HC_RENDER_EVENT;
 	CPU.NextEvent  = Timings.RenderPos;
-	CPU.WaitingForInterrupt = FALSE;
+	CPU.WaitingForInterrupt = false;
 	CPU.AutoSaveTimer = 0;
-	CPU.SRAMModified = FALSE;
+	CPU.SRAMModified = false;
 
 	Registers.PBPC = 0;
 	Registers.PB = 0;
@@ -102,7 +102,7 @@ static void S9xSoftResetCPU (void)
 
 void S9xReset (void)
 {
-	S9xResetSaveTimer(FALSE);
+	S9xResetSaveTimer(false);
 
 	memset(Memory.RAM, 0x55, sizeof(Memory.RAM));
 	memset(Memory.VRAM, 0x00, sizeof(Memory.VRAM));
@@ -138,7 +138,7 @@ void S9xReset (void)
 
 void S9xSoftReset (void)
 {
-	S9xResetSaveTimer(FALSE);
+	S9xResetSaveTimer(false);
 
 	memset(Memory.FillRAM, 0, 0x8000);
 
