@@ -452,39 +452,3 @@ std::string S9xGetFilenameInc(std::string ext, enum s9x_getdirtype type)
 }
 
 // ---------------------------------------------------------------------------
-// Port interface: legacy command stubs
-// These are only used by the legacy S9xApplyCommand system.
-// New frontends should use S9xSetJoypadButtons() directly.
-// ---------------------------------------------------------------------------
-
-void S9xHandlePortCommand(s9xcommand_t cmd, int16 data1, int16 data2)
-{
-    (void)cmd;
-    (void)data1;
-    (void)data2;
-}
-
-s9xcommand_t S9xGetPortCommandT(const char *name)
-{
-    (void)name;
-    s9xcommand_t cmd = {};
-    return cmd;
-}
-
-char *S9xGetPortCommandName(s9xcommand_t command)
-{
-    (void)command;
-    static char buf[] = "";
-    return buf;
-}
-
-void S9xSetupDefaultKeymap()
-{
-}
-
-bool8 S9xMapInput(const char *name, s9xcommand_t *cmd)
-{
-    (void)name;
-    (void)cmd;
-    return FALSE;
-}

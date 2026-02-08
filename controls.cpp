@@ -39,10 +39,6 @@ uint8	read_idx[2 /* ports */][2 /* per port */];
 static struct
 {
 	uint16				buttons;
-	uint16				turbos;
-	uint16				toggleturbo;
-	uint16				togglestick;
-	uint8				turbo_ct;
 }	joypad[8];
 
 static struct
@@ -50,93 +46,9 @@ static struct
 	int8				pads[4];
 }	mp5[2];
 
-static uint8			turbo_time = 1;
 static bool8			FLAG_LATCH = FALSE;
 static int32			curcontrollers[2] = { NONE,    NONE };
 static int32			newcontrollers[2] = { JOYPAD0, NONE };
-static char				buf[256];
-
-// Command enum for S9xButtonCommand case
-#define THE_COMMANDS \
-	S(ClipWindows), \
-	S(Debugger), \
-	S(DecEmuTurbo), \
-	S(DecFrameRate), \
-	S(DecFrameTime), \
-	S(DecTurboSpeed), \
-	S(EmuTurbo), \
-	S(ExitEmu), \
-	S(IncEmuTurbo), \
-	S(IncFrameRate), \
-	S(IncFrameTime), \
-	S(IncTurboSpeed), \
-	S(LoadFreezeFile), \
-	S(LoadOopsFile), \
-	S(Pause), \
-	S(QuickLoad000), \
-	S(QuickLoad001), \
-	S(QuickLoad002), \
-	S(QuickLoad003), \
-	S(QuickLoad004), \
-	S(QuickLoad005), \
-	S(QuickLoad006), \
-	S(QuickLoad007), \
-	S(QuickLoad008), \
-	S(QuickLoad009), \
-	S(QuickLoad010), \
-	S(QuickSave000), \
-	S(QuickSave001), \
-	S(QuickSave002), \
-	S(QuickSave003), \
-	S(QuickSave004), \
-	S(QuickSave005), \
-	S(QuickSave006), \
-	S(QuickSave007), \
-	S(QuickSave008), \
-	S(QuickSave009), \
-	S(QuickSave010), \
-	S(Reset), \
-	S(SaveFreezeFile), \
-	S(SaveSPC), \
-	S(Screenshot), \
-	S(SoftReset), \
-	S(SoundChannel0), \
-	S(SoundChannel1), \
-	S(SoundChannel2), \
-	S(SoundChannel3), \
-	S(SoundChannel4), \
-	S(SoundChannel5), \
-	S(SoundChannel6), \
-	S(SoundChannel7), \
-	S(SoundChannelsOn), \
-	S(SwapJoypads), \
-	S(ToggleBG0), \
-	S(ToggleBG1), \
-	S(ToggleBG2), \
-	S(ToggleBG3), \
-	S(ToggleBackdrop), \
-	S(ToggleEmuTurbo), \
-	S(ToggleSprites), \
-	S(ToggleTransparency)
-
-#define S(x)	x
-
-enum command_numbers
-{
-	THE_COMMANDS,
-	LAST_COMMAND
-};
-
-#undef S
-#undef THE_COMMANDS
-
-static void DisplayStateChange (const char *, bool8);
-
-static void DisplayStateChange (const char *str, bool8 on)
-{
-	snprintf(buf, sizeof(buf), "%s: %s", str, on ? "on":"off");
-	S9xSetInfoString(buf);
-}
 
 void S9xControlsReset (void)
 {
@@ -228,6 +140,7 @@ bool S9xVerifyControllers (void)
 					{
 						if (used[mp5[port].pads[i] - JOYPAD0]++ > 0)
 						{
+							char	buf[256];
 							snprintf(buf, sizeof(buf), "Joypad%d used more than once! Disabling extra instances", mp5[port].pads[i] - JOYPAD0 + 1);
 							S9xMessage(S9X_CONFIG_INFO, S9X_ERROR, buf);
 							mp5[port].pads[i] = NONE;
@@ -249,6 +162,7 @@ bool S9xVerifyControllers (void)
 			case JOYPAD7:
 				if (used[i - JOYPAD0]++ > 0)
 				{
+					char	buf[256];
 					snprintf(buf, sizeof(buf), "Joypad%d used more than once! Disabling extra instances", i - JOYPAD0 + 1);
 					S9xMessage(S9X_CONFIG_INFO, S9X_ERROR, buf);
 					newcontrollers[port] = NONE;
@@ -264,435 +178,6 @@ bool S9xVerifyControllers (void)
 	}
 
 	return (ret);
-}
-
-void S9xApplyCommand (s9xcommand_t cmd, int16 data1, int16 data2)
-{
-	int	i;
-
-	switch (cmd.type)
-	{
-
-		case S9xButtonJoypad:
-			if (cmd.button.joypad.toggle)
-			{
-				if (!data1)
-					return;
-
-				uint16	r = cmd.button.joypad.buttons;
-
-				if (cmd.button.joypad.turbo)	joypad[cmd.button.joypad.idx].toggleturbo ^= r;
-				if (cmd.button.joypad.sticky)	joypad[cmd.button.joypad.idx].togglestick ^= r;
-			}
-			else
-			{
-				uint16	r, s, t, st;
-
-				r = cmd.button.joypad.buttons;
-				st = r & joypad[cmd.button.joypad.idx].togglestick & joypad[cmd.button.joypad.idx].toggleturbo;
-				r ^= st;
-				t  = r & joypad[cmd.button.joypad.idx].toggleturbo;
-				r ^= t;
-				s  = r & joypad[cmd.button.joypad.idx].togglestick;
-				r ^= s;
-
-				if (cmd.button.joypad.turbo && cmd.button.joypad.sticky)
-				{
-					uint16	x = r; r = st; st = x;
-					x = s; s = t; t = x;
-				}
-				else if (cmd.button.joypad.turbo)
-				{
-					uint16	x = r; r = t; t = x;
-					x = s; s = st; st = x;
-				}
-				else if (cmd.button.joypad.sticky)
-				{
-					uint16	x = r; r = s; s = x;
-					x = t; t = st; st = x;
-				}
-
-				if (data1)
-				{
-					joypad[cmd.button.joypad.idx].buttons |= r;
-					joypad[cmd.button.joypad.idx].turbos  |= t;
-					joypad[cmd.button.joypad.idx].buttons ^= s;
-					joypad[cmd.button.joypad.idx].buttons &= ~(joypad[cmd.button.joypad.idx].turbos & st);
-					joypad[cmd.button.joypad.idx].turbos  ^= st;
-				}
-				else
-				{
-					joypad[cmd.button.joypad.idx].buttons &= ~r;
-					joypad[cmd.button.joypad.idx].buttons &= ~(joypad[cmd.button.joypad.idx].turbos & t);
-					joypad[cmd.button.joypad.idx].turbos  &= ~t;
-				}
-			}
-
-			return;
-
-		case S9xButtonCommand:
-			if (((enum command_numbers) cmd.button.command) >= LAST_COMMAND)
-			{
-				fprintf(stderr, "Unknown command %04x\n", cmd.button.command);
-				return;
-			}
-
-			if (!data1)
-			{
-				switch (i = cmd.button.command)
-				{
-					case EmuTurbo:
-						break;
-				}
-			}
-			else
-			{
-				switch ((enum command_numbers) (i = cmd.button.command))
-				{
-					case ExitEmu:
-						S9xExit();
-						break;
-
-					case Reset:
-						S9xReset();
-						break;
-
-					case SoftReset:
-						S9xSoftReset();
-						break;
-
-					case EmuTurbo:
-						break;
-
-					case ToggleEmuTurbo:
-						break;
-
-					case ClipWindows:
-						Settings.DisableGraphicWindows = !Settings.DisableGraphicWindows;
-						DisplayStateChange("Graphic clip windows", !Settings.DisableGraphicWindows);
-						break;
-
-					case Debugger:
-						// Debugger removed - not supported in new frontends
-						break;
-
-					case IncFrameRate:
-						if (Settings.SkipFrames == AUTO_FRAMERATE)
-							Settings.SkipFrames = 1;
-						else
-						if (Settings.SkipFrames < 10)
-							Settings.SkipFrames++;
-
-						if (Settings.SkipFrames == AUTO_FRAMERATE)
-							S9xSetInfoString("Auto frame skip");
-						else
-						{
-							sprintf(buf, "Frame skip: %d", Settings.SkipFrames - 1);
-							S9xSetInfoString(buf);
-						}
-
-						break;
-
-					case DecFrameRate:
-						if (Settings.SkipFrames <= 1)
-							Settings.SkipFrames = AUTO_FRAMERATE;
-						else
-						if (Settings.SkipFrames != AUTO_FRAMERATE)
-							Settings.SkipFrames--;
-
-						if (Settings.SkipFrames == AUTO_FRAMERATE)
-							S9xSetInfoString("Auto frame skip");
-						else
-						{
-							sprintf(buf, "Frame skip: %d", Settings.SkipFrames - 1);
-							S9xSetInfoString(buf);
-						}
-
-						break;
-
-					case IncEmuTurbo:
-						break;
-
-					case DecEmuTurbo:
-						break;
-
-					case IncFrameTime: // Increase emulated frame time by 1ms
-						Settings.FrameTime += 1000;
-						sprintf(buf, "Emulated frame time: %dms", Settings.FrameTime / 1000);
-						S9xSetInfoString(buf);
-						break;
-
-					case DecFrameTime: // Decrease emulated frame time by 1ms
-						if (Settings.FrameTime >= 1000)
-							Settings.FrameTime -= 1000;
-						sprintf(buf, "Emulated frame time: %dms", Settings.FrameTime / 1000);
-						S9xSetInfoString(buf);
-						break;
-
-					case IncTurboSpeed:
-						if (turbo_time >= 120)
-							break;
-						turbo_time++;
-						sprintf(buf, "Turbo speed: %d", turbo_time);
-						S9xSetInfoString(buf);
-						break;
-
-					case DecTurboSpeed:
-						if (turbo_time <= 1)
-							break;
-						turbo_time--;
-						sprintf(buf, "Turbo speed: %d", turbo_time);
-						S9xSetInfoString(buf);
-						break;
-
-					case LoadFreezeFile:
-						break;
-
-					case SaveFreezeFile:
-						break;
-
-					case LoadOopsFile:
-					{
-						std::string filename = S9xGetFilename("oops", SNAPSHOT_DIR);
-
-						if (S9xUnfreezeGame(filename.c_str()))
-						{
-							snprintf(buf, 256, "%.240s.oops loaded", S9xBasename(Memory.ROMFilename).c_str());
-							S9xSetInfoString(buf);
-						}
-						else
-							S9xMessage(S9X_ERROR, S9X_FREEZE_FILE_NOT_FOUND, "Oops file not found");
-
-						break;
-					}
-
-					case Pause:
-						Settings.Paused = !Settings.Paused;
-						DisplayStateChange("Pause", Settings.Paused);
-						break;
-
-					case QuickLoad000:
-					case QuickLoad001:
-					case QuickLoad002:
-					case QuickLoad003:
-					case QuickLoad004:
-					case QuickLoad005:
-					case QuickLoad006:
-					case QuickLoad007:
-					case QuickLoad008:
-					case QuickLoad009:
-					case QuickLoad010:
-					{
-						std::string ext = std::to_string(i - QuickLoad000);
-						while (ext.length() < 3)
-							ext = '0' + ext;
-
-						auto filename = S9xGetFilename(ext, SNAPSHOT_DIR);
-
-						if (S9xUnfreezeGame(filename.c_str()))
-						{
-							snprintf(buf, 256, "%s loaded", S9xBasename(filename).c_str());
-							S9xSetInfoString(buf);
-						}
-						else
-							S9xMessage(S9X_ERROR, S9X_FREEZE_FILE_NOT_FOUND, "Freeze file not found");
-
-						break;
-					}
-
-					case QuickSave000:
-					case QuickSave001:
-					case QuickSave002:
-					case QuickSave003:
-					case QuickSave004:
-					case QuickSave005:
-					case QuickSave006:
-					case QuickSave007:
-					case QuickSave008:
-					case QuickSave009:
-					case QuickSave010:
-					{
-						std::string ext = std::to_string(i - QuickSave000);
-						while (ext.length() < 3)
-							ext = '0' + ext;
-
-						auto filename = S9xGetFilename(ext, SNAPSHOT_DIR);
-
-						snprintf(buf, 256, "%s saved", S9xBasename(filename).c_str());
-						S9xSetInfoString(buf);
-
-						S9xFreezeGame(filename.c_str());
-						break;
-					}
-
-					case SaveSPC:
-						S9xDumpSPCSnapshot();
-						break;
-
-					case Screenshot:
-						break;
-
-					case SoundChannel0:
-					case SoundChannel1:
-					case SoundChannel2:
-					case SoundChannel3:
-					case SoundChannel4:
-					case SoundChannel5:
-					case SoundChannel6:
-					case SoundChannel7:
-						S9xToggleSoundChannel(i - SoundChannel0);
-						sprintf(buf, "Sound channel %d toggled", i - SoundChannel0);
-						S9xSetInfoString(buf);
-						break;
-
-					case SoundChannelsOn:
-						S9xToggleSoundChannel(8);
-						S9xSetInfoString("All sound channels on");
-						break;
-
-					case ToggleBackdrop:
-						switch (Settings.ForcedBackdrop)
-						{
-						case 0:
-							Settings.ForcedBackdrop = 0xf81f;
-							break;
-						case 0xf81f:
-							Settings.ForcedBackdrop = 0x07e0;
-							break;
-						case 0x07e0:
-							Settings.ForcedBackdrop = 0x07ff;
-							break;
-						default:
-							Settings.ForcedBackdrop = 0;
-							break;
-						}
-						sprintf(buf, "Setting backdrop to 0x%04x", Settings.ForcedBackdrop);
-						S9xSetInfoString(buf);
-						break;
-
-					case ToggleBG0:
-						Settings.BG_Forced ^= 1;
-						DisplayStateChange("BG#0", !(Settings.BG_Forced & 1));
-						break;
-
-					case ToggleBG1:
-						Settings.BG_Forced ^= 2;
-						DisplayStateChange("BG#1", !(Settings.BG_Forced & 2));
-						break;
-
-					case ToggleBG2:
-						Settings.BG_Forced ^= 4;
-						DisplayStateChange("BG#2", !(Settings.BG_Forced & 4));
-						break;
-
-					case ToggleBG3:
-						Settings.BG_Forced ^= 8;
-						DisplayStateChange("BG#3", !(Settings.BG_Forced & 8));
-						break;
-
-					case ToggleSprites:
-						Settings.BG_Forced ^= 16;
-						DisplayStateChange("Sprites", !(Settings.BG_Forced & 16));
-						break;
-
-					case ToggleTransparency:
-						Settings.Transparency = !Settings.Transparency;
-						DisplayStateChange("Transparency effects", Settings.Transparency);
-						break;
-
-					case SwapJoypads:
-						if ((curcontrollers[0] != NONE && !(curcontrollers[0] >= JOYPAD0 && curcontrollers[0] <= JOYPAD7)))
-						{
-							S9xSetInfoString("Cannot swap pads: port 1 is not a joypad");
-							break;
-						}
-
-						if ((curcontrollers[1] != NONE && !(curcontrollers[1] >= JOYPAD0 && curcontrollers[1] <= JOYPAD7)))
-						{
-							S9xSetInfoString("Cannot swap pads: port 2 is not a joypad");
-							break;
-						}
-
-						newcontrollers[1] = curcontrollers[0];
-						newcontrollers[0] = curcontrollers[1];
-
-						strcpy(buf, "Swap pads: P1=");
-						i = 14;
-						if (newcontrollers[0] == NONE)
-						{
-							strcpy(buf + i, "<none>");
-							i += 6;
-						}
-						else
-						{
-							sprintf(buf + i, "Joypad%d", newcontrollers[0] - JOYPAD0 + 1);
-							i += 7;
-						}
-
-						strcpy(buf + i, " P2=");
-						i += 4;
-						if (newcontrollers[1] == NONE)
-							strcpy(buf + i, "<none>");
-						else
-							sprintf(buf + i, "Joypad%d", newcontrollers[1] - JOYPAD0 + 1);
-
-						S9xSetInfoString(buf);
-						break;
-
-					case LAST_COMMAND:
-						break;
-				}
-			}
-
-			return;
-
-		case S9xAxisJoypad:
-		{
-			uint16	pos, neg;
-
-			switch (cmd.joypad_axis.axis)
-			{
-				case 0: neg = SNES_LEFT_MASK;	pos = SNES_RIGHT_MASK;	break;
-				case 1: neg = SNES_UP_MASK;		pos = SNES_DOWN_MASK;	break;
-				case 2: neg = SNES_Y_MASK;		pos = SNES_A_MASK;		break;
-				case 3: neg = SNES_X_MASK;		pos = SNES_B_MASK;		break;
-				case 4: neg = SNES_TL_MASK;		pos = SNES_TR_MASK;		break;
-				default: return;
-			}
-
-			if (cmd.joypad_axis.invert)
-				data1 = -data1;
-
-			uint16	p, r;
-
-			p = r = 0;
-			if (data1 >  ((cmd.joypad_axis.threshold + 1) *  127))
-				p |= pos;
-			else
-				r |= pos;
-
-			if (data1 <= ((cmd.joypad_axis.threshold + 1) * -127))
-				p |= neg;
-			else
-				r |= neg;
-
-			joypad[cmd.joypad_axis.idx].buttons |= p;
-			joypad[cmd.joypad_axis.idx].buttons &= ~r;
-			joypad[cmd.joypad_axis.idx].turbos  &= ~(p | r);
-
-			return;
-		}
-
-		case S9xButtonPort:
-		case S9xAxisPort:
-		case S9xPointerPort:
-			S9xHandlePortCommand(cmd, data1, data2);
-			return;
-
-		default:
-			fprintf(stderr, "WARNING: Unknown command type %d\n", cmd.type);
-			return;
-	}
 }
 
 static void do_polling (int mp)
@@ -884,48 +369,10 @@ void S9xDoAutoJoypad (void)
 
 void S9xControlEOF (void)
 {
-	int	i, j;
+	// Stub: turbo button processing removed with S9xApplyCommand
+	// New frontends can implement turbo in their own input handling if needed
 
-	for (int n = 0; n < 2; n++)
-	{
-		switch (i = curcontrollers[n])
-		{
-			case MP5:
-				for (j = 0; j < 4; ++j)
-				{
-					i = mp5[n].pads[j];
-					if (i == NONE)
-						continue;
-
-					if (++joypad[i - JOYPAD0].turbo_ct >= turbo_time)
-					{
-						joypad[i - JOYPAD0].turbo_ct = 0;
-						joypad[i - JOYPAD0].buttons ^= joypad[i - JOYPAD0].turbos;
-					}
-				}
-
-				break;
-
-			case JOYPAD0:
-			case JOYPAD1:
-			case JOYPAD2:
-			case JOYPAD3:
-			case JOYPAD4:
-			case JOYPAD5:
-			case JOYPAD6:
-			case JOYPAD7:
-				if (++joypad[i - JOYPAD0].turbo_ct >= turbo_time)
-				{
-					joypad[i - JOYPAD0].turbo_ct = 0;
-					joypad[i - JOYPAD0].buttons ^= joypad[i - JOYPAD0].turbos;
-				}
-
-				break;
-
-			default:
-				break;
-		}
-	}
+	(void)0;  // suppress unused warning
 
 	pad_read_last = pad_read;
 	pad_read      = false;
@@ -934,7 +381,7 @@ void S9xControlEOF (void)
 void S9xControlPreSaveState (struct SControlSnapshot *s)
 {
 	memset(s, 0, sizeof(*s));
-	s->ver = 5;  // New version for simplified structure
+	s->ver = 6;  // New version for simplified structure (removed turbo system)
 
 	for (int j = 0; j < 2; j++)
 	{
@@ -961,9 +408,15 @@ void S9xControlPostLoadState (struct SControlSnapshot *s)
 	FLAG_LATCH = (Memory.FillRAM[0x4016] & 1) == 1;
 
 	// Load joypad button states
-	if (s->ver >= 5)
+	if (s->ver >= 6)
 	{
-		// New simplified format (16 bytes for 8 joypads)
+		// New simplified format (16 bytes for 8 joypads, no turbo state)
+		for (int j = 0; j < 8; j++)
+			memcpy(&joypad[j].buttons, s->internal + j * 2, 2);
+	}
+	else if (s->ver >= 5)
+	{
+		// Previous simplified format (same as v6)
 		for (int j = 0; j < 8; j++)
 			memcpy(&joypad[j].buttons, s->internal + j * 2, 2);
 	}
@@ -981,18 +434,8 @@ void S9xControlPostLoadState (struct SControlSnapshot *s)
 			i += 2;
 		}
 
-		// Skip over mouse, superscope, justifier data
-		i += (2 * (1 + 1 + 2 + 2 + 2 + 2 + 1));  // Skip mouse data
-		i += (2 + 2 + 1 + 1 + 1);                   // Skip superscope data
-		i += (2 + 2 + 2 + 2 + 1 + 1 + 1);           // Skip justifier data
-
-		// Load MP5 configuration if present
-		if (s->ver > 1)
-		{
-			for (int j = 0; j < 2; j++)
-				for (int k = 0; k < 2; k++)
-					memcpy(&mp5[j].pads[k], (char *) s->internal + i, k < 2 ? sizeof(int8) : 0);
-		}
+		// Skip over mouse, superscope, justifier, and MP5 data
+		// (not used in new simplified version)
 	}
 
 	if (s->ver > 2)
@@ -1009,4 +452,3 @@ void S9xSetJoypadButtons (int pad, uint16 buttons)
 
 	joypad[pad].buttons = buttons;
 }
-
