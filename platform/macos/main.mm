@@ -152,7 +152,12 @@ static bool g_running = false;
              object:nil];
 
     // Pick up already-connected controllers
-    for (GCController *c in [GCController controllers]) {
+    NSArray<GCController *> *existing = [GCController controllers];
+    printf("[Input] Found %lu already-connected controller(s)\n", (unsigned long)existing.count);
+    for (GCController *c in existing) {
+        printf("[Input] Controller: %s (extended=%s)\n",
+               c.vendorName ? c.vendorName.UTF8String : "unknown",
+               c.extendedGamepad ? "yes" : "no");
         [self configureController:c];
         [self.controllers addObject:c];
     }
@@ -165,12 +170,17 @@ static bool g_running = false;
 
 - (void)controllerDidConnect:(NSNotification *)note {
     GCController *c = note.object;
+    printf("[Input] Controller CONNECTED: %s (extended=%s)\n",
+           c.vendorName ? c.vendorName.UTF8String : "unknown",
+           c.extendedGamepad ? "yes" : "no");
     [self configureController:c];
     [self.controllers addObject:c];
 }
 
 - (void)controllerDidDisconnect:(NSNotification *)note {
     GCController *c = note.object;
+    printf("[Input] Controller DISCONNECTED: %s\n",
+           c.vendorName ? c.vendorName.UTF8String : "unknown");
     [self.controllers removeObject:c];
 }
 
@@ -206,6 +216,7 @@ static bool g_running = false;
         if (gamepad.buttonOptions && gamepad.buttonOptions.pressed)
             buttons |= SNES_SELECT_MASK;
 
+        printf("[Input] Controller pad%d buttons=0x%04x\n", padIndex, buttons);
         Emulator::SetButtonState(padIndex, buttons);
 
         // L2/ZL trigger for rewind
@@ -218,6 +229,68 @@ static bool g_running = false;
             Emulator::RewindEnd();
         }
     };
+}
+
+@end
+
+// ---------------------------------------------------------------------------
+// GameView — MTKView subclass that accepts first responder for keyboard input
+// ---------------------------------------------------------------------------
+
+static uint16_t g_keyboardButtons = 0;
+
+static void HandleKeyEvent(NSEvent *event, BOOL pressed) {
+    uint16_t mask = 0;
+    const char *name = "?";
+
+    switch (event.keyCode) {
+        case 126: mask = SNES_UP_MASK;     name = "Up";     break;
+        case 125: mask = SNES_DOWN_MASK;   name = "Down";   break;
+        case 123: mask = SNES_LEFT_MASK;   name = "Left";   break;
+        case 124: mask = SNES_RIGHT_MASK;  name = "Right";  break;
+        case 13:  mask = SNES_UP_MASK;     name = "W/Up";   break;
+        case 0:   mask = SNES_LEFT_MASK;   name = "A/Left"; break;
+        case 1:   mask = SNES_DOWN_MASK;   name = "S/Down"; break;
+        case 2:   mask = SNES_RIGHT_MASK;  name = "D/Right";break;
+        case 37:  mask = SNES_A_MASK;      name = "L/A";    break;
+        case 40:  mask = SNES_B_MASK;      name = "K/B";    break;
+        case 34:  mask = SNES_X_MASK;      name = "I/X";    break;
+        case 31:  mask = SNES_Y_MASK;      name = "O/Y";    break;
+        case 38:  mask = SNES_Y_MASK;      name = "J/Y";    break;
+        case 3:   mask = SNES_TL_MASK;     name = "F/TL";   break;
+        case 35:  mask = SNES_TR_MASK;     name = "P/TR";   break;
+        case 36:  mask = SNES_START_MASK;  name = "Enter/Start"; break;
+        case 49:  mask = SNES_SELECT_MASK; name = "Space/Select"; break;
+        case 48:  mask = SNES_SELECT_MASK; name = "Tab/Select"; break;
+        default:
+            printf("[Input] Unmapped key code: %d %s\n", event.keyCode, pressed ? "down" : "up");
+            return;
+    }
+
+    if (pressed)
+        g_keyboardButtons |= mask;
+    else
+        g_keyboardButtons &= ~mask;
+
+    printf("[Input] Key %s %s -> buttons=0x%04x\n", name, pressed ? "DOWN" : "UP", g_keyboardButtons);
+    Emulator::SetButtonState(0, g_keyboardButtons);
+}
+
+@interface GameView : MTKView
+@end
+
+@implementation GameView
+
+- (BOOL)acceptsFirstResponder {
+    return YES;
+}
+
+- (void)keyDown:(NSEvent *)event {
+    HandleKeyEvent(event, YES);
+}
+
+- (void)keyUp:(NSEvent *)event {
+    HandleKeyEvent(event, NO);
 }
 
 @end
@@ -445,8 +518,8 @@ static bool g_running = false;
     self.window.title = [NSString stringWithFormat:@"Snes9x — %s", Emulator::GetROMName()];
     [self.window center];
 
-    // Create Metal view
-    MTKView *mtkView = [[MTKView alloc] initWithFrame:frame device:MTLCreateSystemDefaultDevice()];
+    // Create Metal view (GameView subclass for keyboard input)
+    GameView *mtkView = [[GameView alloc] initWithFrame:frame device:MTLCreateSystemDefaultDevice()];
     self.viewController = [[GameViewController alloc] init];
     self.viewController.view = mtkView;
     [self.viewController viewDidLoad];
@@ -465,6 +538,7 @@ static bool g_running = false;
     g_running = true;
 
     [self.window makeKeyAndOrderFront:nil];
+    [self.window makeFirstResponder:mtkView];
 }
 
 - (void)applicationWillTerminate:(NSNotification *)notification {
