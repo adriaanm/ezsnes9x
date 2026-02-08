@@ -19,7 +19,7 @@
  */
 
 
-#include "common/port.h"
+#include "snes9x.h"
 #include "sdd1emu.h"
 
 static int valid_bits;

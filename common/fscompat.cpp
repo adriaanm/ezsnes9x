@@ -9,7 +9,6 @@
 
 #include "snes9x.h"
 #include "fscompat.h"
-#include "port.h"
 #include "memmap.h"
 
 using std::string;
