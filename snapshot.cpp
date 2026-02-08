@@ -437,13 +437,10 @@ static FreezeData	SnapControls[] =
 	ARRAY_ENTRY(6, dummy1, 4, uint8_ARRAY_V),
 	ARRAY_ENTRY(6, port2_read_idx, 2, uint8_ARRAY_V),
 	ARRAY_ENTRY(6, dummy2, 4, uint8_ARRAY_V),
-	ARRAY_ENTRY(6, mouse_speed, 2, uint8_ARRAY_V),
-	INT_ENTRY(6, justifier_select),
 	ARRAY_ENTRY(6, dummy3, 8, uint8_ARRAY_V),
 	INT_ENTRY(6, pad_read),
 	INT_ENTRY(6, pad_read_last),
-	ARRAY_ENTRY(6, internal, 60, uint8_ARRAY_V),
-	ARRAY_ENTRY(10, internal_macs, 5, uint8_ARRAY_V)
+	ARRAY_ENTRY(6, internal, 16, uint8_ARRAY_V)
 };
 
 #undef STRUCT

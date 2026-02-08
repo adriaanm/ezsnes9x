@@ -650,7 +650,7 @@ void S9xApplyCommand (s9xcommand_t cmd, int16 data1, int16 data2)
 		{
 			uint16	pos, neg;
 
-			switch (cmd.axis.joypad.axis)
+			switch (cmd.joypad_axis.axis)
 			{
 				case 0: neg = SNES_LEFT_MASK;	pos = SNES_RIGHT_MASK;	break;
 				case 1: neg = SNES_UP_MASK;		pos = SNES_DOWN_MASK;	break;
@@ -660,25 +660,25 @@ void S9xApplyCommand (s9xcommand_t cmd, int16 data1, int16 data2)
 				default: return;
 			}
 
-			if (cmd.axis.joypad.invert)
+			if (cmd.joypad_axis.invert)
 				data1 = -data1;
 
 			uint16	p, r;
 
 			p = r = 0;
-			if (data1 >  ((cmd.axis.joypad.threshold + 1) *  127))
+			if (data1 >  ((cmd.joypad_axis.threshold + 1) *  127))
 				p |= pos;
 			else
 				r |= pos;
 
-			if (data1 <= ((cmd.axis.joypad.threshold + 1) * -127))
+			if (data1 <= ((cmd.joypad_axis.threshold + 1) * -127))
 				p |= neg;
 			else
 				r |= neg;
 
-			joypad[cmd.axis.joypad.idx].buttons |= p;
-			joypad[cmd.axis.joypad.idx].buttons &= ~r;
-			joypad[cmd.axis.joypad.idx].turbos  &= ~(p | r);
+			joypad[cmd.joypad_axis.idx].buttons |= p;
+			joypad[cmd.joypad_axis.idx].buttons &= ~r;
+			joypad[cmd.joypad_axis.idx].turbos  &= ~(p | r);
 
 			return;
 		}
@@ -934,7 +934,7 @@ void S9xControlEOF (void)
 void S9xControlPreSaveState (struct SControlSnapshot *s)
 {
 	memset(s, 0, sizeof(*s));
-	s->ver = 4;
+	s->ver = 5;  // New version for simplified structure
 
 	for (int j = 0; j < 2; j++)
 	{
@@ -942,31 +942,9 @@ void S9xControlPreSaveState (struct SControlSnapshot *s)
 		s->port2_read_idx[j] = read_idx[1][j];
 	}
 
-#define COPY(x)	{ memcpy((char *) s->internal + i, &(x), sizeof(x)); i += sizeof(x); }
-#define SKIP(n)	{ i += (n); }
-
-	int	i = 0;
-
+	// Save joypad button states (16 bytes for 8 joypads)
 	for (int j = 0; j < 8; j++)
-		COPY(joypad[j].buttons);
-
-	// Skip mouse[2] data (delta_x, delta_y, old_x, old_y, cur_x, cur_y, buttons) * 2
-	SKIP(2 * (1 + 1 + 2 + 2 + 2 + 2 + 1));
-
-	// Skip superscope data (x, y, phys_buttons, next_buttons, read_buttons)
-	SKIP(2 + 2 + 1 + 1 + 1);
-
-	// Skip justifier data (x[2], y[2], buttons, offscreen[2])
-	SKIP(2 + 2 + 2 + 2 + 1 + 1 + 1);
-
-	for (int j = 0; j < 2; j++)
-		for (int k = 0; k < 2; k++)
-			COPY(mp5[j].pads[k]);
-
-	assert(i == sizeof(s->internal));
-
-#undef COPY
-#undef SKIP
+		memcpy(s->internal + j * 2, &joypad[j].buttons, 2);
 
 	s->pad_read      = pad_read;
 	s->pad_read_last = pad_read_last;
@@ -974,14 +952,6 @@ void S9xControlPreSaveState (struct SControlSnapshot *s)
 
 void S9xControlPostLoadState (struct SControlSnapshot *s)
 {
-	if (curcontrollers[0] == MP5 && s->ver < 1)
-	{
-		// Crap. Old snes9x didn't support this.
-		S9xMessage(S9X_WARNING, S9X_FREEZE_FILE_INFO, "Old savestate has no support for MP5 in port 1.");
-		newcontrollers[0] = curcontrollers[0];
-		curcontrollers[0] = mp5[0].pads[0];
-	}
-
 	for (int j = 0; j < 2; j++)
 	{
 		read_idx[0][j] = s->port1_read_idx[j];
@@ -990,33 +960,39 @@ void S9xControlPostLoadState (struct SControlSnapshot *s)
 
 	FLAG_LATCH = (Memory.FillRAM[0x4016] & 1) == 1;
 
-	if (s->ver > 1)
+	// Load joypad button states
+	if (s->ver >= 5)
 	{
-	#define COPY(x)	{ memcpy(&(x), (char *) s->internal + i, sizeof(x)); i += sizeof(x); }
-	#define SKIP(n)	{ i += (n); }
-
-		int	i = 0;
-
+		// New simplified format (16 bytes for 8 joypads)
 		for (int j = 0; j < 8; j++)
-			COPY(joypad[j].buttons);
+			memcpy(&joypad[j].buttons, s->internal + j * 2, 2);
+	}
+	else
+	{
+		// Old format - try to load if compatible
+		// Note: Loading old savestates with mouse/superscope/justifier data
+		// will only restore the joypad states, which is typically sufficient.
+		int i = 0;
 
-		// Skip mouse[2] data
-		SKIP(2 * (1 + 1 + 2 + 2 + 2 + 2 + 1));
+		// Load 8 joypad button states (first 16 bytes of old internal)
+		for (int j = 0; j < 8; j++)
+		{
+			memcpy(&joypad[j].buttons, (char *) s->internal + i, 2);
+			i += 2;
+		}
 
-		// Skip superscope data
-		SKIP(2 + 2 + 1 + 1 + 1);
+		// Skip over mouse, superscope, justifier data
+		i += (2 * (1 + 1 + 2 + 2 + 2 + 2 + 1));  // Skip mouse data
+		i += (2 + 2 + 1 + 1 + 1);                   // Skip superscope data
+		i += (2 + 2 + 2 + 2 + 1 + 1 + 1);           // Skip justifier data
 
-		// Skip justifier data
-		SKIP(2 + 2 + 2 + 2 + 1 + 1 + 1);
-
-		for (int j = 0; j < 2; j++)
-			for (int k = 0; k < 2; k++)
-				COPY(mp5[j].pads[k]);
-
-		assert(i == sizeof(s->internal));
-
-	#undef COPY
-	#undef SKIP
+		// Load MP5 configuration if present
+		if (s->ver > 1)
+		{
+			for (int j = 0; j < 2; j++)
+				for (int k = 0; k < 2; k++)
+					memcpy(&mp5[j].pads[k], (char *) s->internal + i, k < 2 ? sizeof(int8) : 0);
+		}
 	}
 
 	if (s->ver > 2)
