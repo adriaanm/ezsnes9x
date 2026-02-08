@@ -503,3 +503,9 @@ MigrationBackup/
 .DS_Store
 *.lock
 profile
+
+# Claude Code / development files
+.claude/
+.vibe/
+*.jpg
+
