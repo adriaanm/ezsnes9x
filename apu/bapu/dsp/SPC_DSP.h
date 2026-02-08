@@ -316,11 +316,11 @@ public:
 	void extra();
 };
 
-#define SPC_COPY( type, state )\
-{\
-	state = (BOOST::type) copier.copy_int( state, sizeof (BOOST::type) );\
-	assert( (BOOST::type) state == state );\
-}
+#define SPC_COPY( type, state ) \
+	do { \
+		(state) = (BOOST::type) copier.copy_int( (state), sizeof (BOOST::type) ); \
+		assert( (BOOST::type) (state) == (state) ); \
+	} while (0)
 
 #endif
 

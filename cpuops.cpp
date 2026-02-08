@@ -1966,16 +1966,20 @@ static void Op5ASlow (void)
 	Registers.S.W += 2;
 
 #define PullWE(w) \
-	Registers.SL++; \
-	w = S9xGetWord(Registers.S.W, WRAP_PAGE); \
-	Registers.SL++;
+	do { \
+		Registers.SL++; \
+		w = S9xGetWord(Registers.S.W, WRAP_PAGE); \
+		Registers.SL++; \
+	} while (0)
 
 #define PullB(b) \
 	b = S9xGetByte(++Registers.S.W);
 
 #define PullBE(b) \
-	Registers.SL++; \
-	b = S9xGetByte(Registers.S.W);
+	do { \
+		Registers.SL++; \
+		b = S9xGetByte(Registers.S.W); \
+	} while (0)
 
 // PLA
 static void Op68E1 (void)

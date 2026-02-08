@@ -29,7 +29,7 @@ static inline void DrawBackdrop (void);
 static inline void RenderScreen (bool8);
 static void S9xDisplayStringType (const char *, int, int, bool, int);
 
-#define TILE_PLUS(t, x)	(((t) & 0xfc00) | ((t + x) & 0x3ff))
+#define TILE_PLUS(t, x)	(((t) & 0xfc00) | (((t) + (x)) & 0x3ff))
 
 
 bool8 S9xGraphicsInit (void)
@@ -330,30 +330,30 @@ static inline void RenderScreen (bool8 sub)
 	S9xSelectTileRenderers(PPU.BGMode, sub, FALSE);
 
 	#define DO_BG(n, pal, depth, hires, offset, Zh, Zl, voffoff) \
-		if (BGActive & (1 << n)) \
+		if (BGActive & (1 << (n))) \
 		{ \
 			BG.StartPalette = pal; \
-			BG.EnableMath = !sub && (Memory.FillRAM[0x2131] & (1 << n)); \
-			BG.TileSizeH = (!hires && PPU.BG[n].BGSize) ? 16 : 8; \
+			BG.EnableMath = !sub && (Memory.FillRAM[0x2131] & (1 << (n))); \
+			BG.TileSizeH = (!(hires) && PPU.BG[n].BGSize) ? 16 : 8; \
 			BG.TileSizeV = (PPU.BG[n].BGSize) ? 16 : 8; \
 			S9xSelectTileConverter(depth, hires, sub, PPU.BGMosaic[n]); \
 			\
 			if (offset) \
 			{ \
-				BG.OffsetSizeH = (!hires && PPU.BG[2].BGSize) ? 16 : 8; \
+				BG.OffsetSizeH = (!(hires) && PPU.BG[2].BGSize) ? 16 : 8; \
 				BG.OffsetSizeV = (PPU.BG[2].BGSize) ? 16 : 8; \
 				\
-				if (PPU.BGMosaic[n] && (hires || PPU.Mosaic > 1)) \
-					DrawBackgroundOffsetMosaic(n, D + Zh, D + Zl, voffoff); \
+				if (PPU.BGMosaic[n] && ((hires) || PPU.Mosaic > 1)) \
+					DrawBackgroundOffsetMosaic(n, D + (Zh), D + (Zl), voffoff); \
 				else \
-					DrawBackgroundOffset(n, D + Zh, D + Zl, voffoff); \
+					DrawBackgroundOffset(n, D + (Zh), D + (Zl), voffoff); \
 			} \
 			else \
 			{ \
-				if (PPU.BGMosaic[n] && (hires || PPU.Mosaic > 1)) \
-					DrawBackgroundMosaic(n, D + Zh, D + Zl); \
+				if (PPU.BGMosaic[n] && ((hires) || PPU.Mosaic > 1)) \
+					DrawBackgroundMosaic(n, D + (Zh), D + (Zl)); \
 				else \
-					DrawBackground(n, D + Zh, D + Zl); \
+					DrawBackground(n, D + (Zh), D + (Zl)); \
 			} \
 		}
 

@@ -103,7 +103,7 @@ static void Op##OP (void) \
 	if (COND) \
 	{ \
 		AddCycles(ONE_CYCLE); \
-		if (E && Registers.PCh != newPC.B.h) \
+		if ((E) && Registers.PCh != newPC.B.h) \
 			AddCycles(ONE_CYCLE); \
 		if ((Registers.PCw & ~MEMMAP_MASK) != (newPC.W & ~MEMMAP_MASK)) \
 			S9xSetPCBase(ICPU.ShiftedPB + newPC.W); \

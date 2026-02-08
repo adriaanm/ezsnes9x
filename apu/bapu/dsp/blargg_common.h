@@ -65,7 +65,7 @@ public:
 
 #ifndef BLARGG_DISABLE_NOTHROW
 	#define BLARGG_DISABLE_NOTHROW \
-		void* operator new ( size_t s ) noexcept { return malloc( s ); }\
+		void* operator new ( size_t s ) noexcept { return malloc( s ); } \
 		void operator delete ( void* p ) noexcept { free( p ); }
 	#define BLARGG_NEW new
 #else
@@ -75,7 +75,7 @@ public:
 
 // BLARGG_4CHAR('a','b','c','d') = 'abcd' (four character integer constant)
 #define BLARGG_4CHAR( a, b, c, d ) \
-	((a&0xFF)*0x1000000L + (b&0xFF)*0x10000L + (c&0xFF)*0x100L + (d&0xFF))
+	((((a)&0xFF)*0x1000000L + ((b)&0xFF)*0x10000L + ((c)&0xFF)*0x100L + ((d)&0xFF)))
 
 // BOOST_STATIC_ASSERT( expr ): Generates compile error if expr is 0.
 #ifndef BOOST_STATIC_ASSERT

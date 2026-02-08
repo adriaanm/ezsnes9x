@@ -104,7 +104,7 @@ enum
 	POINTER_V
 };
 
-#define COUNT(ARRAY)				(sizeof(ARRAY) / sizeof(ARRAY[0]))
+#define COUNT(ARRAY)				((sizeof(ARRAY) / sizeof(ARRAY[0])))
 #define Offset(field, structure)	((int) (((char *) (&(((structure) 1)->field))) - ((char *) 1)))
 #define OFFSET(f)					Offset(f, STRUCT *)
 #define DUMMY(f)					Offset(f, struct Obsolete *)

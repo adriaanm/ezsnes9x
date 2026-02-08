@@ -1208,15 +1208,17 @@ static void fx_adc_r15 (void)
 
 // 50-5f (ALT2) - add #n - add, register + immediate
 #define FX_ADD_I(imm) \
-	int32	s = SUSEX16(SREG) + imm; \
-	GSU.vCarry = s >= 0x10000; \
-	GSU.vOverflow = ~(SREG ^ imm) & (imm ^ s) & 0x8000; \
-	GSU.vSign = s; \
-	GSU.vZero = s; \
-	R15++; \
-	DREG = s; \
-	TESTR14; \
-	CLRFLAGS
+	do { \
+		int32	s = SUSEX16(SREG) + (imm); \
+		GSU.vCarry = s >= 0x10000; \
+		GSU.vOverflow = ~(SREG ^ (imm)) & ((imm) ^ s) & 0x8000; \
+		GSU.vSign = s; \
+		GSU.vZero = s; \
+		R15++; \
+		DREG = s; \
+		TESTR14; \
+		CLRFLAGS; \
+	} while (0)
 
 static void fx_add_i0 (void)
 {
@@ -1300,15 +1302,17 @@ static void fx_add_i15 (void)
 
 // 50-5f (ALT3) - adc #n - add with carry, register + immediate
 #define FX_ADC_I(imm) \
-	int32	s = SUSEX16(SREG) + imm + SUSEX16(GSU.vCarry); \
-	GSU.vCarry = s >= 0x10000; \
-	GSU.vOverflow = ~(SREG ^ imm) & (imm ^ s) & 0x8000; \
-	GSU.vSign = s; \
-	GSU.vZero = s; \
-	R15++; \
-	DREG = s; \
-	TESTR14; \
-	CLRFLAGS
+	do { \
+		int32	s = SUSEX16(SREG) + (imm) + SUSEX16(GSU.vCarry); \
+		GSU.vCarry = s >= 0x10000; \
+		GSU.vOverflow = ~(SREG ^ (imm)) & ((imm) ^ s) & 0x8000; \
+		GSU.vSign = s; \
+		GSU.vZero = s; \
+		R15++; \
+		DREG = s; \
+		TESTR14; \
+		CLRFLAGS; \
+	} while (0)
 
 static void fx_adc_i0 (void)
 {
@@ -1576,15 +1580,17 @@ static void fx_sbc_r15 (void)
 
 // 60-6f (ALT2) - sub #n - subtract, register - immediate
 #define FX_SUB_I(imm) \
-	int32	s = SUSEX16(SREG) - imm; \
-	GSU.vCarry = s >= 0; \
-	GSU.vOverflow = (SREG ^ imm) & (SREG ^ s) & 0x8000; \
-	GSU.vSign = s; \
-	GSU.vZero = s; \
-	R15++; \
-	DREG = s; \
-	TESTR14; \
-	CLRFLAGS
+	do { \
+		int32	s = SUSEX16(SREG) - (imm); \
+		GSU.vCarry = s >= 0; \
+		GSU.vOverflow = (SREG ^ (imm)) & (SREG ^ s) & 0x8000; \
+		GSU.vSign = s; \
+		GSU.vZero = s; \
+		R15++; \
+		DREG = s; \
+		TESTR14; \
+		CLRFLAGS; \
+	} while (0)
 
 static void fx_sub_i0 (void)
 {
@@ -1942,13 +1948,15 @@ static void fx_bic_r15 (void)
 
 // 71-7f (ALT2) - and #n - reister & immediate
 #define FX_AND_I(imm) \
-	uint32	v = SREG & imm; \
-	R15++; \
-	DREG = v; \
-	GSU.vSign = v; \
-	GSU.vZero = v; \
-	TESTR14; \
-	CLRFLAGS
+	do { \
+		uint32	v = SREG & (imm); \
+		R15++; \
+		DREG = v; \
+		GSU.vSign = v; \
+		GSU.vZero = v; \
+		TESTR14; \
+		CLRFLAGS; \
+	} while (0)
 
 static void fx_and_i1 (void)
 {
@@ -2027,13 +2035,15 @@ static void fx_and_i15 (void)
 
 // 71-7f (ALT3) - bic #n - reister & ~immediate
 #define FX_BIC_I(imm) \
-	uint32	v = SREG & ~imm; \
-	R15++; \
-	DREG = v; \
-	GSU.vSign = v; \
-	GSU.vZero = v; \
-	TESTR14; \
-	CLRFLAGS
+	do { \
+		uint32	v = SREG & ~(imm); \
+		R15++; \
+		DREG = v; \
+		GSU.vSign = v; \
+		GSU.vZero = v; \
+		TESTR14; \
+		CLRFLAGS; \
+	} while (0)
 
 static void fx_bic_i1 (void)
 {
@@ -2292,13 +2302,15 @@ static void fx_umult_r15 (void)
 
 // 80-8f (ALT2) - mult #n - 8 bit to 16 bit signed multiply, register * immediate
 #define FX_MULT_I(imm) \
-	uint32	v = (uint32) (SEX8(SREG) * ((int32) imm)); \
-	R15++; \
-	DREG = v; \
-	GSU.vSign = v; \
-	GSU.vZero = v; \
-	TESTR14; \
-	CLRFLAGS
+	do { \
+		uint32	v = (uint32) (SEX8(SREG) * ((int32) (imm))); \
+		R15++; \
+		DREG = v; \
+		GSU.vSign = v; \
+		GSU.vZero = v; \
+		TESTR14; \
+		CLRFLAGS; \
+	} while (0)
 
 static void fx_mult_i0 (void)
 {
@@ -2382,13 +2394,15 @@ static void fx_mult_i15 (void)
 
 // 80-8f (ALT3) - umult #n - 8 bit to 16 bit unsigned multiply, register * immediate
 #define FX_UMULT_I(imm) \
-	uint32	v = USEX8(SREG) * ((uint32) imm); \
-	R15++; \
-	DREG = v; \
-	GSU.vSign = v; \
-	GSU.vZero = v; \
-	TESTR14; \
-	CLRFLAGS
+	do { \
+		uint32	v = USEX8(SREG) * ((uint32) (imm)); \
+		R15++; \
+		DREG = v; \
+		GSU.vSign = v; \
+		GSU.vZero = v; \
+		TESTR14; \
+		CLRFLAGS; \
+	} while (0)
 
 static void fx_umult_i0 (void)
 {
@@ -2481,9 +2495,11 @@ static void fx_sbk (void)
 
 // 91-94 - link #n - R11 = R15 + immediate
 #define FX_LINK_I(lkn) \
-	R11 = R15 + lkn; \
-	CLRFLAGS; \
-	R15++
+	do { \
+		R11 = R15 + (lkn); \
+		CLRFLAGS; \
+		R15++; \
+	} while (0)
 
 static void fx_link_i1 (void)
 {
@@ -3237,13 +3253,15 @@ static void fx_xor_r15 (void)
 
 // c1-cf (ALT2) - or #n
 #define FX_OR_I(imm) \
-	uint32	v = SREG | imm; \
-	R15++; \
-	DREG = v; \
-	GSU.vSign = v; \
-	GSU.vZero = v; \
-	TESTR14; \
-	CLRFLAGS
+	do { \
+		uint32	v = SREG | (imm); \
+		R15++; \
+		DREG = v; \
+		GSU.vSign = v; \
+		GSU.vZero = v; \
+		TESTR14; \
+		CLRFLAGS; \
+	} while (0)
 
 static void fx_or_i1 (void)
 {
@@ -3322,13 +3340,15 @@ static void fx_or_i15 (void)
 
 // c1-cf (ALT3) - xor #n
 #define FX_XOR_I(imm) \
-	uint32	v = SREG ^ imm; \
-	R15++; \
-	DREG = v; \
-	GSU.vSign = v; \
-	GSU.vZero = v; \
-	TESTR14; \
-	CLRFLAGS
+	do { \
+		uint32	v = SREG ^ (imm); \
+		R15++; \
+		DREG = v; \
+		GSU.vSign = v; \
+		GSU.vZero = v; \
+		TESTR14; \
+		CLRFLAGS; \
+	} while (0)
 
 static void fx_xor_i1 (void)
 {

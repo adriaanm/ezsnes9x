@@ -144,8 +144,8 @@ static const int16	ST010_M7Scale[176] =
 #define PI	3.1415926535897932384626433832795
 #endif
 
-#define ST010_WORD(offset)	(Memory.SRAM[offset + 1] << 8) | Memory.SRAM[offset]
-#define ST010_DWORD(offset)	(Memory.SRAM[offset + 3] << 24) | (Memory.SRAM[offset + 2] << 16) | (Memory.SRAM[offset + 1] << 8) | Memory.SRAM[offset]
+#define ST010_WORD(offset)	((Memory.SRAM[(offset) + 1] << 8) | Memory.SRAM[(offset)])
+#define ST010_DWORD(offset)	((Memory.SRAM[(offset) + 3] << 24) | (Memory.SRAM[(offset) + 2] << 16) | (Memory.SRAM[(offset) + 1] << 8) | Memory.SRAM[(offset)])
 
 
 static int16 ST010_Sin (int16 Theta)
