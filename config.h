@@ -10,16 +10,23 @@
 #include "snes9x.h"
 #include <string>
 #include <map>
+#include <vector>
 
 struct S9xKeyboardMapping {
-    bool enabled = true;  // Whether keyboard input is enabled
+    int port = -1;  // Which port keyboard controls (-1 = auto-assign after controllers)
     std::map<std::string, int> button_to_keycode; // e.g., "up" -> 126
+};
+
+struct S9xControllerMapping {
+    std::string matching;  // Substring to match in controller name (e.g., "dualshock")
+    int port = -1;         // Which port to assign (-1 = auto-assign)
 };
 
 struct S9xConfig {
     std::string rom_path;
     std::string save_dir;
     S9xKeyboardMapping keyboard;
+    std::vector<S9xControllerMapping> controllers;
 };
 
 // Parse config file and populate Settings struct + S9xConfig

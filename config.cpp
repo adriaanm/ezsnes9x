@@ -82,11 +82,25 @@ static void apply_setting(const std::string &section,
     }
     else if (section == "keyboard")
     {
-        if (key == "enabled" && parse_bool(value, bval))
-            config.keyboard.enabled = bval;
+        if (key == "port" && parse_int(value, ival))
+            config.keyboard.port = ival;
         else if (parse_int(value, ival))
             // Store keycode for this button mapping
             config.keyboard.button_to_keycode[key] = ival;
+    }
+    else if (section == "controller")
+    {
+        // Start a new controller mapping
+        if (key == "matching")
+        {
+            S9xControllerMapping mapping;
+            mapping.matching = value;
+            config.controllers.push_back(mapping);
+        }
+        else if (key == "port" && parse_int(value, ival) && !config.controllers.empty())
+        {
+            config.controllers.back().port = ival;
+        }
     }
     else if (section == "input")
     {

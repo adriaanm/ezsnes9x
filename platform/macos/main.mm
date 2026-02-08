@@ -98,6 +98,8 @@ static NSString *g_romPath = nil;
 static bool g_running = false;
 static bool g_debug = false;
 static S9xKeyboardMapping g_keyboardMapping;
+static std::vector<S9xControllerMapping> g_controllerMappings;
+static int g_keyboardPort = -1; // -1 = assign after controllers
 
 // ---------------------------------------------------------------------------
 // AudioEngine — pulls samples from S9xMixSamples via AVAudioEngine source node
@@ -157,14 +159,17 @@ static S9xKeyboardMapping g_keyboardMapping;
 
 @interface InputManager : NSObject
 @property (nonatomic, strong) NSMutableArray<GCController *> *controllers;
+@property (nonatomic, assign) int nextAutoPort; // Next available port for auto-assignment
 - (void)setup;
 - (void)teardown;
+- (int)assignPortForController:(GCController *)controller;
 @end
 
 @implementation InputManager
 
 - (void)setup {
     self.controllers = [NSMutableArray array];
+    self.nextAutoPort = 0;
 
     [[NSNotificationCenter defaultCenter]
         addObserver:self
@@ -210,9 +215,41 @@ static S9xKeyboardMapping g_keyboardMapping;
     [self.controllers removeObject:c];
 }
 
+- (int)assignPortForController:(GCController *)controller {
+    // Check if this controller matches any configured mappings
+    const char *vendorName = controller.vendorName ? controller.vendorName.UTF8String : "";
+
+    for (const auto &mapping : g_controllerMappings) {
+        if (mapping.matching.empty())
+            continue;
+
+        // Case-insensitive substring match
+        std::string vendor(vendorName);
+        std::transform(vendor.begin(), vendor.end(), vendor.begin(), ::tolower);
+        std::string match = mapping.matching;
+        std::transform(match.begin(), match.end(), match.begin(), ::tolower);
+
+        if (vendor.find(match) != std::string::npos) {
+            if (mapping.port >= 0 && mapping.port < 8) {
+                printf("[Input] Matched '%s' -> port %d\n", vendorName, mapping.port);
+                return mapping.port;
+            }
+        }
+    }
+
+    // Auto-assign to next available port
+    int port = self.nextAutoPort;
+    if (port < 8) {
+        self.nextAutoPort++;
+        printf("[Input] Auto-assigned '%s' -> port %d\n", vendorName, port);
+        return port;
+    }
+
+    return 7; // Max out at port 7
+}
+
 - (void)configureController:(GCController *)controller {
-    int padIndex = (int)self.controllers.count; // 0 for first controller
-    if (padIndex > 7) padIndex = 7;
+    int padIndex = [self assignPortForController:controller];
 
     GCExtendedGamepad *gp = controller.extendedGamepad;
     if (!gp) return;
@@ -263,7 +300,6 @@ static S9xKeyboardMapping g_keyboardMapping;
 // ---------------------------------------------------------------------------
 
 static uint16_t g_keyboardButtons = 0;
-static bool g_keyboardEnabled = true;
 
 // Default keyboard mapping (macOS keycodes)
 static void InitDefaultKeyboardMapping() {
@@ -282,9 +318,6 @@ static void InitDefaultKeyboardMapping() {
 }
 
 static void HandleKeyEvent(NSEvent *event, BOOL pressed) {
-    if (!g_keyboardEnabled)
-        return;
-
     int keyCode = event.keyCode;
     uint16_t mask = 0;
     const char *button = nullptr;
@@ -321,8 +354,10 @@ static void HandleKeyEvent(NSEvent *event, BOOL pressed) {
         g_keyboardButtons &= ~mask;
 
     if (g_debug)
-        printf("[Input] Key %s (%d) %s -> buttons=0x%04x\n", button, keyCode, pressed ? "DOWN" : "UP", g_keyboardButtons);
-    Emulator::SetButtonState(0, g_keyboardButtons);
+        printf("[Input] Key %s (%d) %s -> port %d buttons=0x%04x\n", button, keyCode, pressed ? "DOWN" : "UP", g_keyboardPort, g_keyboardButtons);
+
+    if (g_keyboardPort >= 0 && g_keyboardPort < 8)
+        Emulator::SetButtonState(g_keyboardPort, g_keyboardButtons);
 }
 
 @interface GameView : MTKView
@@ -655,18 +690,20 @@ static void HandleKeyEvent(NSEvent *event, BOOL pressed) {
         return;
     }
 
-    // Load keyboard mapping from config or use defaults
+    // Load config
     InitDefaultKeyboardMapping();
     const S9xConfig *config = Emulator::GetConfig();
     if (config) {
-        g_keyboardEnabled = config->keyboard.enabled;
+        // Load controller mappings
+        g_controllerMappings = config->controllers;
+
+        // Load keyboard mapping
+        g_keyboardPort = config->keyboard.port;
         if (!config->keyboard.button_to_keycode.empty()) {
             g_keyboardMapping = config->keyboard;
             if (g_debug)
                 printf("[Input] Loaded custom keyboard mapping from config\n");
         }
-        if (g_debug)
-            printf("[Input] Keyboard enabled: %s\n", g_keyboardEnabled ? "yes" : "no");
     }
 
     if (!Emulator::LoadROM([romPath UTF8String])) {
@@ -705,6 +742,16 @@ static void HandleKeyEvent(NSEvent *event, BOOL pressed) {
     // Set up input
     self.input = [[InputManager alloc] init];
     [self.input setup];
+
+    // Assign keyboard port after controllers
+    if (g_keyboardPort == -1) {
+        // Auto-assign to first free port after controllers
+        g_keyboardPort = self.input.nextAutoPort;
+        if (g_keyboardPort < 8)
+            self.input.nextAutoPort++;
+    }
+    if (g_debug)
+        printf("[Input] Keyboard assigned to port %d\n", g_keyboardPort);
 
     g_running = true;
 

@@ -42,23 +42,34 @@ Configuration is optional. The emulator uses sensible defaults. If you need to c
 # Where to store .srm save files (default: same directory as ROM)
 save_dir: /path/to/saves
 
-# Keyboard controls player 1 by default
+# Game controllers auto-assign to ports 0, 1, 2... in connection order
+# Override with controller mappings:
+controller:
+  matching: dualshock    # Substring match (case-insensitive) in controller name
+  port: 0                # Assign to port 0 (player 1)
+
+controller:
+  matching: xbox
+  port: 1                # Assign to port 1 (player 2)
+
+# Keyboard is assigned AFTER controllers (to the first free port)
 keyboard:
-  enabled: true   # Set to false to disable keyboard input
+  port: 1                # Override: assign keyboard to specific port (0-7)
+                         # Default: -1 (auto-assign after controllers)
 
   # Customize key mappings (macOS keycodes shown)
-  up: 126         # Arrow up
-  down: 125       # Arrow down
-  left: 123       # Arrow left
-  right: 124      # Arrow right
-  a: 37           # L key
-  b: 40           # K key
-  x: 34           # I key
-  y: 31           # O key
-  l: 3            # F key
-  r: 35           # P key
-  start: 36       # Enter/Return
-  select: 49      # Space
+  up: 126                # Arrow up
+  down: 125              # Arrow down
+  left: 123              # Arrow left
+  right: 124             # Arrow right
+  a: 37                  # L key
+  b: 40                  # K key
+  x: 34                  # I key
+  y: 31                  # O key
+  l: 3                   # F key
+  r: 35                  # P key
+  start: 36              # Enter/Return
+  select: 49             # Space
 
 input:
   # Allow simultaneous opposing directions (default: false)
@@ -67,7 +78,7 @@ input:
 
 **Finding keycodes:** Run with `--debug` and press keys - unmapped keycodes will be printed to console.
 
-**Controller assignment:** Game controllers are automatically assigned to player 1 and player 2 in connection order. Keyboard always controls player 1 (unless disabled).
+**Controller assignment:** Controllers auto-assign to ports 0, 1, 2... in connection order. Keyboard is assigned to the first free port after all controllers (or override with `keyboard.port`).
 
 Config file is searched in order:
 1. Path specified with `--config`
