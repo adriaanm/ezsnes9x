@@ -6,11 +6,11 @@
 
 #include <cmath>
 #include <vector>
-#include "../snes9x.h"
+#include "snes9x.h"
 #include "apu.h"
-#include "../msu1.h"
-#include "../snapshot.h"
-#include "../display.h"
+#include "msu1.h"
+#include "snapshot.h"
+#include "display.h"
 #include "resampler.h"
 
 #include "bapu/snes/snes.hpp"

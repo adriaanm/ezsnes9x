@@ -121,7 +121,7 @@ typedef size_t				pint;
 #endif
 #endif
 
-#include "fscompat.h"
+#include "common/fscompat.h"
 
 #define S9xDisplayString	DisplayStringFromBottom
 #ifdef __WIN32__
@@ -178,6 +178,6 @@ void SetInfoDlgColor(unsigned char, unsigned char, unsigned char);
 #define SWAP_WORD(s)		((s) = (((s) & 0xff) <<  8) | (((s) & 0xff00) >> 8))
 #define SWAP_DWORD(s)		((s) = (((s) & 0xff) << 24) | (((s) & 0xff00) << 8) | (((s) & 0xff0000) >> 8) | (((s) & 0xff000000) >> 24))
 
-#include "pixform.h"
+#include "ppu/pixform.h"
 
 #endif

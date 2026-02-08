@@ -8,10 +8,18 @@
 #include "memmap.h"
 #include "dma.h"
 #include "apu/apu.h"
-#include "fxemu.h"
-#include "sdd1.h"
-#include "srtc.h"
+#include "chips/bsx.h"
+#include "chips/dsp.h"
+#include "chips/fxemu.h"
+#include "chips/sa1.h"
+#include "chips/sdd1.h"
+#include "chips/spc7110.h"
+#include "chips/c4.h"
+#include "chips/obc1.h"
+#include "chips/srtc.h"
+#include "chips/msu1.h"
 #include "snapshot.h"
+#include "cpu/cpuexec.h"
 #ifdef DEBUGGER
 #endif
 

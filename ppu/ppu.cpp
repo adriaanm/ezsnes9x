@@ -8,9 +8,9 @@
 #include "memmap.h"
 #include "dma.h"
 #include "apu/apu.h"
-#include "fxemu.h"
-#include "sdd1.h"
-#include "srtc.h"
+#include "chips/fxemu.h"
+#include "chips/sdd1.h"
+#include "chips/srtc.h"
 #include "controls.h"
 #include "display.h"
 #ifdef NETPLAY_SUPPORT

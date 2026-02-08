@@ -17,9 +17,9 @@
 
 #include "memmap.h"
 #include "apu/apu.h"
-#include "fxemu.h"
-#include "sdd1.h"
-#include "srtc.h"
+#include "chips/fxemu.h"
+#include "chips/sdd1.h"
+#include "chips/srtc.h"
 #include "controls.h"
 #include "display.h"
 #include "sha256.h"

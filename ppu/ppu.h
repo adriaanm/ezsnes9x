@@ -212,6 +212,7 @@ void S9xDoAutoJoypad (void);
 
 #include "gfx.h"
 #include "memmap.h"
+#include "cpu/cpuops.h"
 
 typedef struct
 {

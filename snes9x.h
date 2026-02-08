@@ -40,7 +40,7 @@
 #define CLOSE_FSTREAM(s)			fclose(s)
 #endif
 
-#include "stream.h"
+#include "common/stream.h"
 
 #define STREAM					Stream *
 #define READ_STREAM(p, l, s)	s->read(p,l)

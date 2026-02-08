@@ -6,10 +6,10 @@
 
 #include "snes9x.h"
 #include "memmap.h"
-#include "cpuops.h"
+#include "cpu/cpuops.h"
 #include "dma.h"
 #include "apu/apu.h"
-#include "fxemu.h"
+#include "chips/fxemu.h"
 #include "snapshot.h"
 #ifdef DEBUGGER
 #endif

@@ -19,7 +19,7 @@
 #ifndef SNES9X_SPC7110EMU_H_
 #define SNES9X_SPC7110EMU_H_
 
-#include "spc7110dec.h"
+#include "chips/spc7110dec.h"
 
 class SPC7110 {
 public:

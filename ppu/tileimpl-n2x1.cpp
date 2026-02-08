@@ -4,7 +4,7 @@
    For further information, consult the LICENSE file in the root directory.
 \*****************************************************************************/
 
-#define TILEIMPL_CPP_
+#define _TILEIMPL_CPP_
 #include "tileimpl.h"
 
 namespace TileImpl {

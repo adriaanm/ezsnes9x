@@ -20,9 +20,9 @@
 #define AddCycles(n)	{ CPU.Cycles += (n); while (CPU.Cycles >= CPU.NextEvent) S9xDoHEventProcessing(); }
 #endif
 
-#include "cpuaddr.h"
-#include "cpuops.h"
-#include "cpumacro.h"
+#include "cpu/cpuaddr.h"
+#include "cpu/cpuops.h"
+#include "cpu/cpumacro.h"
 
 
 /* ADC ********************************************************************* */

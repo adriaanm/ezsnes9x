@@ -8,8 +8,8 @@
 #include "memmap.h"
 #include "dma.h"
 #include "apu/apu.h"
-#include "sdd1emu.h"
-#include "spc7110emu.h"
+#include "chips/sdd1emu.h"
+#include "chips/spc7110emu.h"
 #ifdef DEBUGGER
 #endif
 

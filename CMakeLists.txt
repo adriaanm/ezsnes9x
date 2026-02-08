@@ -17,52 +17,52 @@ check_cxx_source_compiles("
 
 # Core emulation sources
 set(SNES9X_CORE_SOURCES
-    bml.cpp
-    bsx.cpp
-    c4.cpp
-    c4emu.cpp
-    clip.cpp
-    controls.cpp
-    cpu.cpp
-    cpuexec.cpp
-    cpuops.cpp
-    dma.cpp
-    dsp.cpp
-    dsp1.cpp
-    dsp2.cpp
-    dsp3.cpp
-    dsp4.cpp
-    fscompat.cpp
-    fxemu.cpp
-    fxinst.cpp
-    gfx.cpp
-    globals.cpp
-    memmap.cpp
-    msu1.cpp
-    obc1.cpp
-    ppu.cpp
-    sa1.cpp
-    sa1cpu.cpp
-    sdd1.cpp
-    sdd1emu.cpp
-    seta.cpp
-    seta010.cpp
-    seta011.cpp
-    seta018.cpp
-    sha256.cpp
-    snapshot.cpp
-    spc7110.cpp
-    # spc7110emu.cpp and spc7110dec.cpp are #included by spc7110.cpp
-    srtc.cpp
-    # srtcemu.cpp is #included by srtc.cpp
-    statemanager.cpp
-    stream.cpp
-    tile.cpp
-    tileimpl-h2x1.cpp
-    tileimpl-n1x1.cpp
-    tileimpl-n2x1.cpp
-    config.cpp
-    rewind.cpp
+    common/bml.cpp
+    chips/bsx.cpp
+    chips/c4.cpp
+    chips/c4emu.cpp
+    ppu/clip.cpp
+    controls/controls.cpp
+    cpu/cpu.cpp
+    cpu/cpuexec.cpp
+    cpu/cpuops.cpp
+    mem/dma.cpp
+    chips/dsp.cpp
+    chips/dsp1.cpp
+    chips/dsp2.cpp
+    chips/dsp3.cpp
+    chips/dsp4.cpp
+    common/fscompat.cpp
+    chips/fxemu.cpp
+    chips/fxinst.cpp
+    ppu/gfx.cpp
+    common/globals.cpp
+    mem/memmap.cpp
+    chips/msu1.cpp
+    chips/obc1.cpp
+    ppu/ppu.cpp
+    chips/sa1.cpp
+    cpu/sa1cpu.cpp
+    chips/sdd1.cpp
+    chips/sdd1emu.cpp
+    chips/seta.cpp
+    chips/seta010.cpp
+    chips/seta011.cpp
+    chips/seta018.cpp
+    common/sha256.cpp
+    mem/snapshot.cpp
+    chips/spc7110.cpp
+    # chips/spc7110emu.cpp and chips/spc7110dec.cpp are #included by spc7110.cpp
+    chips/srtc.cpp
+    # chips/srtcemu.cpp is #included by srtc.cpp
+    mem/statemanager.cpp
+    common/stream.cpp
+    ppu/tile.cpp
+    ppu/tileimpl-h2x1.cpp
+    ppu/tileimpl-n1x1.cpp
+    ppu/tileimpl-n2x1.cpp
+    common/config.cpp
+    mem/rewind.cpp
 )
 
 # APU sources (unity build — only top-level files, rest are #included)
@@ -81,6 +81,12 @@ add_library(snes9x-core STATIC
 
 target_include_directories(snes9x-core PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/cpu
+    ${CMAKE_CURRENT_SOURCE_DIR}/ppu
+    ${CMAKE_CURRENT_SOURCE_DIR}/mem
+    ${CMAKE_CURRENT_SOURCE_DIR}/chips
+    ${CMAKE_CURRENT_SOURCE_DIR}/controls
+    ${CMAKE_CURRENT_SOURCE_DIR}/common
     ${CMAKE_CURRENT_SOURCE_DIR}/apu
     ${CMAKE_CURRENT_SOURCE_DIR}/apu/bapu
 )

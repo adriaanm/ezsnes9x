@@ -7,7 +7,7 @@
 #ifndef SNES9X_CPUEXEC_H_
 #define SNES9X_CPUEXEC_H_
 
-#include "ppu.h"
+#include "ppu/ppu.h"
 #ifdef DEBUGGER
 #endif
 

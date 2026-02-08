@@ -7,15 +7,15 @@
 #ifndef SNES9X_GETSET_H_
 #define SNES9X_GETSET_H_
 
-#include "cpuexec.h"
-#include "dsp.h"
-#include "sa1.h"
-#include "spc7110.h"
-#include "c4.h"
-#include "obc1.h"
-#include "seta.h"
-#include "bsx.h"
-#include "msu1.h"
+#include "cpu/cpuexec.h"
+#include "chips/dsp.h"
+#include "chips/sa1.h"
+#include "chips/spc7110.h"
+#include "chips/c4.h"
+#include "chips/obc1.h"
+#include "chips/seta.h"
+#include "chips/bsx.h"
+#include "chips/msu1.h"
 
 #define addCyclesInMemoryAccess \
 	if (!CPU.InDMAorHDMA) \
