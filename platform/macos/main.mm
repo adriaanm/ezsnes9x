@@ -797,41 +797,45 @@ static void HandleKeyEvent(NSEvent *event, BOOL pressed) {
     self.input = [[InputManager alloc] init];
     [self.input setup];
 
-    // Assign keyboard port after controllers (once at startup, never changes)
-    if (g_keyboardPort == -1) {
-        // Auto-assign to first free port after controllers
-        g_keyboardPort = 0;
-        while (g_keyboardPort < 8 && [self.input isPortUsed:g_keyboardPort]) {
-            g_keyboardPort++;
+    // Wait for controller discovery (GCController discovery can be delayed)
+    // Give it 100ms to discover already-connected controllers
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        // Assign keyboard port after controllers (once at startup, never changes)
+        if (g_keyboardPort == -1) {
+            // Auto-assign to first free port after controllers
+            g_keyboardPort = 0;
+            while (g_keyboardPort < 8 && [self.input isPortUsed:g_keyboardPort]) {
+                g_keyboardPort++;
+            }
+            if (g_keyboardPort >= 8) {
+                g_keyboardPort = -1; // No free port
+                printf("[Input] WARNING: No free port for keyboard\n");
+            }
+        } else if (g_keyboardPort >= 0 && g_keyboardPort < 8) {
+            // User specified a port - check if it's available
+            if ([self.input isPortUsed:g_keyboardPort]) {
+                printf("[Input] ERROR: Keyboard port %d already in use by controller\n", g_keyboardPort);
+                g_keyboardPort = -1;
+            }
         }
-        if (g_keyboardPort >= 8) {
-            g_keyboardPort = -1; // No free port
-            printf("[Input] WARNING: No free port for keyboard\n");
-        }
-    } else if (g_keyboardPort >= 0 && g_keyboardPort < 8) {
-        // User specified a port - check if it's available
-        if ([self.input isPortUsed:g_keyboardPort]) {
-            printf("[Input] ERROR: Keyboard port %d already in use by controller\n", g_keyboardPort);
-            g_keyboardPort = -1;
-        }
-    }
 
-    // Mark keyboard port as used and add to port names
-    if (g_keyboardPort >= 0 && g_keyboardPort < 8) {
-        [self.input setPortUsed:g_keyboardPort used:YES];
-        self.input.portNames[@(g_keyboardPort)] = @"Keyboard";
-        printf("[Input] Keyboard assigned to port %d\n", g_keyboardPort);
-    }
-
-    // Print final port mapping summary
-    printf("\n[Input] Final port mapping:\n");
-    for (int port = 0; port < 8; port++) {
-        NSString *name = self.input.portNames[@(port)];
-        if (name) {
-            printf("  Port %d: %s\n", port, name.UTF8String);
+        // Mark keyboard port as used and add to port names
+        if (g_keyboardPort >= 0 && g_keyboardPort < 8) {
+            [self.input setPortUsed:g_keyboardPort used:YES];
+            self.input.portNames[@(g_keyboardPort)] = @"Keyboard";
+            printf("[Input] Keyboard assigned to port %d\n", g_keyboardPort);
         }
-    }
-    printf("\n");
+
+        // Print final port mapping summary
+        printf("\n[Input] Final port mapping:\n");
+        for (int port = 0; port < 8; port++) {
+            NSString *name = self.input.portNames[@(port)];
+            if (name) {
+                printf("  Port %d: %s\n", port, name.UTF8String);
+            }
+        }
+        printf("\n");
+    });
 
     g_running = true;
 
