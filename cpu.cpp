@@ -12,9 +12,7 @@
 #include "sdd1.h"
 #include "srtc.h"
 #include "snapshot.h"
-#include "cheats.h"
 #ifdef DEBUGGER
-#include "debug.h"
 #endif
 
 static void S9xResetCPU (void);
@@ -128,7 +126,6 @@ void S9xReset (void)
 	if (Settings.MSU1)
 		S9xMSU1Init();
 
-	S9xInitCheatData();
 }
 
 void S9xSoftReset (void)
@@ -164,6 +161,4 @@ void S9xSoftReset (void)
 		S9xResetSRTC();
 	if (Settings.MSU1)
 		S9xMSU1Init();
-
-	S9xInitCheatData();
 }

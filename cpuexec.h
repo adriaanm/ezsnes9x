@@ -9,7 +9,6 @@
 
 #include "ppu.h"
 #ifdef DEBUGGER
-#include "debug.h"
 #endif
 
 struct SOpcodes

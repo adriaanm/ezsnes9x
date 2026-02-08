@@ -7,7 +7,6 @@
 #include "snes9x.h"
 #include "memmap.h"
 #ifdef DEBUGGER
-#include "missing.h"
 #endif
 
 uint8	(*GetDSP) (uint16)        = NULL;

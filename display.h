@@ -11,7 +11,6 @@
 
 void S9xUsage (void);
 char * S9xParseArgs (char **, int);
-void S9xParseArgsForCheats (char **, int);
 void S9xLoadConfigFiles (char **, int);
 void S9xSetInfoString (const char *);
 

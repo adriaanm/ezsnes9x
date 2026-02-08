@@ -12,8 +12,6 @@
 #ifdef DEBUGGER	
 #include "snapshot.h"
 #include "display.h"
-#include "debug.h"
-#include "missing.h"
 #endif
 
 #ifdef SA1_OPCODES

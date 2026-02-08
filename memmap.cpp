@@ -11,17 +11,6 @@
 #include <assert.h>
 
 #include "snes9x.h"
-#ifdef UNZIP_SUPPORT
-#  ifdef SYSTEM_ZIP
-#    include <minizip/unzip.h>
-#  else
-#    include "unzip/unzip.h"
-#  endif
-#endif
-
-#ifdef JMA_SUPPORT
-#include "jma/s9x-jma.h"
-#endif
 
 #include <ctype.h>
 #include <sys/stat.h>
@@ -32,8 +21,6 @@
 #include "sdd1.h"
 #include "srtc.h"
 #include "controls.h"
-#include "cheats.h"
-#include "movie.h"
 #include "display.h"
 #include "sha256.h"
 #include "snapshot.h"
@@ -49,8 +36,6 @@
 #ifndef min
 #define min(a, b) (((a) < (b)) ? (a) : (b))
 #endif
-
-static bool8	stopMovie = TRUE;
 
 // from NSRT
 static const char	*nintendo_licensees[] =
@@ -791,7 +776,6 @@ static int unzFindExtension (unzFile &, const char *, bool restart = TRUE, bool 
 
 static void S9xDeinterleaveType1 (int size, uint8 *base)
 {
-	Settings.DisplayColor = BUILD_PIXEL(0, 31, 0);
 	SET_UI_COLOR(0, 255, 0);
 
 	uint8	blocks[256];
@@ -830,7 +814,6 @@ static void S9xDeinterleaveType1 (int size, uint8 *base)
 static void S9xDeinterleaveType2 (int size, uint8 *base)
 {
 	// for odd Super FX images
-	Settings.DisplayColor = BUILD_PIXEL(31, 14, 6);
 	SET_UI_COLOR(255, 119, 25);
 
 	uint8	blocks[256];
@@ -874,7 +857,6 @@ static void S9xDeinterleaveGD24 (int size, uint8 *base)
 	if (size != 0x300000)
 		return;
 
-	Settings.DisplayColor = BUILD_PIXEL(0, 31, 31);
 	SET_UI_COLOR(0, 255, 255);
 
 	uint8	*tmp = (uint8 *) malloc(0x80000);
@@ -1349,7 +1331,6 @@ bool8 CMemory::LoadROM (const char *filename)
 
 bool8 CMemory::LoadROMInt (int32 ROMfillSize)
 {
-	Settings.DisplayColor = BUILD_PIXEL(31, 31, 31);
 	SET_UI_COLOR(255, 255, 255);
 
 	CalculatedSize = 0;
@@ -1557,9 +1538,6 @@ bool8 CMemory::LoadROMInt (int32 ROMfillSize)
 
 	S9xReset();
 
-	S9xDeleteCheats();
-	S9xLoadCheatFile(S9xGetFilename(".cht", CHEAT_DIR).c_str());
-
     return (TRUE);
 }
 
@@ -1605,7 +1583,6 @@ bool8 CMemory::LoadMultiCart (const char *cartA, const char *cartB)
     memset(ROM, 0, MAX_ROM_SIZE);
 	memset(&Multi, 0, sizeof(Multi));
 
-	Settings.DisplayColor = BUILD_PIXEL(31, 31, 31);
 	SET_UI_COLOR(255, 255, 255);
 
     if (cartB && cartB[0])
@@ -1717,9 +1694,6 @@ bool8 CMemory::LoadMultiCartInt ()
 	InitROM();
 
 	S9xReset();
-
-	S9xDeleteCheats();
-	S9xLoadCheatFile(S9xGetFilename(".cht", CHEAT_DIR).c_str());
 
 	return (TRUE);
 }
@@ -2381,20 +2355,17 @@ void CMemory::InitROM (void)
 	// checksum
 	if (!isChecksumOK || ((uint32) CalculatedSize > (uint32) (((1 << (ROMSize - 7)) * 128) * 1024)))
 	{
-		Settings.DisplayColor = BUILD_PIXEL(31, 31, 0);
 		SET_UI_COLOR(255, 255, 0);
 	}
 
 	// Use slight blue tint to indicate ROM was patched.
 	if (Settings.IsPatched)
 	{
-		Settings.DisplayColor = BUILD_PIXEL(26, 26, 31);
 		SET_UI_COLOR(216, 216, 255);
 	}
 
 	if (Multi.cartType == 4)
 	{
-		Settings.DisplayColor = BUILD_PIXEL(0, 16, 31);
 		SET_UI_COLOR(0, 128, 255);
 	}
 
@@ -2457,11 +2428,6 @@ void CMemory::InitROM (void)
 	Settings.ForceNotInterleaved = FALSE;
 	Settings.ForcePAL = FALSE;
 	Settings.ForceNTSC = FALSE;
-
-	Settings.TakeScreenshot = FALSE;
-
-	if (stopMovie)
-		S9xMovieStop(TRUE);
 
 	if (PostRomInitFunc)
 		PostRomInitFunc();

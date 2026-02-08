@@ -212,11 +212,7 @@ struct SSettings
 	bool8	BSXItself;
 	bool8	BSXBootup;
 	bool8	MSU1;
-	bool8	MouseMaster;
-	bool8	SuperScopeMaster;
-	bool8	JustifierMaster;
 	bool8	MultiPlayer5Master;
-	bool8	MacsRifleMaster;
 
 	bool8	ForceLoROM;
 	bool8	ForceHiROM;
@@ -249,17 +245,8 @@ struct SSettings
 	bool8	DisableGraphicWindows;
 	uint16  ForcedBackdrop;
 
-	bool8	DisplayTime;
-	bool8	DisplayFrameRate;
-	bool8	DisplayWatchedAddresses;
-	bool8	DisplayPressedKeys;
-	bool8	DisplayMovieFrame;
-	bool	DisplayIndicators;
 	bool8	AutoDisplayMessages;
 	uint32	InitialInfoStringTimeout;
-	uint16	DisplayColor;
-	bool8	BilinearFilter;
-	bool	ShowOverscan;
 
 	bool8	Multi;
 	char	CartAName[PATH_MAX + 1];
@@ -275,31 +262,12 @@ struct SSettings
 	bool8	StopEmulation;
 
 	uint32	SkipFrames;
-	uint32	TurboSkipFrames;
 	uint32	AutoMaxSkipFrames;
-	bool8	TurboMode;
-	uint32	HighSpeedSeek;
-	bool8	FrameAdvance;
 	bool8	Rewinding;
 
-	bool8	NetPlay;
-	bool8	NetPlayServer;
-	char	ServerName[128];
-	int		Port;
-
-	bool8	MovieTruncate;
-	bool8	MovieNotifyIgnored;
-	bool8	WrongMovieStateProtection;
-	bool8	DumpStreams;
-	int		DumpStreamsMaxFrames;
-
-	bool8	TakeScreenshot;
-	int8	StretchScreenshots;
-	bool8	SnapshotScreenshots;
 	char    InitialSnapshotFilename[PATH_MAX + 1];
 	bool8	FastSavestates;
 
-	bool8	ApplyCheats;
 	bool8	NoPatch;
 	bool8	IgnorePatchChecksum;
 	bool8	IsPatched;
@@ -309,7 +277,6 @@ struct SSettings
 
     bool8   SeparateEchoBuffer;
 	uint32	SuperFXClockMultiplier;
-    int OverclockMode;
 	int	OneClockCycle;
 	int	OneSlowClockCycle;
 	int	TwoClockCycles;

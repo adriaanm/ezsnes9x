@@ -11,10 +11,7 @@
 #include "apu/apu.h"
 #include "fxemu.h"
 #include "snapshot.h"
-#include "movie.h"
 #ifdef DEBUGGER
-#include "debug.h"
-#include "missing.h"
 #endif
 
 static inline void S9xReschedule (void);
@@ -39,7 +36,6 @@ void S9xMainLoop (void)
 	if (CPU.Flags & SCAN_KEYS_FLAG)
 	{
 		CPU.Flags &= ~SCAN_KEYS_FLAG;
-		S9xMovieUpdate();
 	}
 
 	for (;;)

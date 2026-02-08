@@ -1,0 +1,19 @@
+# Snes9x Configuration
+# Copy to snes9x.yml and customize
+
+rom: /path/to/game.sfc
+save_dir: /path/to/saves
+
+audio:
+  sample_rate: 48000
+  stereo: true
+  mute: false
+
+video:
+  transparency: true
+
+input:
+  player1: pad1
+  player2: none
+  multitap: false
+  up_and_down: false

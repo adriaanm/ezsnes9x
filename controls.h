@@ -248,6 +248,10 @@ char * S9xGetPortCommandName (s9xcommand_t command);
 void S9xSetupDefaultKeymap (void);
 bool8 S9xMapInput (const char *name, s9xcommand_t *cmd);
 
+// Direct joypad button state setter for platform wrappers.
+// pad: 0-7, buttons: SNES_*_MASK bitmask from snes9x.h
+void S9xSetJoypadButtons (int pad, uint16 buttons);
+
 //////////
 // These functions are called from snes9x into this subsystem. No need to use them from a port.
 
