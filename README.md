@@ -59,17 +59,17 @@ keyboard:
   down: 125              # Arrow down
   left: 123              # Arrow left
   right: 124             # Arrow right
-  a: 37                  # L key
-  b: 40                  # K key
-  x: 34                  # I key
-  y: 31                  # O key
-  l: 3                   # F key
+  a: 2                   # D key
+  b: 7                   # X key
+  x: 13                  # W key
+  y: 0                   # A key
+  l: 12                  # Q key
   r: 35                  # P key
   start: 36              # Enter/Return
   select: 49             # Space
 
-# Where to store .srm save files 
-save_dir: /path/to/saves # default: same directory as ROM
+# Where to store .srm save files (default: same directory as ROM)
+save_dir: /path/to/saves
 
 ```
 
@@ -88,7 +88,7 @@ Config file is searched in order:
 ### macOS
 
 **Keyboard** (configurable, see Configuration section):
-- Default mapping: Arrow keys for D-pad, L/K/I/O for buttons, F/P for shoulders, Enter/Space for Start/Select
+- Default mapping: Arrow keys for D-pad, A/W/X/D for Y/X/B/A buttons, Q/P for L/R shoulders, Enter/Space for Start/Select
 
 **Game Controller**:
 - D-pad: D-pad

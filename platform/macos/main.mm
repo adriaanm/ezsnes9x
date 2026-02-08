@@ -342,11 +342,11 @@ static void InitDefaultKeyboardMapping() {
     g_keyboardMapping.button_to_keycode["down"]   = 125; // Arrow down
     g_keyboardMapping.button_to_keycode["left"]   = 123; // Arrow left
     g_keyboardMapping.button_to_keycode["right"]  = 124; // Arrow right
-    g_keyboardMapping.button_to_keycode["a"]      = 37;  // L
-    g_keyboardMapping.button_to_keycode["b"]      = 40;  // K
-    g_keyboardMapping.button_to_keycode["x"]      = 34;  // I
-    g_keyboardMapping.button_to_keycode["y"]      = 31;  // O
-    g_keyboardMapping.button_to_keycode["l"]      = 3;   // F
+    g_keyboardMapping.button_to_keycode["a"]      = 2;   // D
+    g_keyboardMapping.button_to_keycode["b"]      = 7;   // X
+    g_keyboardMapping.button_to_keycode["x"]      = 13;  // W
+    g_keyboardMapping.button_to_keycode["y"]      = 0;   // A
+    g_keyboardMapping.button_to_keycode["l"]      = 12;  // Q
     g_keyboardMapping.button_to_keycode["r"]      = 35;  // P
     g_keyboardMapping.button_to_keycode["start"]  = 36;  // Enter
     g_keyboardMapping.button_to_keycode["select"] = 49;  // Space
