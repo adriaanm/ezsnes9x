@@ -268,19 +268,13 @@ static bool g_running = false;
     }
 
     // Create texture for SNES framebuffer
-    // SNES uses RGB555 but Metal A1BGR5 is BGR order, so we'll swizzle in shader
+    // We'll use BGRA8 and convert RGB555->RGBA manually
     MTLTextureDescriptor *texDesc = [MTLTextureDescriptor
-        texture2DDescriptorWithPixelFormat:MTLPixelFormatA1BGR5Unorm
+        texture2DDescriptorWithPixelFormat:MTLPixelFormatBGRA8Unorm
                                      width:MAX_SNES_WIDTH
                                     height:MAX_SNES_HEIGHT
                                  mipmapped:NO];
     texDesc.usage = MTLTextureUsageShaderRead;
-    texDesc.swizzle = MTLTextureSwizzleChannelsMake(
-        MTLTextureSwizzleBlue,  // R channel reads from B
-        MTLTextureSwizzleGreen, // G channel reads from G
-        MTLTextureSwizzleRed,   // B channel reads from R
-        MTLTextureSwizzleAlpha  // A channel reads from A
-    );
     self.texture = [self.device newTextureWithDescriptor:texDesc];
 
     // Nearest-neighbor sampler for crisp pixels
@@ -310,11 +304,24 @@ static bool g_running = false;
     const uint16_t *fb = Emulator::GetFrameBuffer();
 
     if (fb && w > 0 && h > 0) {
+        // Convert RGB555 to BGRA8
+        static uint32_t convertedBuffer[MAX_SNES_WIDTH * MAX_SNES_HEIGHT];
+        for (int y = 0; y < h; y++) {
+            for (int x = 0; x < w; x++) {
+                uint16_t rgb555 = fb[y * MAX_SNES_WIDTH + x];
+                // Extract RGB555: 0RRRRRGGGGGBBBBB
+                uint8_t r = ((rgb555 >> 10) & 0x1F) << 3; // 5->8 bit
+                uint8_t g = ((rgb555 >> 5) & 0x1F) << 3;
+                uint8_t b = (rgb555 & 0x1F) << 3;
+                // Pack as BGRA8
+                convertedBuffer[y * MAX_SNES_WIDTH + x] = (0xFF << 24) | (r << 16) | (g << 8) | b;
+            }
+        }
         MTLRegion region = MTLRegionMake2D(0, 0, w, h);
         [self.texture replaceRegion:region
                         mipmapLevel:0
-                          withBytes:fb
-                        bytesPerRow:MAX_SNES_WIDTH * sizeof(uint16_t)];
+                          withBytes:convertedBuffer
+                        bytesPerRow:MAX_SNES_WIDTH * sizeof(uint32_t)];
     }
 
     // Render
