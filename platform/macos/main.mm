@@ -72,6 +72,7 @@ fragment float4 fragmentShader(VertexOut in [[stage_in]],
 
 static NSString *g_romPath = nil;
 static bool g_running = false;
+static bool g_debug = false;
 
 // ---------------------------------------------------------------------------
 // AudioEngine — pulls samples from S9xMixSamples via AVAudioEngine source node
@@ -216,7 +217,8 @@ static bool g_running = false;
         if (gamepad.buttonOptions && gamepad.buttonOptions.pressed)
             buttons |= SNES_SELECT_MASK;
 
-        printf("[Input] Controller pad%d buttons=0x%04x\n", padIndex, buttons);
+        if (g_debug)
+            printf("[Input] Controller pad%d buttons=0x%04x\n", padIndex, buttons);
         Emulator::SetButtonState(padIndex, buttons);
 
         // L2/ZL trigger for rewind
@@ -263,7 +265,8 @@ static void HandleKeyEvent(NSEvent *event, BOOL pressed) {
         case 49:  mask = SNES_SELECT_MASK; name = "Space/Select"; break;
         case 48:  mask = SNES_SELECT_MASK; name = "Tab/Select"; break;
         default:
-            printf("[Input] Unmapped key code: %d %s\n", event.keyCode, pressed ? "down" : "up");
+            if (g_debug)
+                printf("[Input] Unmapped key code: %d %s\n", event.keyCode, pressed ? "down" : "up");
             return;
     }
 
@@ -272,7 +275,8 @@ static void HandleKeyEvent(NSEvent *event, BOOL pressed) {
     else
         g_keyboardButtons &= ~mask;
 
-    printf("[Input] Key %s %s -> buttons=0x%04x\n", name, pressed ? "DOWN" : "UP", g_keyboardButtons);
+    if (g_debug)
+        printf("[Input] Key %s %s -> buttons=0x%04x\n", name, pressed ? "DOWN" : "UP", g_keyboardButtons);
     Emulator::SetButtonState(0, g_keyboardButtons);
 }
 
@@ -291,6 +295,13 @@ static void HandleKeyEvent(NSEvent *event, BOOL pressed) {
 
 - (void)keyUp:(NSEvent *)event {
     HandleKeyEvent(event, NO);
+}
+
+- (void)mouseDown:(NSEvent *)event {
+    (void)event;
+    Settings.StopEmulation = !Settings.StopEmulation;
+    if (g_debug)
+        printf("[Input] Mouse click -> pause=%s\n", Settings.StopEmulation ? "YES" : "NO");
 }
 
 @end
@@ -457,11 +468,19 @@ static void HandleKeyEvent(NSEvent *event, BOOL pressed) {
 - (void)applicationDidFinishLaunching:(NSNotification *)notification {
     (void)notification;
 
+    // Parse command-line args
+    NSArray *args = [[NSProcessInfo processInfo] arguments];
+    for (NSUInteger i = 1; i < args.count; i++) {
+        if ([args[i] isEqualToString:@"--debug"]) {
+            g_debug = true;
+            printf("[Debug] Debug mode enabled\n");
+        }
+    }
+
     // Determine ROM path
     NSString *romPath = g_romPath;
     if (!romPath) {
         // Try command-line args
-        NSArray *args = [[NSProcessInfo processInfo] arguments];
         for (NSUInteger i = 1; i < args.count; i++) {
             NSString *arg = args[i];
             if (![arg hasPrefix:@"-"]) {
@@ -486,7 +505,6 @@ static void HandleKeyEvent(NSEvent *event, BOOL pressed) {
 
     // Initialize emulator
     std::string configPath;
-    NSArray *args = [[NSProcessInfo processInfo] arguments];
     for (NSUInteger i = 1; i < args.count; i++) {
         if ([args[i] isEqualToString:@"--config"] && i + 1 < args.count) {
             configPath = [args[i + 1] UTF8String];
@@ -506,6 +524,8 @@ static void HandleKeyEvent(NSEvent *event, BOOL pressed) {
         [NSApp terminate:nil];
         return;
     }
+
+    printf("Loaded ROM: %s\n", Emulator::GetROMName());
 
     // Create window
     NSRect frame = NSMakeRect(0, 0, 800, 600);
