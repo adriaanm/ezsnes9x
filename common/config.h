@@ -7,7 +7,6 @@
 #ifndef SNES9X_CONFIG_H_
 #define SNES9X_CONFIG_H_
 
-#include "snes9x.h"
 #include <string>
 #include <map>
 #include <vector>

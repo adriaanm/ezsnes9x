@@ -1,3 +1,4 @@
+#include "snes9x.h"
 #include "statemanager.h"
 #include "snapshot.h"
 

@@ -5,8 +5,6 @@
     mostly based on SSNES's rewind code by Themaister
 */
 
-#include "snes9x.h"
-
 class StateManager {
 private:
     uint64_t *buffer;

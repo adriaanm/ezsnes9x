@@ -7,8 +7,6 @@
 #ifndef SNES9X_APU_H_
 #define SNES9X_APU_H_
 
-#include "../snes9x.h"
-
 typedef void (*apu_callback) (void *);
 
 #define SPC_SAVE_STATE_BLOCK_SIZE (1024 * 65)

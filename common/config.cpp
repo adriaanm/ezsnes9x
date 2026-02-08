@@ -4,6 +4,7 @@
    For further information, consult the LICENSE file in the root directory.
 \*****************************************************************************/
 
+#include "snes9x.h"
 #include "config.h"
 #include "controls.h"
 #include <fstream>

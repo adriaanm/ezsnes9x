@@ -7,7 +7,6 @@
 #ifndef SNES9X_TILEIMPL_H_
 #define SNES9X_TILEIMPL_H_
 
-#include "snes9x.h"
 #include "ppu.h"
 #include "tile.h"
 
