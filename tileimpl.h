@@ -4,8 +4,8 @@
    For further information, consult the LICENSE file in the root directory.
 \*****************************************************************************/
 
-#ifndef _TILEIMPL_H_
-#define _TILEIMPL_H_
+#ifndef SNES9X_TILEIMPL_H_
+#define SNES9X_TILEIMPL_H_
 
 #include "snes9x.h"
 #include "ppu.h"

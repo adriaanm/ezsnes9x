@@ -4,8 +4,8 @@
    For further information, consult the LICENSE file in the root directory.
 \*****************************************************************************/
 
-#ifndef _PORT_H_
-#define _PORT_H_
+#ifndef SNES9X_PORT_H_
+#define SNES9X_PORT_H_
 
 #include <stdio.h>
 #include <stdlib.h>

@@ -4,8 +4,8 @@
    For further information, consult the LICENSE file in the root directory.
 \*****************************************************************************/
 
-#ifndef _LANGUAGE_H_
-#define _LANGUAGE_H_
+#ifndef SNES9X_LANGUAGE_H_
+#define SNES9X_LANGUAGE_H_
 
 // Movie Messages
 #define MOVIE_ERR_SNAPSHOT_WRONG_MOVIE	"Snapshot not from this movie"

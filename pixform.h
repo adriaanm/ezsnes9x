@@ -4,8 +4,8 @@
    For further information, consult the LICENSE file in the root directory.
 \*****************************************************************************/
 
-#ifndef _PIXFORM_H_
-#define _PIXFORM_H_
+#ifndef SNES9X_PIXFORM_H_
+#define SNES9X_PIXFORM_H_
 
 /* RGB565 format */
 #define BUILD_PIXEL_RGB565(R, G, B)  (((int)(R) << 11) | ((int)(G) << 6) | (((int)(G) & 0x10) << 1) | (int)(B))
@@ -114,4 +114,4 @@
 #define TWO_LOW_BITS_MASK          (RGB_LOW_BITS_MASK | (RGB_LOW_BITS_MASK << 1))
 #define HIGH_BITS_SHIFTED_TWO_MASK (((FIRST_COLOR_MASK | SECOND_COLOR_MASK | THIRD_COLOR_MASK) & ~TWO_LOW_BITS_MASK) >> 2)
 
-#endif // _PIXFORM_H_
+#endif // SNES9X_PIXFORM_H_

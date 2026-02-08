@@ -1,5 +1,5 @@
-#ifndef __VAR8X10FONT_H
-#define __VAR8X10FONT_H
+#ifndef SNES9X_VAR8X10FONT_H
+#define SNES9X_VAR8X10FONT_H
 
 static const char var8x10font_kern[224][2] =
 {

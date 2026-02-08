@@ -4,8 +4,8 @@
    For further information, consult the LICENSE file in the root directory.
 \*****************************************************************************/
 
-#ifndef _SRTC_H_
-#define _SRTC_H_
+#ifndef SNES9X_SRTC_H_
+#define SNES9X_SRTC_H_
 
 struct SRTCData
 {

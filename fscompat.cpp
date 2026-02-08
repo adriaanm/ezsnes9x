@@ -181,7 +181,7 @@ string makepath(const string &drive, const string &dir, const string &stem, cons
 }
 
 #ifndef _WIN32
-void _splitpath(const char *path, char *drive, char *dir, char *fname, char *ext)
+void splitpath(const char *path, char *drive, char *dir, char *fname, char *ext)
 {
     char *slash = strrchr((char *)path, SLASH_CHAR);
     char *dot = strrchr((char *)path, '.');
@@ -226,7 +226,7 @@ void _splitpath(const char *path, char *drive, char *dir, char *fname, char *ext
     }
 }
 
-void _makepath(char *path, const char *drive, const char *dir, const char *fname, const char *ext)
+void makepath(char *path, const char *drive, const char *dir, const char *fname, const char *ext)
 {
     if (dir && *dir)
     {

@@ -4,8 +4,8 @@
    For further information, consult the LICENSE file in the root directory.
 \*****************************************************************************/
 
-#ifndef _CPUADDR_H_
-#define _CPUADDR_H_
+#ifndef SNES9X_CPUADDR_H_
+#define SNES9X_CPUADDR_H_
 
 typedef enum
 {

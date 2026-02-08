@@ -4,8 +4,8 @@
    For further information, consult the LICENSE file in the root directory.
 \*****************************************************************************/
 
-#ifndef _DMA_H_
-#define _DMA_H_
+#ifndef SNES9X_DMA_H_
+#define SNES9X_DMA_H_
 
 struct SDMA
 {

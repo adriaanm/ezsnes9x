@@ -4,8 +4,8 @@
    For further information, consult the LICENSE file in the root directory.
 \*****************************************************************************/
 
-#ifndef _65C816_H_
-#define _65C816_H_
+#ifndef SNES9X_65C816_H_
+#define SNES9X_65C816_H_
 
 #define Carry		1
 #define Zero		2

@@ -16,8 +16,8 @@
  *****/
 
 
-#ifndef _SPC7110EMU_H_
-#define _SPC7110EMU_H_
+#ifndef SNES9X_SPC7110EMU_H_
+#define SNES9X_SPC7110EMU_H_
 
 #include "spc7110dec.h"
 

@@ -4,8 +4,8 @@
    For further information, consult the LICENSE file in the root directory.
 \*****************************************************************************/
 
-#ifndef _CPUEXEC_H_
-#define _CPUEXEC_H_
+#ifndef SNES9X_CPUEXEC_H_
+#define SNES9X_CPUEXEC_H_
 
 #include "ppu.h"
 #ifdef DEBUGGER

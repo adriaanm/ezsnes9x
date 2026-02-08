@@ -4,8 +4,8 @@
    For further information, consult the LICENSE file in the root directory.
 \*****************************************************************************/
 
-#ifndef _SDD1EMU_H_
-#define _SDD1EMU_H_
+#ifndef SNES9X_SDD1EMU_H_
+#define SNES9X_SDD1EMU_H_
 
 void SDD1_decompress (uint8 *, uint8 *, int);
 

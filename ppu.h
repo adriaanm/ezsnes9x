@@ -4,8 +4,8 @@
    For further information, consult the LICENSE file in the root directory.
 \*****************************************************************************/
 
-#ifndef _PPU_H_
-#define _PPU_H_
+#ifndef SNES9X_PPU_H_
+#define SNES9X_PPU_H_
 
 #define FIRST_VISIBLE_LINE	1
 

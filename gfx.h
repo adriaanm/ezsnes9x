@@ -4,8 +4,8 @@
    For further information, consult the LICENSE file in the root directory.
 \*****************************************************************************/
 
-#ifndef _GFX_H_
-#define _GFX_H_
+#ifndef SNES9X_GFX_H_
+#define SNES9X_GFX_H_
 
 #include "port.h"
 #include <vector>

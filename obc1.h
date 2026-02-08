@@ -4,8 +4,8 @@
    For further information, consult the LICENSE file in the root directory.
 \*****************************************************************************/
 
-#ifndef _OBC1_H_
-#define _OBC1_H_
+#ifndef SNES9X_OBC1_H_
+#define SNES9X_OBC1_H_
 
 struct SOBC1
 {

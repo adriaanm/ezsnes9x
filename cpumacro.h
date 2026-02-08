@@ -4,8 +4,8 @@
    For further information, consult the LICENSE file in the root directory.
 \*****************************************************************************/
 
-#ifndef _CPUMACRO_H_
-#define _CPUMACRO_H_
+#ifndef SNES9X_CPUMACRO_H_
+#define SNES9X_CPUMACRO_H_
 
 #define rOP8(OP, ADDR, WRAP, FUNC) \
 static void Op##OP (void) \

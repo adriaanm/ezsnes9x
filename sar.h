@@ -4,8 +4,8 @@
    For further information, consult the LICENSE file in the root directory.
 \*****************************************************************************/
 
-#ifndef _SAR_H_
-#define _SAR_H_
+#ifndef SNES9X_SAR_H_
+#define SNES9X_SAR_H_
 
 #ifdef RIGHTSHIFT_IS_SAR
 #define SAR(b, n)	((b) >> (n))

@@ -16,8 +16,8 @@
  *****/
 
 
-#ifndef _SPC7110DEC_H_
-#define _SPC7110DEC_H_
+#ifndef SNES9X_SPC7110DEC_H_
+#define SNES9X_SPC7110DEC_H_
 
 class SPC7110Decomp {
 public:

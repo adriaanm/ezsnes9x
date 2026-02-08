@@ -4,8 +4,8 @@
    For further information, consult the LICENSE file in the root directory.
 \*****************************************************************************/
 
-#ifndef _DISPLAY_H_
-#define _DISPLAY_H_
+#ifndef SNES9X_DISPLAY_H_
+#define SNES9X_DISPLAY_H_
 
 #include "snes9x.h"
 

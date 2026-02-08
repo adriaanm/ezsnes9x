@@ -4,8 +4,8 @@
    For further information, consult the LICENSE file in the root directory.
 \*****************************************************************************/
 
-#ifndef _FXINST_H_
-#define _FXINST_H_
+#ifndef SNES9X_FXINST_H_
+#define SNES9X_FXINST_H_
 
 /*
  * FxChip(GSU) register space specification

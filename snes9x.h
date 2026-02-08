@@ -4,8 +4,8 @@
    For further information, consult the LICENSE file in the root directory.
 \*****************************************************************************/
 
-#ifndef _SNES9X_H_
-#define _SNES9X_H_
+#ifndef SNES9X_SNES9X_H_
+#define SNES9X_SNES9X_H_
 
 #ifndef VERSION
 #define VERSION	"1.63"

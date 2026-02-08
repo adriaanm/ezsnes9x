@@ -5,7 +5,7 @@
 \*****************************************************************************/
 
 #ifndef _EMULATOR_H_
-#define _EMULATOR_H_
+#define EMULATOR_H_
 
 #include <cstdint>
 

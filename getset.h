@@ -4,8 +4,8 @@
    For further information, consult the LICENSE file in the root directory.
 \*****************************************************************************/
 
-#ifndef _GETSET_H_
-#define _GETSET_H_
+#ifndef SNES9X_GETSET_H_
+#define SNES9X_GETSET_H_
 
 #include "cpuexec.h"
 #include "dsp.h"

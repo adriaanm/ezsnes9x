@@ -4,8 +4,8 @@
  *****/
 
 
-#ifndef _SRTCEMU_H_
-#define _SRTCEMU_H_
+#ifndef SNES9X_SRTCEMU_H_
+#define SNES9X_SRTCEMU_H_
 
 class SRTC {
 public:

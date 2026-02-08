@@ -4,8 +4,8 @@
    For further information, consult the LICENSE file in the root directory.
 \*****************************************************************************/
 
-#ifndef _SPC7110_H_
-#define _SPC7110_H_
+#ifndef SNES9X_SPC7110_H_
+#define SNES9X_SPC7110_H_
 
 #define SPC7110_DECOMP_BUFFER_SIZE	64
 

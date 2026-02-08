@@ -4,8 +4,8 @@
    For further information, consult the LICENSE file in the root directory.
 \*****************************************************************************/
 
-#ifndef _SNAPSHOT_H_
-#define _SNAPSHOT_H_
+#ifndef SNES9X_SNAPSHOT_H_
+#define SNES9X_SNAPSHOT_H_
 
 #include "snes9x.h"
 

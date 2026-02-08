@@ -4,8 +4,8 @@
    For further information, consult the LICENSE file in the root directory.
 \*****************************************************************************/
 
-#ifndef _REWIND_H_
-#define _REWIND_H_
+#ifndef SNES9X_REWIND_H_
+#define SNES9X_REWIND_H_
 
 // Rewind engine: ring buffer of XOR-delta compressed save state snapshots.
 // Targets ~600 snapshots captured every 3 frames, giving roughly 30 seconds

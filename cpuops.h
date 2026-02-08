@@ -4,8 +4,8 @@
    For further information, consult the LICENSE file in the root directory.
 \*****************************************************************************/
 
-#ifndef _CPUOPS_H_
-#define _CPUOPS_H_
+#ifndef SNES9X_CPUOPS_H_
+#define SNES9X_CPUOPS_H_
 
 void S9xOpcode_NMI (void);
 void S9xOpcode_IRQ (void);

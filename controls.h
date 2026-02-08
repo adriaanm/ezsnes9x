@@ -4,8 +4,8 @@
    For further information, consult the LICENSE file in the root directory.
 \*****************************************************************************/
 
-#ifndef _CONTROLS_H_
-#define _CONTROLS_H_
+#ifndef SNES9X_CONTROLS_H_
+#define SNES9X_CONTROLS_H_
 
 //////////
 // Controller configuration

@@ -4,8 +4,8 @@
    For further information, consult the LICENSE file in the root directory.
 \*****************************************************************************/
 
-#ifndef __NEW_RESAMPLER_H
-#define __NEW_RESAMPLER_H
+#ifndef SNES9X_NEW_RESAMPLER_H
+#define SNES9X_NEW_RESAMPLER_H
 
 #include <cstring>
 #include <cassert>

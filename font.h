@@ -4,8 +4,8 @@
    For further information, consult the LICENSE file in the root directory.
 \*****************************************************************************/
 
-#ifndef _FONT_H_
-#define _FONT_H_
+#ifndef SNES9X_FONT_H_
+#define SNES9X_FONT_H_
 
 static const char	*font[] =
 {

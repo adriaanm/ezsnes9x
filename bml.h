@@ -1,5 +1,5 @@
-#ifndef __BML_H
-#define __BML_H
+#ifndef SNES9X_BML_H
+#define SNES9X_BML_H
 #include <vector>
 #include <string>
 #include <fstream>

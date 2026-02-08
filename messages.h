@@ -4,8 +4,8 @@
    For further information, consult the LICENSE file in the root directory.
 \*****************************************************************************/
 
-#ifndef _MESSAGES_H_
-#define _MESSAGES_H_
+#ifndef SNES9X_MESSAGES_H_
+#define SNES9X_MESSAGES_H_
 
 // Types of message sent to S9xMessage()
 enum

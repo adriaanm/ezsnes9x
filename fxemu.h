@@ -4,8 +4,8 @@
    For further information, consult the LICENSE file in the root directory.
 \*****************************************************************************/
 
-#ifndef _FXEMU_H_
-#define _FXEMU_H_
+#ifndef SNES9X_FXEMU_H_
+#define SNES9X_FXEMU_H_
 
 #define FX_BREAKPOINT				(-1)
 #define FX_ERROR_ILLEGAL_ADDRESS	(-2)

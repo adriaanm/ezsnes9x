@@ -4,8 +4,8 @@
    For further information, consult the LICENSE file in the root directory.
 \*****************************************************************************/
 
-#ifndef _MEMMAP_H_
-#define _MEMMAP_H_
+#ifndef SNES9X_MEMMAP_H_
+#define SNES9X_MEMMAP_H_
 
 #define MEMMAP_BLOCK_SIZE	(0x1000)
 #define MEMMAP_NUM_BLOCKS	(0x1000000 / MEMMAP_BLOCK_SIZE)

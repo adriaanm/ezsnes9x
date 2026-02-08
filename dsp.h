@@ -4,8 +4,8 @@
    For further information, consult the LICENSE file in the root directory.
 \*****************************************************************************/
 
-#ifndef _DSP1_H_
-#define _DSP1_H_
+#ifndef SNES9X_DSP1_H_
+#define SNES9X_DSP1_H_
 
 enum
 {

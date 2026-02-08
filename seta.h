@@ -4,8 +4,8 @@
    For further information, consult the LICENSE file in the root directory.
 \*****************************************************************************/
 
-#ifndef _SETA_H_
-#define _SETA_H_
+#ifndef SNES9X_SETA_H_
+#define SNES9X_SETA_H_
 
 #define ST_010	0x01
 #define ST_011	0x02

@@ -4,8 +4,8 @@
    For further information, consult the LICENSE file in the root directory.
 \*****************************************************************************/
 
-#ifndef _C4_H_
-#define _C4_H_
+#ifndef SNES9X_C4_H_
+#define SNES9X_C4_H_
 
 extern int16	C4WFXVal;
 extern int16	C4WFYVal;

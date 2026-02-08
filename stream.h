@@ -4,8 +4,8 @@
    For further information, consult the LICENSE file in the root directory.
 \*****************************************************************************/
 
-#ifndef _STREAM_H_
-#define _STREAM_H_
+#ifndef SNES9X_STREAM_H_
+#define SNES9X_STREAM_H_
 
 #include <string>
 

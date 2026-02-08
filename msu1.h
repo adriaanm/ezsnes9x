@@ -4,8 +4,8 @@
    For further information, consult the LICENSE file in the root directory.
 \*****************************************************************************/
 
-#ifndef _MSU1_H_
-#define _MSU1_H_
+#ifndef SNES9X_MSU1_H_
+#define SNES9X_MSU1_H_
 #include "snes9x.h"
 
 #define MSU1_REVISION 0x02
