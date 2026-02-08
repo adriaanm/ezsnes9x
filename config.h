@@ -25,6 +25,7 @@ struct S9xControllerMapping {
 struct S9xConfig {
     std::string rom_path;
     std::string save_dir;
+    bool rewind_enabled = true;
     S9xKeyboardMapping keyboard;
     std::vector<S9xControllerMapping> controllers;
 };

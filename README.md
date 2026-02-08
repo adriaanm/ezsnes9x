@@ -29,6 +29,7 @@ cmake --build build -j$(sysctl -n hw.ncpu)
 Optional flags:
 - `--config path/to/config.yaml` — Load configuration file
 - `--debug` — Enable debug logging
+- `--no-rewind` — Disable rewind feature
 
 ### Android
 
@@ -39,6 +40,9 @@ Optional flags:
 Configuration is optional. The emulator uses sensible defaults. If you need to customize settings, create a YAML config file:
 
 ```yaml
+# Rewind (enabled by default)
+rewind_enabled: true         # Set to false to disable rewind feature
+
 # Game controllers auto-assign to ports 0, 1, 2... in connection order
 # Override with controller mappings:
 controller:
@@ -89,6 +93,7 @@ Config file is searched in order:
 
 **Keyboard** (configurable, see Configuration section):
 - Default mapping: Arrow keys for D-pad, A/W/X/D for Y/X/B/A buttons, Q/P for L/R shoulders, Enter/Space for Start/Select
+- **Backspace**: Rewind (hold to rewind, release to resume)
 
 **Game Controller**:
 - D-pad: D-pad

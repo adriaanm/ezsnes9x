@@ -98,6 +98,8 @@ fragment float4 colorFragmentShader(ColorVertexOut in [[stage_in]]) {
 static NSString *g_romPath = nil;
 static bool g_running = false;
 static bool g_debug = false;
+static bool g_rewindEnabled = true; // Can be disabled via --no-rewind or config
+static bool g_rewindSetByCmdLine = false; // Track if --no-rewind was used
 static S9xKeyboardMapping g_keyboardMapping;
 static std::vector<S9xControllerMapping> g_controllerMappings;
 static int g_keyboardPort = -1; // -1 = assign after controllers
@@ -160,6 +162,9 @@ static int g_keyboardPort = -1; // -1 = assign after controllers
 
 // Called by both controller and keyboard to manage rewind state
 static void UpdateRewindState(bool rewindRequested) {
+    if (!g_rewindEnabled)
+        return;
+
     if (rewindRequested && !Emulator::IsRewinding()) {
         Emulator::RewindStartContinuous();
     } else if (!rewindRequested && Emulator::IsRewinding()) {
@@ -698,6 +703,10 @@ static void HandleKeyEvent(NSEvent *event, BOOL pressed) {
         if ([args[i] isEqualToString:@"--debug"]) {
             g_debug = true;
             printf("[Debug] Debug mode enabled\n");
+        } else if ([args[i] isEqualToString:@"--no-rewind"]) {
+            g_rewindEnabled = false;
+            g_rewindSetByCmdLine = true;
+            printf("[Config] Rewind disabled via command line\n");
         }
     }
 
@@ -775,6 +784,13 @@ static void HandleKeyEvent(NSEvent *event, BOOL pressed) {
             g_keyboardMapping = config->keyboard;
             if (g_debug)
                 printf("[Input] Loaded custom keyboard mapping from config\n");
+        }
+
+        // Load rewind setting (command line takes precedence)
+        if (!g_rewindSetByCmdLine) {
+            g_rewindEnabled = config->rewind_enabled;
+            if (!g_rewindEnabled)
+                printf("[Config] Rewind disabled via config file\n");
         }
     }
 

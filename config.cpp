@@ -79,6 +79,8 @@ static void apply_setting(const std::string &section,
         // Top-level keys
         if (key == "save_dir")
             config.save_dir = value;
+        else if (key == "rewind_enabled" && parse_bool(value, bval))
+            config.rewind_enabled = bval;
     }
     else if (section == "keyboard")
     {
