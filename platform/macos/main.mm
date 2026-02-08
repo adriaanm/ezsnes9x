@@ -18,6 +18,7 @@
 #include "gfx.h"
 #include "apu/apu.h"
 #include "config.h"
+#include <set>
 
 // ---------------------------------------------------------------------------
 // Forward declarations for port stubs and frame-size helper
@@ -157,19 +158,36 @@ static int g_keyboardPort = -1; // -1 = assign after controllers
 // InputManager — GCController mapping to SNES joypad bitmask
 // ---------------------------------------------------------------------------
 
-@interface InputManager : NSObject
+@interface InputManager : NSObject {
+    BOOL portUsed[8]; // Track which ports are assigned
+}
 @property (nonatomic, strong) NSMutableArray<GCController *> *controllers;
 @property (nonatomic, assign) int nextAutoPort; // Next available port for auto-assignment
+@property (nonatomic, strong) NSMutableDictionary<NSNumber *, NSString *> *portNames; // port -> device name
 - (void)setup;
 - (void)teardown;
 - (int)assignPortForController:(GCController *)controller;
+- (BOOL)isPortUsed:(int)port;
+- (void)setPortUsed:(int)port used:(BOOL)used;
 @end
 
 @implementation InputManager
 
+- (BOOL)isPortUsed:(int)port {
+    return (port >= 0 && port < 8) ? portUsed[port] : NO;
+}
+
+- (void)setPortUsed:(int)port used:(BOOL)used {
+    if (port >= 0 && port < 8)
+        portUsed[port] = used;
+}
+
 - (void)setup {
     self.controllers = [NSMutableArray array];
+    self.portNames = [NSMutableDictionary dictionary];
     self.nextAutoPort = 0;
+    for (int i = 0; i < 8; i++)
+        portUsed[i] = NO;
 
     [[NSNotificationCenter defaultCenter]
         addObserver:self
@@ -231,25 +249,42 @@ static int g_keyboardPort = -1; // -1 = assign after controllers
 
         if (vendor.find(match) != std::string::npos) {
             if (mapping.port >= 0 && mapping.port < 8) {
+                if ([self isPortUsed:mapping.port]) {
+                    printf("[Input] ERROR: Port %d already in use, cannot assign '%s'\n", mapping.port, vendorName);
+                    return -1; // Port conflict
+                }
                 printf("[Input] Matched '%s' -> port %d\n", vendorName, mapping.port);
+                [self setPortUsed:mapping.port used:YES];
+                self.portNames[@(mapping.port)] = [NSString stringWithUTF8String:vendorName];
                 return mapping.port;
             }
         }
     }
 
     // Auto-assign to next available port
-    int port = self.nextAutoPort;
-    if (port < 8) {
+    while (self.nextAutoPort < 8 && [self isPortUsed:self.nextAutoPort]) {
+        self.nextAutoPort++;
+    }
+
+    if (self.nextAutoPort < 8) {
+        int port = self.nextAutoPort;
+        [self setPortUsed:port used:YES];
+        self.portNames[@(port)] = [NSString stringWithUTF8String:vendorName];
         self.nextAutoPort++;
         printf("[Input] Auto-assigned '%s' -> port %d\n", vendorName, port);
         return port;
     }
 
-    return 7; // Max out at port 7
+    printf("[Input] ERROR: No free ports available for '%s'\n", vendorName);
+    return -1; // No ports available
 }
 
 - (void)configureController:(GCController *)controller {
     int padIndex = [self assignPortForController:controller];
+    if (padIndex < 0) {
+        printf("[Input] Skipping controller configuration due to port conflict\n");
+        return;
+    }
 
     GCExtendedGamepad *gp = controller.extendedGamepad;
     if (!gp) return;
@@ -690,10 +725,29 @@ static void HandleKeyEvent(NSEvent *event, BOOL pressed) {
         return;
     }
 
-    // Load config
+    // Load config and validate
     InitDefaultKeyboardMapping();
     const S9xConfig *config = Emulator::GetConfig();
     if (config) {
+        // Validate controller mappings for duplicate ports
+        std::set<int> usedPorts;
+        for (const auto &mapping : config->controllers) {
+            if (mapping.port >= 0 && mapping.port < 8) {
+                if (usedPorts.count(mapping.port)) {
+                    printf("[Input] ERROR: Config has duplicate controller assignments to port %d\n", mapping.port);
+                } else {
+                    usedPorts.insert(mapping.port);
+                }
+            }
+        }
+
+        // Check keyboard port doesn't conflict
+        if (config->keyboard.port >= 0 && config->keyboard.port < 8) {
+            if (usedPorts.count(config->keyboard.port)) {
+                printf("[Input] ERROR: Config assigns keyboard to port %d which is also assigned to a controller\n", config->keyboard.port);
+            }
+        }
+
         // Load controller mappings
         g_controllerMappings = config->controllers;
 
@@ -743,15 +797,41 @@ static void HandleKeyEvent(NSEvent *event, BOOL pressed) {
     self.input = [[InputManager alloc] init];
     [self.input setup];
 
-    // Assign keyboard port after controllers
+    // Assign keyboard port after controllers (once at startup, never changes)
     if (g_keyboardPort == -1) {
         // Auto-assign to first free port after controllers
-        g_keyboardPort = self.input.nextAutoPort;
-        if (g_keyboardPort < 8)
-            self.input.nextAutoPort++;
+        g_keyboardPort = 0;
+        while (g_keyboardPort < 8 && [self.input isPortUsed:g_keyboardPort]) {
+            g_keyboardPort++;
+        }
+        if (g_keyboardPort >= 8) {
+            g_keyboardPort = -1; // No free port
+            printf("[Input] WARNING: No free port for keyboard\n");
+        }
+    } else if (g_keyboardPort >= 0 && g_keyboardPort < 8) {
+        // User specified a port - check if it's available
+        if ([self.input isPortUsed:g_keyboardPort]) {
+            printf("[Input] ERROR: Keyboard port %d already in use by controller\n", g_keyboardPort);
+            g_keyboardPort = -1;
+        }
     }
-    if (g_debug)
+
+    // Mark keyboard port as used and add to port names
+    if (g_keyboardPort >= 0 && g_keyboardPort < 8) {
+        [self.input setPortUsed:g_keyboardPort used:YES];
+        self.input.portNames[@(g_keyboardPort)] = @"Keyboard";
         printf("[Input] Keyboard assigned to port %d\n", g_keyboardPort);
+    }
+
+    // Print final port mapping summary
+    printf("\n[Input] Final port mapping:\n");
+    for (int port = 0; port < 8; port++) {
+        NSString *name = self.input.portNames[@(port)];
+        if (name) {
+            printf("  Port %d: %s\n", port, name.UTF8String);
+        }
+    }
+    printf("\n");
 
     g_running = true;
 
