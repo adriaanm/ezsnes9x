@@ -44,14 +44,12 @@ save_dir: /path/to/saves
 
 input:
   # Controller assignments (default: pad0 on port 1, pad1 on port 2)
-  player1: pad0           # Options: pad0-7, mp5 (multitap), none
-  player2: pad1           # Options: pad0-7, mp5 (multitap), none
+  player1: pad0           # Options: pad0-7, none
+  player2: pad1           # Options: pad0-7, none
 
   # Allow simultaneous opposing directions (default: false)
   up_and_down: false
 ```
-
-**Multitap support:** Set `player1: mp5` or `player2: mp5` to enable SNES Multitap on that port. Pads 0-3 connect to port 1, pads 4-7 to port 2.
 
 Config file is searched in order:
 1. Path specified with `--config`

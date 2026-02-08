@@ -76,15 +76,9 @@ static void parse_controller(int port, const std::string &value)
     {
         S9xSetController(port, CTL_NONE, -1, -1, -1, -1);
     }
-    else if (v == "mp5" || v == "multitap")
-    {
-        // Multitap on this port: assign pads starting from port*4
-        int base = port * 4;
-        S9xSetController(port, CTL_MP5, base, base + 1, base + 2, base + 3);
-    }
     else
     {
-        // Default: treat as joypad. "pad0" through "pad7"
+        // Joypad only. Parse "pad0" through "pad7"
         int id = 0;
         if (v.size() >= 4 && v.substr(0, 3) == "pad")
         {
