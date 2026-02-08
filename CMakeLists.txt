@@ -7,7 +7,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Core emulation sources
 set(SNES9X_CORE_SOURCES
-    common/bml.cpp
     chips/bsx.cpp
     chips/c4.cpp
     chips/c4emu.cpp

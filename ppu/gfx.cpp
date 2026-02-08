@@ -1867,5 +1867,5 @@ static void S9xDisplayStringType(const char* string, int linesFromBottom, int pi
 void S9xDisplayMessages (uint16 *screen, int ppl, int width, int height, int scale)
 {
 	if (!GFX.InfoString.empty())
-		S9xDisplayString(GFX.InfoString.c_str(), 5, 1, true);
+		DisplayStringFromBottom(GFX.InfoString.c_str(), 5, 1, true);
 }

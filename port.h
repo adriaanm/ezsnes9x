@@ -46,14 +46,12 @@ typedef uint64_t				uint64;
 
 #include "common/fscompat.h"
 
-#define S9xDisplayString	DisplayStringFromBottom
-
 // POSIX path separators (macOS and Android)
 #define SLASH_STR	"/"
 #define SLASH_CHAR	'/'
 
 #ifndef TITLE
-#define TITLE "Snes9x"
+#define TITLE "EZSnes9x"
 #endif
 
 // Byte order: macOS and Android are both little-endian
@@ -67,10 +65,6 @@ typedef uint64_t				uint64;
 #define WRITE_WORD(s, d)	*(uint16 *) (s) = (d)
 #define WRITE_3WORD(s, d)	*(uint16 *) (s) = (uint16) (d), *((uint8 *) (s) + 2) = (uint8) ((d) >> 16)
 #define WRITE_DWORD(s, d)	*(uint32 *) (s) = (d)
-
-// Byte swap macros
-#define SWAP_WORD(s)		((s) = (((s) & 0xff) <<  8) | (((s) & 0xff00) >> 8))
-#define SWAP_DWORD(s)		((s) = (((s) & 0xff) << 24) | (((s) & 0xff00) << 8) | (((s) & 0xff0000) >> 8) | (((s) & 0xff000000) >> 24))
 
 #include "ppu/pixform.h"
 
