@@ -4,7 +4,7 @@
   For further information, consult the LICENSE file in the root directory.
 \*****************************************************************************/
 
-#ifndef _EMULATOR_H_
+#ifndef EMULATOR_H_
 #define EMULATOR_H_
 
 #include <cstdint>

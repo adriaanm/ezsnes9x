@@ -26,7 +26,6 @@ static void DrawBackgroundOffsetMosaic (int, uint8, uint8, int);
 static inline void DrawBackgroundMode7 (int, void (*DrawMath) (uint32, uint32, int), void (*DrawNomath) (uint32, uint32, int), int);
 static inline void DrawBackdrop (void);
 static inline void RenderScreen (bool8);
-static void S9xDisplayStringType (const char *, int, int, bool, int);
 
 #define TILE_PLUS(t, x)	(((t) & 0xfc00) | (((t) + (x)) & 0x3ff))
 
@@ -1850,18 +1849,6 @@ static void DisplayStringFromBottom(const char* string, int linesFromBottom, int
 
 	S9xVariableDisplayString(string, linesFromBottom, pixelsFromLeft, allowWrap, S9X_NO_INFO);
 }
-
-static void S9xDisplayStringType(const char* string, int linesFromBottom, int pixelsFromLeft, bool allowWrap, int type)
-{
-	if (S9xCustomDisplayString)
-	{
-		S9xCustomDisplayString(string, linesFromBottom, pixelsFromLeft, allowWrap, type);
-		return;
-	}
-
-	S9xVariableDisplayString(string, linesFromBottom, pixelsFromLeft, allowWrap, type);
-}
-
 
 void S9xDisplayMessages (uint16 *screen, int ppl, int width, int height, int scale)
 {

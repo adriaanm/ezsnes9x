@@ -1042,7 +1042,6 @@ static FreezeData	SnapScreenshot[] =
 
 static int UnfreezeBlock (STREAM, const char *, uint8 *, int);
 static int UnfreezeBlockCopy (STREAM, const char *, uint8 **, int);
-static int UnfreezeStruct (STREAM, const char *, void *, FreezeData *, int, int);
 static int UnfreezeStructCopy (STREAM, const char *, uint8 **, FreezeData *, int, int);
 static void UnfreezeStructFromCopy (void *, FreezeData *, int, uint8 *, int);
 static void FreezeBlock (STREAM, const char *, uint8 *, int);
@@ -2164,25 +2163,6 @@ static int UnfreezeBlockCopy (STREAM stream, const char *name, uint8 **block, in
 		*block = nullptr;
 		return (result);
 	}
-
-	return (SUCCESS);
-}
-
-static int UnfreezeStruct (STREAM stream, const char *name, void *base, FreezeData *fields, int num_fields, int version)
-{
-	int		result;
-	uint8	*block = nullptr;
-
-	result = UnfreezeStructCopy(stream, name, &block, fields, num_fields, version);
-	if (result != SUCCESS)
-	{
-		if (block != nullptr)
-			delete [] block;
-		return (result);
-	}
-
-	UnfreezeStructFromCopy(base, fields, num_fields, block, version);
-	delete [] block;
 
 	return (SUCCESS);
 }
