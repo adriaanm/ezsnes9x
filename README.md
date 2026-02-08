@@ -39,9 +39,6 @@ Optional flags:
 Configuration is optional. The emulator uses sensible defaults. If you need to customize settings, create a YAML config file:
 
 ```yaml
-# Where to store .srm save files (default: same directory as ROM)
-save_dir: /path/to/saves
-
 # Game controllers auto-assign to ports 0, 1, 2... in connection order
 # Override with controller mappings:
 controller:
@@ -70,6 +67,10 @@ keyboard:
   r: 35                  # P key
   start: 36              # Enter/Return
   select: 49             # Space
+
+# Where to store .srm save files 
+save_dir: /path/to/saves # default: same directory as ROM
+
 ```
 
 **Finding keycodes:** Run with `--debug` and press keys - unmapped keycodes will be printed to console.
