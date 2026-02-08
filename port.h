@@ -39,11 +39,12 @@ typedef uint32_t				uint32;
 typedef int64_t					int64;
 typedef uint64_t				uint64;
 
+// Use C++ standard true/false, define legacy aliases for compatibility
 #ifndef TRUE
-#define TRUE	1
+#define TRUE true
 #endif
 #ifndef FALSE
-#define FALSE	0
+#define FALSE false
 #endif
 
 #ifndef PATH_MAX
