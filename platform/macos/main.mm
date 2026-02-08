@@ -917,16 +917,6 @@ static void HandleKeyEvent(NSEvent *event, BOOL pressed) {
 // Port interface stubs — platform-specific (macOS)
 // ---------------------------------------------------------------------------
 
-void S9xInitDisplay(int argc, char **argv)
-{
-    (void)argc;
-    (void)argv;
-}
-
-void S9xDeinitDisplay()
-{
-}
-
 bool8 S9xInitUpdate()
 {
     return true;
@@ -949,27 +939,9 @@ void S9xSyncSpeed()
     // MTKView's preferredFramesPerSecond handles timing
 }
 
-void S9xProcessEvents(bool8 block)
-{
-    (void)block;
-    // GCController is callback-driven
-}
-
-void S9xPutImage(int width, int height)
-{
-    (void)width;
-    (void)height;
-    // Metal draws from GFX.Screen directly in drawInMTKView
-}
-
 bool8 S9xOpenSoundDevice()
 {
     return true;
-}
-
-void S9xInitInputDevices()
-{
-    // GCController setup handled by InputManager
 }
 
 // ---------------------------------------------------------------------------
