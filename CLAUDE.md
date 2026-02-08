@@ -34,7 +34,7 @@ All core SNES emulation lives in `.cpp`/`.h` files at the repository root. The c
 - **Memory/ROM loading:** `memmap.cpp`
 - **Save states:** `snapshot.cpp`, `statemanager.cpp`
 - **Special cartridge chips:** `sa1.cpp`/`sa1cpu.cpp` (SA-1), `fxemu.cpp`/`fxinst.cpp` (Super FX), `dsp1-4.cpp` (DSP), `sdd1.cpp` (SDD1), `spc7110.cpp` (SPC7110), `c4.cpp` (C4), `obc1.cpp`, `seta*.cpp`
-- **Controls:** `controls.cpp` (joypad + multitap only), `snes9x.cpp` (arg parsing)
+- **Controls:** `controls.cpp` (joypad + multitap only)
 
 ### Unity Build Pattern (Important!)
 

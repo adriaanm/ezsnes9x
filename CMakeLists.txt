@@ -51,7 +51,6 @@ set(SNES9X_CORE_SOURCES
     seta018.cpp
     sha256.cpp
     snapshot.cpp
-    snes9x.cpp
     spc7110.cpp
     # spc7110emu.cpp and spc7110dec.cpp are #included by spc7110.cpp
     srtc.cpp
