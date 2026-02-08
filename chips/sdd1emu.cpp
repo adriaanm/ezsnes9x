@@ -19,7 +19,7 @@
  */
 
 
-#include "port.h"
+#include "common/port.h"
 #include "sdd1emu.h"
 
 static int valid_bits;

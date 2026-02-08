@@ -11,9 +11,9 @@
 #define VERSION	"1.63"
 #endif
 
-#include "port.h"
-#include "65c816.h"
-#include "messages.h"
+#include "common/port.h"
+#include "cpu/65c816.h"
+#include "common/messages.h"
 
 #ifdef ZLIB
 #include <zlib.h>

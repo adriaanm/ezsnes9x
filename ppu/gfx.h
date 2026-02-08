@@ -7,7 +7,7 @@
 #ifndef SNES9X_GFX_H_
 #define SNES9X_GFX_H_
 
-#include "port.h"
+#include "common/port.h"
 #include <vector>
 
 struct SGFX

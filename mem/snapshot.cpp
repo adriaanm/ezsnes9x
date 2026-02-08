@@ -67,15 +67,23 @@
 #include "memmap.h"
 #include "dma.h"
 #include "apu/apu.h"
-#include "fxinst.h"
+#include "chips/fxinst.h"
 #include "fxemu.h"
 #include "sdd1.h"
 #include "srtc.h"
 #include "snapshot.h"
 #include "controls.h"
 #include "display.h"
-#include "language.h"
 #include "gfx.h"
+
+// Snapshot Messages
+#define SAVE_INFO_SNAPSHOT				"Saved"
+#define SAVE_INFO_LOAD					"Loaded"
+#define SAVE_INFO_OOPS					"Auto-saving 'oops' snapshot"
+#define SAVE_ERR_WRONG_FORMAT			"File not in Snes9x snapshot format"
+#define SAVE_ERR_WRONG_VERSION			"Incompatible snapshot version"
+#define SAVE_ERR_ROM_NOT_FOUND			"ROM image \"%s\" for snapshot not found"
+#define SAVE_ERR_SAVE_NOT_FOUND			"Snapshot %s does not exist"
 
 #ifndef min
 #define min(a,b)	(((a) < (b)) ? (a) : (b))

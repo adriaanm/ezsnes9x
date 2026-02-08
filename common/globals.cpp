@@ -8,7 +8,7 @@
 #include "memmap.h"
 #include "dma.h"
 #include "apu/apu.h"
-#include "fxinst.h"
+#include "chips/fxinst.h"
 #include "fxemu.h"
 #include "srtc.h"
 
