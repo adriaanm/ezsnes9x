@@ -36,27 +36,22 @@ Optional flags:
 
 ## Configuration
 
-Configuration is optional. The emulator works with sensible defaults. If you need to customize settings, create a YAML config file:
+Configuration is optional. The emulator uses sensible defaults. If you need to customize settings, create a YAML config file:
 
 ```yaml
-# Top-level settings
-save_dir: /path/to/saves  # Where to store .srm save files
-
-audio:
-  sample_rate: 32040      # Default: 32040 (SNES native rate)
-  stereo: true            # Default: true
-  mute: false             # Default: false
-
-video:
-  transparency: true      # Default: true
+# Where to store .srm save files (default: same directory as ROM)
+save_dir: /path/to/saves
 
 input:
-  player1: pad1           # Options: pad0-7, mp5 (multitap), none
+  # Controller assignments (default: pad0 on port 1, pad1 on port 2)
+  player1: pad0           # Options: pad0-7, mp5 (multitap), none
   player2: pad1           # Options: pad0-7, mp5 (multitap), none
-  up_and_down: false      # Allow simultaneous up+down, left+right (default: false)
+
+  # Allow simultaneous opposing directions (default: false)
+  up_and_down: false
 ```
 
-Note: The `multitap` (mp5) setting enables SNES Multitap for 4-player games. When enabled, pads 0-3 connect to port 1, pads 4-7 to port 2.
+**Multitap support:** Set `player1: mp5` or `player2: mp5` to enable SNES Multitap on that port. Pads 0-3 connect to port 1, pads 4-7 to port 2.
 
 Config file is searched in order:
 1. Path specified with `--config`

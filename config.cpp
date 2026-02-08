@@ -106,35 +106,16 @@ static void apply_setting(const std::string &section,
                           S9xConfig &config)
 {
     bool bval;
-    int  ival;
 
     if (section.empty())
     {
         // Top-level keys
-        if (key == "rom")
-            config.rom_path = value;
-        else if (key == "save_dir")
+        if (key == "save_dir")
             config.save_dir = value;
-    }
-    else if (section == "audio")
-    {
-        if (key == "sample_rate" && parse_int(value, ival))
-            Settings.SoundPlaybackRate = (uint32)ival;
-        else if (key == "stereo" && parse_bool(value, bval))
-            Settings.Stereo = bval ? TRUE : FALSE;
-        else if (key == "mute" && parse_bool(value, bval))
-            Settings.Mute = bval ? TRUE : FALSE;
-    }
-    else if (section == "video")
-    {
-        if (key == "transparency" && parse_bool(value, bval))
-            Settings.Transparency = bval ? TRUE : FALSE;
     }
     else if (section == "input")
     {
-        if (key == "multitap" && parse_bool(value, bval))
-            Settings.MultiPlayer5Master = bval ? TRUE : FALSE;
-        else if (key == "up_and_down" && parse_bool(value, bval))
+        if (key == "up_and_down" && parse_bool(value, bval))
             Settings.UpAndDown = bval ? TRUE : FALSE;
         else if (key == "player1")
             parse_controller(0, value);
