@@ -33,15 +33,15 @@ class fStream : public Stream
 {
 	public:
 		fStream (FSTREAM);
-		virtual ~fStream (void);
-		virtual int get_char (void);
-		virtual char * gets (char *, size_t);
-		virtual size_t read (void *, size_t);
-        virtual size_t write (void *, size_t);
-        virtual size_t pos (void);
-        virtual size_t size (void);
-        virtual int revert (uint8 origin, int32 offset);
-        virtual void closeStream();
+		~fStream (void) override;
+		int get_char (void) override;
+		char * gets (char *, size_t) override;
+		size_t read (void *, size_t) override;
+        size_t write (void *, size_t) override;
+        size_t pos (void) override;
+        size_t size (void) override;
+        int revert (uint8 origin, int32 offset) override;
+        void closeStream() override;
 
 	private:
 		FSTREAM	fp;
@@ -89,15 +89,15 @@ class memStream : public Stream
 	public:
         memStream (uint8 *,size_t);
         memStream (const uint8 *,size_t);
-		virtual ~memStream (void);
-		virtual int get_char (void);
-		virtual char * gets (char *, size_t);
-		virtual size_t read (void *, size_t);
-        virtual size_t write (void *, size_t);
-        virtual size_t pos (void);
-        virtual size_t size (void);
-        virtual int revert (uint8 origin, int32 offset);
-        virtual void closeStream();
+		~memStream (void) override;
+		int get_char (void) override;
+		char * gets (char *, size_t) override;
+		size_t read (void *, size_t) override;
+        size_t write (void *, size_t) override;
+        size_t pos (void) override;
+        size_t size (void) override;
+        int revert (uint8 origin, int32 offset) override;
+        void closeStream() override;
 
 	private:
 		uint8   *mem;
@@ -114,15 +114,15 @@ class nulStream : public Stream
 {
 	public:
         nulStream (void);
-		virtual ~nulStream (void);
-        virtual int get_char (void);
-        virtual char * gets (char *, size_t);
-		virtual size_t read (void *, size_t);
-        virtual size_t write (void *, size_t);
-        virtual size_t pos (void);
-        virtual size_t size (void);
-        virtual int revert (uint8 origin, int32 offset);
-        virtual void closeStream();
+		~nulStream (void) override;
+        int get_char (void) override;
+        char * gets (char *, size_t) override;
+		size_t read (void *, size_t) override;
+        size_t write (void *, size_t) override;
+        size_t pos (void) override;
+        size_t size (void) override;
+        int revert (uint8 origin, int32 offset) override;
+        void closeStream() override;
 
     private:
         size_t  bytes_written;
