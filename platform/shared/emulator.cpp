@@ -309,67 +309,6 @@ void S9xCloseSnapshotFile(STREAM file)
     CLOSE_STREAM(file);
 }
 
-void S9xTextMode()
-{
-}
-
-void S9xGraphicsMode()
-{
-}
-
-const char *S9xStringInput(const char *prompt)
-{
-    (void)prompt;
-    return nullptr;
-}
-
-void S9xExtraUsage()
-{
-}
-
-void S9xParseArg(char **argv, int &index, int argc)
-{
-    (void)argv;
-    (void)index;
-    (void)argc;
-}
-
-void S9xLoadConfigFiles(char **argv, int argc)
-{
-    (void)argv;
-    (void)argc;
-}
-
-void S9xUsage()
-{
-}
-
-void S9xSetTitle(const char *title)
-{
-    (void)title;
-}
-
-void S9xToggleSoundChannel(int c)
-{
-    static uint8 sound_switch = 255;
-
-    if (c == 8)
-        sound_switch = 255;
-    else
-        sound_switch ^= (1 << c);
-
-    S9xSetSoundControl(sound_switch);
-}
-
-const char *S9xSelectFilename(const char *def, const char *dir, const char *ext, const char *title)
-{
-    (void)def;
-    (void)dir;
-    (void)ext;
-    (void)title;
-    return nullptr;
-}
-
 void S9xAutoSaveSRAM()
 {
     std::string sram_path = S9xGetFilename(".srm", SRAM_DIR);
@@ -391,24 +330,6 @@ void S9xClearPause(uint32 mask)
 {
     Settings.ForcedPause &= ~mask;
     Settings.Paused = (Settings.ForcedPause != 0);
-}
-
-void S9xExtraDisplayUsage()
-{
-}
-
-void S9xParseDisplayArg(char **argv, int &index, int argc)
-{
-    (void)argv;
-    (void)index;
-    (void)argc;
-}
-
-char *S9xParseArgs(char **argv, int argc)
-{
-    (void)argv;
-    (void)argc;
-    return nullptr;
 }
 
 // ---------------------------------------------------------------------------
