@@ -117,7 +117,10 @@ bool LoadROM(const char *rom_path)
     Settings.StopEmulation = FALSE;
 
     S9xVerifyControllers();
-    RewindInit();
+
+    // Only initialize rewind if enabled in config
+    if (s_config.rewind_enabled)
+        RewindInit();
 
     return true;
 }
@@ -264,6 +267,11 @@ const char *GetROMName()
 const S9xConfig *GetConfig()
 {
     return &s_config;
+}
+
+void SetRewindEnabled(bool enabled)
+{
+    s_config.rewind_enabled = enabled;
 }
 
 } // namespace Emulator

@@ -794,6 +794,9 @@ static void HandleKeyEvent(NSEvent *event, BOOL pressed) {
         }
     }
 
+    // Apply final rewind setting to emulator (must be before LoadROM)
+    Emulator::SetRewindEnabled(g_rewindEnabled);
+
     if (!Emulator::LoadROM([romPath UTF8String])) {
         NSLog(@"Failed to load ROM: %@", romPath);
         Emulator::Shutdown();
