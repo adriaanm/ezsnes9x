@@ -8,7 +8,6 @@
 #include "ppu.h"
 #include "tile.h"
 #include "controls.h"
-#include "display.h"
 
 extern struct SLineData			LineData[240];
 extern struct SLineMatrixData	LineMatrixData[240];

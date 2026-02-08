@@ -21,7 +21,6 @@
 #include "chips/sdd1.h"
 #include "chips/srtc.h"
 #include "controls.h"
-#include "display.h"
 #include "sha256.h"
 #include "snapshot.h"
 

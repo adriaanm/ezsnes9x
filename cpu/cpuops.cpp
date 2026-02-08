@@ -11,7 +11,6 @@
 // for "Magic WDM" features
 #ifdef DEBUGGER	
 #include "snapshot.h"
-#include "display.h"
 #endif
 
 #ifdef SA1_OPCODES

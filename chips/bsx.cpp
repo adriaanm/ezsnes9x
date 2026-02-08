@@ -11,7 +11,6 @@
 
 #include "snes9x.h"
 #include "memmap.h"
-#include "display.h"
 #include <math.h>
 
 //#define BSX_DEBUG

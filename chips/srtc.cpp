@@ -15,7 +15,6 @@
 #include "snes9x.h"
 #include "memmap.h"
 #include "srtc.h"
-#include "display.h"
 
 #define memory_cartrtc_read(a)		RTCData.reg[(a)]
 #define memory_cartrtc_write(a, b)	{ RTCData.reg[(a)] = (b); }

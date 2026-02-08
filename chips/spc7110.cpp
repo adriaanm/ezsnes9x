@@ -27,7 +27,6 @@
 #include "snes9x.h"
 #include "memmap.h"
 #include "srtc.h"
-#include "display.h"
 
 #define memory_cartrom_size()		Memory.CalculatedSize
 #define memory_cartrom_read(a)		Memory.ROM[(a)]

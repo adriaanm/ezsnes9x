@@ -12,7 +12,6 @@
 #include "gfx.h"
 #include "snapshot.h"
 #include "controls.h"
-#include "display.h"
 #include "config.h"
 #include "rewind.h"
 #include "cpuexec.h"

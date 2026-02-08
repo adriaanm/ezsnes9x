@@ -7,7 +7,7 @@
 #include <cstring>
 #include <string>
 
-#include "display.h"
+#include "snes9x.h"
 #include "fscompat.h"
 #include "port.h"
 #include "memmap.h"

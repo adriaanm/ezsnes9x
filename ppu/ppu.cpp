@@ -12,7 +12,6 @@
 #include "chips/sdd1.h"
 #include "chips/srtc.h"
 #include "controls.h"
-#include "display.h"
 #ifdef NETPLAY_SUPPORT
 #endif
 #ifdef DEBUGGER

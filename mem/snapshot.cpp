@@ -73,7 +73,6 @@
 #include "srtc.h"
 #include "snapshot.h"
 #include "controls.h"
-#include "display.h"
 #include "gfx.h"
 
 // Snapshot Messages

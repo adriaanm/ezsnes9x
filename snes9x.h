@@ -304,6 +304,8 @@ void S9xSetPause(uint32);
 void S9xClearPause(uint32);
 void S9xExit(void);
 void S9xMessage(int, int, const char *);
+bool8 S9xOpenSnapshotFile(const char *, bool8, STREAM *);
+void S9xCloseSnapshotFile(STREAM);
 
 extern struct SSettings			Settings;
 extern struct SCPUState			CPU;

@@ -10,7 +10,6 @@
 #include "apu.h"
 #include "msu1.h"
 #include "snapshot.h"
-#include "display.h"
 #include "resampler.h"
 
 #include "bapu/snes/snes.hpp"

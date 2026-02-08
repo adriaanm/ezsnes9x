@@ -7,7 +7,6 @@
 #include "snes9x.h"
 #include "memmap.h"
 #include "sdd1.h"
-#include "display.h"
 
 
 void S9xSetSDD1MemoryMap (uint32 bank, uint32 value)

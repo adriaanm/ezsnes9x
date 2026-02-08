@@ -7,6 +7,8 @@
 #ifndef SNES9X_PPU_H_
 #define SNES9X_PPU_H_
 
+#include "snes9x.h"
+
 #define FIRST_VISIBLE_LINE	1
 
 #define TILE_2BIT			0

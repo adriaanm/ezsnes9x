@@ -6,7 +6,6 @@
 
 #include "snes9x.h"
 #include "memmap.h"
-#include "display.h"
 #include "msu1.h"
 #include "apu/resampler.h"
 #include "apu/bapu/dsp/blargg_endian.h"

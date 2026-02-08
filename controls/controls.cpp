@@ -13,7 +13,6 @@
 #include "apu/apu.h"
 #include "snapshot.h"
 #include "controls.h"
-#include "display.h"
 
 #define NONE					(-2)
 #define JOYPAD0					0
