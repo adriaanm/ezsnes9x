@@ -37,7 +37,13 @@ struct VertexOut {
     float2 texCoord;
 };
 
-vertex VertexOut vertexShader(uint vid [[vertex_id]]) {
+struct TexScale {
+    float scaleX;
+    float scaleY;
+};
+
+vertex VertexOut vertexShader(uint vid [[vertex_id]],
+                               constant TexScale &scale [[buffer(0)]]) {
     // Fullscreen triangle pair
     float2 positions[] = {
         float2(-1, -1), float2( 1, -1), float2(-1,  1),
@@ -49,7 +55,7 @@ vertex VertexOut vertexShader(uint vid [[vertex_id]]) {
     };
     VertexOut out;
     out.position = float4(positions[vid], 0, 1);
-    out.texCoord = texCoords[vid];
+    out.texCoord = texCoords[vid] * float2(scale.scaleX, scale.scaleY);
     return out;
 }
 
@@ -332,6 +338,13 @@ static bool g_running = false;
     [enc setRenderPipelineState:self.pipelineState];
     [enc setFragmentTexture:self.texture atIndex:0];
     [enc setFragmentSamplerState:self.sampler atIndex:0];
+
+    // Pass texture scale to vertex shader
+    struct { float scaleX; float scaleY; } texScale;
+    texScale.scaleX = (float)w / (float)MAX_SNES_WIDTH;
+    texScale.scaleY = (float)h / (float)MAX_SNES_HEIGHT;
+    [enc setVertexBytes:&texScale length:sizeof(texScale) atIndex:0];
+
     [enc drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:6];
     [enc endEncoding];
 
