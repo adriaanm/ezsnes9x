@@ -64,6 +64,29 @@ fragment float4 fragmentShader(VertexOut in [[stage_in]],
                                sampler samp [[sampler(0)]]) {
     return tex.sample(samp, in.texCoord);
 }
+
+// Overlay shader for solid color rectangles
+struct ColorVertex {
+    float2 position [[attribute(0)]];
+    float4 color [[attribute(1)]];
+};
+
+struct ColorVertexOut {
+    float4 position [[position]];
+    float4 color;
+};
+
+vertex ColorVertexOut colorVertexShader(uint vid [[vertex_id]],
+                                         constant ColorVertex *vertices [[buffer(0)]]) {
+    ColorVertexOut out;
+    out.position = float4(vertices[vid].position, 0, 1);
+    out.color = vertices[vid].color;
+    return out;
+}
+
+fragment float4 colorFragmentShader(ColorVertexOut in [[stage_in]]) {
+    return in.color;
+}
 )";
 
 // ---------------------------------------------------------------------------
@@ -224,11 +247,9 @@ static bool g_debug = false;
         // L2/ZL trigger for rewind
         bool rewindHeld = gamepad.leftTrigger.pressed;
         if (rewindHeld && !Emulator::IsRewinding()) {
-            Emulator::RewindStart();
-        } else if (rewindHeld && Emulator::IsRewinding()) {
-            Emulator::RewindStepBack();
+            Emulator::RewindStartContinuous();
         } else if (!rewindHeld && Emulator::IsRewinding()) {
-            Emulator::RewindEnd();
+            Emulator::RewindStop();
         }
     };
 }
@@ -313,6 +334,7 @@ static void HandleKeyEvent(NSEvent *event, BOOL pressed) {
 @interface GameViewController : NSViewController <MTKViewDelegate>
 @property (nonatomic, strong) id<MTLDevice> device;
 @property (nonatomic, strong) id<MTLRenderPipelineState> pipelineState;
+@property (nonatomic, strong) id<MTLRenderPipelineState> colorPipelineState;
 @property (nonatomic, strong) id<MTLCommandQueue> commandQueue;
 @property (nonatomic, strong) id<MTLTexture> texture;
 @property (nonatomic, strong) id<MTLSamplerState> sampler;
@@ -351,6 +373,25 @@ static void HandleKeyEvent(NSEvent *event, BOOL pressed) {
         return;
     }
 
+    // Create color overlay pipeline (for progress bar)
+    MTLRenderPipelineDescriptor *colorDesc = [[MTLRenderPipelineDescriptor alloc] init];
+    colorDesc.vertexFunction = [library newFunctionWithName:@"colorVertexShader"];
+    colorDesc.fragmentFunction = [library newFunctionWithName:@"colorFragmentShader"];
+    colorDesc.colorAttachments[0].pixelFormat = mtkView.colorPixelFormat;
+    colorDesc.colorAttachments[0].blendingEnabled = YES;
+    colorDesc.colorAttachments[0].rgbBlendOperation = MTLBlendOperationAdd;
+    colorDesc.colorAttachments[0].alphaBlendOperation = MTLBlendOperationAdd;
+    colorDesc.colorAttachments[0].sourceRGBBlendFactor = MTLBlendFactorSourceAlpha;
+    colorDesc.colorAttachments[0].sourceAlphaBlendFactor = MTLBlendFactorSourceAlpha;
+    colorDesc.colorAttachments[0].destinationRGBBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
+    colorDesc.colorAttachments[0].destinationAlphaBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
+
+    self.colorPipelineState = [self.device newRenderPipelineStateWithDescriptor:colorDesc error:&error];
+    if (error) {
+        NSLog(@"Color pipeline error: %@", error);
+        return;
+    }
+
     // Create texture for SNES framebuffer
     // We'll use BGRA8 and convert RGB555->RGBA manually
     MTLTextureDescriptor *texDesc = [MTLTextureDescriptor
@@ -379,8 +420,12 @@ static void HandleKeyEvent(NSEvent *event, BOOL pressed) {
     if (!g_running || Settings.StopEmulation)
         return;
 
-    // Run one frame of emulation
-    Emulator::RunFrame();
+    // Run one frame of emulation (or rewind tick)
+    if (Emulator::IsRewinding()) {
+        Emulator::RewindTick();
+    } else {
+        Emulator::RunFrame();
+    }
 
     // Upload framebuffer to texture
     int w = Emulator::GetFrameWidth();
@@ -401,6 +446,7 @@ static void HandleKeyEvent(NSEvent *event, BOOL pressed) {
                 convertedBuffer[y * MAX_SNES_WIDTH + x] = (0xFF << 24) | (r << 16) | (g << 8) | b;
             }
         }
+
         MTLRegion region = MTLRegionMake2D(0, 0, w, h);
         [self.texture replaceRegion:region
                         mipmapLevel:0
@@ -444,6 +490,72 @@ static void HandleKeyEvent(NSEvent *event, BOOL pressed) {
     [enc setVertexBytes:&texScale length:sizeof(texScale) atIndex:0];
 
     [enc drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:6];
+
+    // Draw rewind progress bar overlay if rewinding
+    if (Emulator::IsRewinding()) {
+        int depth = Emulator::GetRewindBufferDepth();
+        int pos = Emulator::GetRewindPosition();
+        if (depth > 0 && pos >= 0) {
+            // Switch to color pipeline
+            [enc setRenderPipelineState:self.colorPipelineState];
+
+            // Reset viewport to full screen for overlay
+            MTLViewport fullViewport = { 0, 0, drawableSize.width, drawableSize.height, 0.0, 1.0 };
+            [enc setViewport:fullViewport];
+
+            // Progress bar dimensions (in screen coordinates)
+            float barHeight = 20.0f;
+            float barY = drawableSize.height - barHeight - 20.0f; // 20px from bottom
+            float barWidth = drawableSize.width * 0.8f; // 80% of screen width
+            float barX = (drawableSize.width - barWidth) / 2.0f; // Centered
+
+            float progress = (float)pos / (float)(depth - 1); // 0.0 (oldest) to 1.0 (newest)
+            float filledWidth = barWidth * progress;
+
+            // Convert screen coords to NDC (-1 to 1)
+            auto toNDC = [drawableSize](float x, float y) -> simd_float2 {
+                return simd_make_float2(
+                    (x / drawableSize.width) * 2.0f - 1.0f,
+                    1.0f - (y / drawableSize.height) * 2.0f
+                );
+            };
+
+            // Background bar (dark gray)
+            {
+                simd_float2 tl = toNDC(barX, barY);
+                simd_float2 br = toNDC(barX + barWidth, barY + barHeight);
+
+                struct { simd_float2 pos; simd_float4 color; } verts[6] = {
+                    { {tl.x, tl.y}, {0.2f, 0.2f, 0.2f, 0.8f} }, // top-left
+                    { {br.x, tl.y}, {0.2f, 0.2f, 0.2f, 0.8f} }, // top-right
+                    { {tl.x, br.y}, {0.2f, 0.2f, 0.2f, 0.8f} }, // bottom-left
+                    { {tl.x, br.y}, {0.2f, 0.2f, 0.2f, 0.8f} }, // bottom-left
+                    { {br.x, tl.y}, {0.2f, 0.2f, 0.2f, 0.8f} }, // top-right
+                    { {br.x, br.y}, {0.2f, 0.2f, 0.2f, 0.8f} }  // bottom-right
+                };
+                [enc setVertexBytes:verts length:sizeof(verts) atIndex:0];
+                [enc drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:6];
+            }
+
+            // Filled portion (cyan)
+            if (filledWidth > 0) {
+                simd_float2 tl = toNDC(barX, barY);
+                simd_float2 br = toNDC(barX + filledWidth, barY + barHeight);
+
+                struct { simd_float2 pos; simd_float4 color; } verts[6] = {
+                    { {tl.x, tl.y}, {0.0f, 1.0f, 1.0f, 0.9f} }, // cyan
+                    { {br.x, tl.y}, {0.0f, 1.0f, 1.0f, 0.9f} },
+                    { {tl.x, br.y}, {0.0f, 1.0f, 1.0f, 0.9f} },
+                    { {tl.x, br.y}, {0.0f, 1.0f, 1.0f, 0.9f} },
+                    { {br.x, tl.y}, {0.0f, 1.0f, 1.0f, 0.9f} },
+                    { {br.x, br.y}, {0.0f, 1.0f, 1.0f, 0.9f} }
+                };
+                [enc setVertexBytes:verts length:sizeof(verts) atIndex:0];
+                [enc drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:6];
+            }
+        }
+    }
+
     [enc endEncoding];
 
     [cmdBuf presentDrawable:view.currentDrawable];

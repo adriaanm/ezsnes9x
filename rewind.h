@@ -8,7 +8,7 @@
 #define _REWIND_H_
 
 // Rewind engine: ring buffer of XOR-delta compressed save state snapshots.
-// Targets ~200 snapshots captured every 3 frames, giving roughly 10 seconds
+// Targets ~600 snapshots captured every 3 frames, giving roughly 30 seconds
 // of rewind history at 60 fps.
 
 void RewindInit();       // Allocate ring buffer
@@ -17,5 +17,7 @@ void RewindCapture();    // Called every frame from main loop -- captures every 
 bool RewindStep();       // Step back one snapshot, returns false if no more history
 void RewindRelease();    // Resume forward play, discard frames after current position
 bool RewindActive();     // Returns true if currently rewinding
+int RewindGetCount();    // Total snapshots in buffer (0 to RING_CAPACITY)
+int RewindGetPosition(); // Current position in buffer (0 = oldest, count-1 = newest, -1 = not rewinding)
 
 #endif

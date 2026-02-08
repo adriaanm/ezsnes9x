@@ -16,10 +16,12 @@ namespace Emulator {
     void Shutdown();                       // Save SRAM, deinit everything
 
     // Rewind
-    void RewindStart();                    // Enter rewind mode
-    bool RewindStepBack();                 // Step back one frame
-    void RewindEnd();                      // Resume forward play
+    void RewindStartContinuous();          // Start continuous rewind (call on trigger down)
+    void RewindStop();                     // Stop rewinding and resume forward play (call on trigger release)
+    void RewindTick();                     // Step back one snapshot if rewinding (call every frame)
     bool IsRewinding();
+    int GetRewindBufferDepth();            // Total snapshots available
+    int GetRewindPosition();               // Current position (0 = oldest, depth-1 = newest)
 
     // Suspend/Resume (app lifecycle)
     void Suspend();                        // Save state to temp file + save SRAM

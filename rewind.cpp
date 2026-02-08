@@ -17,7 +17,7 @@
 // ---------------------------------------------------------------------------
 
 static constexpr int    CAPTURE_INTERVAL  = 3;    // capture once every N frames
-static constexpr size_t RING_CAPACITY     = 200;  // max snapshots in the ring
+static constexpr size_t RING_CAPACITY     = 600;  // max snapshots in the ring (600 * 3 / 60 = 30 seconds at 60fps)
 static constexpr int    KEYFRAME_INTERVAL = 30;   // insert a full keyframe every N captures
 
 // ---------------------------------------------------------------------------
@@ -313,4 +313,28 @@ void RewindRelease()
 bool RewindActive()
 {
     return s_rewinding;
+}
+
+int RewindGetCount()
+{
+    return s_count;
+}
+
+int RewindGetPosition()
+{
+    if (!s_rewinding || s_cursor < 0 || s_count == 0)
+        return -1;
+
+    // Calculate position from tail (0 = oldest)
+    int tail = ring_tail();
+    int pos = 0;
+    int t = tail;
+    for (int i = 0; i < s_count; i++)
+    {
+        if (t == s_cursor)
+            return pos;
+        t = ring_next(t);
+        pos++;
+    }
+    return -1; // shouldn't happen
 }

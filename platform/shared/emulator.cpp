@@ -150,27 +150,59 @@ void Shutdown()
 
 // Rewind
 
-void RewindStart()
+void RewindStartContinuous()
 {
+    if (s_rewinding)
+        return; // Already rewinding
+
     s_rewinding = true;
     Settings.Rewinding = TRUE;
+
+    // Immediately enter rewind mode and jump to most recent snapshot
+    RewindStep();
 }
 
-bool RewindStepBack()
+void RewindStop()
 {
-    return RewindStep();
-}
+    if (!s_rewinding)
+        return;
 
-void RewindEnd()
-{
     s_rewinding = false;
     Settings.Rewinding = FALSE;
     RewindRelease();
 }
 
+void RewindTick()
+{
+    if (!s_rewinding)
+        return;
+
+    // Step back one snapshot, but don't go past the oldest
+    int pos = RewindGetPosition();
+    if (pos > 0)
+        RewindStep();
+    // If pos == 0, we're at the oldest snapshot - freeze here (state already loaded)
+
+    // Run one frame from the restored state to re-render the screen.
+    // Rewind snapshots don't include the rendered framebuffer, only PPU/VRAM state,
+    // so we need S9xMainLoop to produce visible output.
+    // RewindCapture() is skipped because s_rewinding is true.
+    S9xMainLoop();
+}
+
 bool IsRewinding()
 {
     return s_rewinding;
+}
+
+int GetRewindBufferDepth()
+{
+    return RewindGetCount();
+}
+
+int GetRewindPosition()
+{
+    return RewindGetPosition();
 }
 
 // Suspend/Resume
