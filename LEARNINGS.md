@@ -69,6 +69,34 @@ The APU lives in `apu/` with a sub-structure:
 - `apu/bapu/dsp/sdsp.cpp` — DSP processor (compile directly, includes SPC_DSP.cpp)
 - `apu/resampler.h` — audio resampling (header-only)
 
+## Rewind System
+
+The rewind system (`rewind.cpp`) uses a circular buffer with XOR delta compression:
+
+**Buffer structure:**
+- Ring buffer of 600 snapshot slots (configurable via `RING_CAPACITY`)
+- Default captures 1 snapshot every 3 frames = ~30 seconds of history at 60fps
+- Each slot stores either:
+  - **Keyframe**: Full emulator state (~100KB per state)
+  - **Delta**: XOR difference from previous state (compression by storing only changes)
+- Keyframes inserted every 30 captures to bound reconstruction time
+
+**Memory usage:**
+- When enabled: Allocates ring buffer + 2 scratch buffers on `RewindInit()`
+- When disabled: No allocation (buffer size = 0) to save memory
+- Total memory: ~600 slots * average size (varies based on keyframe ratio)
+
+**How it works:**
+1. **Capture** (`RewindCapture()`): Called every frame, stores state every 3 frames
+2. **Rewind** (`RewindStep()`): Walk backwards in ring, reconstruct state from nearest keyframe + deltas
+3. **Release** (`RewindRelease()`): Discard snapshots newer than cursor position
+
+**Important notes:**
+- Rewind is initialized in `Emulator::LoadROM()` based on `s_config.rewind_enabled`
+- Frontend can override config via `Emulator::SetRewindEnabled()` before loading ROM
+- Reconstruction walks back to nearest keyframe, then replays XOR deltas forward
+- The `s_prev_state` buffer tracks previous keyframe for delta generation
+
 ## Build System Notes
 
 - CMake 3.20+ works well with the codebase
