@@ -273,7 +273,6 @@ struct SSettings
 	bool8	IsPatched;
 	int32	AutoSaveDelay;
 	bool8	DontSaveOopsSnapshot;
-	bool8	UpAndDown;
 
     bool8   SeparateEchoBuffer;
 	uint32	SuperFXClockMultiplier;

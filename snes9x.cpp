@@ -367,9 +367,6 @@ char * S9xParseArgs (char **argv, int argc)
 					S9xUsage();
 			}
 			else
-			if (!strcasecmp(argv[i], "-upanddown"))
-				Settings.UpAndDown = TRUE;
-			else
 			if (!strcasecmp(argv[i], "-conf"))
 			{
 				if (++i >= argc)

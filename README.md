@@ -70,10 +70,6 @@ keyboard:
   r: 35                  # P key
   start: 36              # Enter/Return
   select: 49             # Space
-
-input:
-  # Allow simultaneous opposing directions (default: false)
-  up_and_down: false
 ```
 
 **Finding keycodes:** Run with `--debug` and press keys - unmapped keycodes will be printed to console.

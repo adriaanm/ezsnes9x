@@ -102,11 +102,6 @@ static void apply_setting(const std::string &section,
             config.controllers.back().port = ival;
         }
     }
-    else if (section == "input")
-    {
-        if (key == "up_and_down" && parse_bool(value, bval))
-            Settings.UpAndDown = bval ? TRUE : FALSE;
-    }
 }
 
 // ---------------------------------------------------------------------------
