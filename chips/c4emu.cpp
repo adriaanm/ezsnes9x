@@ -7,7 +7,10 @@
 #include <math.h>
 #include "snes9x.h"
 #include "memmap.h"
-#include "sar.h"
+
+// SAR: arithmetic right shift (signed shift preserves sign bit)
+// Modern compilers always do arithmetic right shift for signed integers
+#define SAR(b, n) ((b) >> (n))
 
 static int16	C4SinTable[512] =
 {

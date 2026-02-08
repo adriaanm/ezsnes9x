@@ -4,16 +4,6 @@ project(snes9x LANGUAGES CXX C)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# SAR detection — on virtually all modern compilers, right-shift of signed
-# integers is arithmetic. We define RIGHTSHIFT_IS_SAR which enables the
-# fast path in sar.h.
-include(CheckCXXSourceCompiles)
-check_cxx_source_compiles("
-    int main() {
-        int x = -1;
-        return (x >> 1) == -1 ? 0 : 1;
-    }
-" RIGHTSHIFT_IS_SAR)
 
 # Core emulation sources
 set(SNES9X_CORE_SOURCES
@@ -96,10 +86,6 @@ target_compile_definitions(snes9x-core PUBLIC
     HAVE_STDINT_H
     HAVE_STRINGS_H
 )
-
-if(RIGHTSHIFT_IS_SAR)
-    target_compile_definitions(snes9x-core PUBLIC RIGHTSHIFT_IS_SAR)
-endif()
 
 if(APPLE)
     target_compile_definitions(snes9x-core PUBLIC __MACOSX__)
