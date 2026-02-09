@@ -54,6 +54,7 @@ bool Init(const char *config_path)
     Settings.Transparency        = true;
     Settings.AutoDisplayMessages = true;
     Settings.SoundPlaybackRate   = 32040; // SNES native audio rate
+    Settings.SoundInputRate      = 32040; // Match playback rate
     Settings.Stereo              = true;
     Settings.SixteenBitSound     = true;
     Settings.FrameTime           = 16667; // ~60 fps
@@ -61,6 +62,7 @@ bool Init(const char *config_path)
     Settings.MaxSpriteTilesPerLine = 34; // Enable sprite rendering (34 = standard limit)
     Settings.SuperFXClockMultiplier = 100; // 100% = normal Super FX speed
     Settings.InterpolationMethod = 2; // 0=none, 1=linear, 2=gaussian, 3=cubic, 4=sinc
+    Settings.SeparateEchoBuffer  = true;  // Better audio quality for echo effects
 
     // Default controller setup: pad0 on port 0, pad1 on port 1
     S9xSetController(0, CTL_JOYPAD, 0);
