@@ -2,7 +2,11 @@ package com.snes9x.emulator
 
 import android.app.NativeActivity
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
 
 /**
  * Thin Kotlin shim over NativeActivity. Extracts the ROM path from the
@@ -19,13 +23,34 @@ class EmulatorActivity : NativeActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
+        // Handle new intent (e.g., opening another ROM while app is running)
+        extractRomPath(intent)
     }
 
     private fun extractRomPath(intent: Intent) {
-        // ACTION_VIEW from file manager
-        val path = intent.data?.path
-        if (path != null) {
-            intent.putExtra("rom_path", path)
+        val uri = intent.data
+        if (uri != null) {
+            val path = when (uri.scheme) {
+                "file" -> {
+                    // Direct file access (older Android versions)
+                    uri.path
+                }
+                "content" -> {
+                    // Content URI (modern Android file picker)
+                    // Take persistent permission so we can access later
+                    contentResolver.takePersistableUriPermission(
+                        uri,
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    )
+                    // Copy to internal storage for native code access
+                    copyUriToInternalStorage(uri)
+                }
+                else -> null
+            }
+
+            if (path != null) {
+                intent.putExtra("rom_path", path)
+            }
             return
         }
 
@@ -34,5 +59,38 @@ class EmulatorActivity : NativeActivity() {
         if (extraPath != null) {
             intent.putExtra("rom_path", extraPath)
         }
+    }
+
+    private fun copyUriToInternalStorage(uri: Uri): String? {
+        return try {
+            val inputStream = contentResolver.openInputStream(uri) ?: return null
+            val extension = getFileExtension(uri)
+            val outputFile = File(filesDir, "rom$extension")
+
+            inputStream.use { input ->
+                FileOutputStream(outputFile).use { output ->
+                    input.copyTo(output)
+                }
+            }
+            outputFile.absolutePath
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+
+    private fun getFileExtension(uri: Uri): String {
+        // Try to get extension from URI
+        val path = uri.path ?: return ".sfc"
+        val mimeType = contentResolver.getType(uri)
+
+        // Check known MIME types
+        if (mimeType == "application/snes-rom") {
+            return ".sfc"
+        }
+
+        // Extract from path
+        val lastDot = path.lastIndexOf('.')
+        return if (lastDot >= 0) path.substring(lastDot) else ".sfc"
     }
 }
