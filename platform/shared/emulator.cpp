@@ -88,7 +88,9 @@ bool Init(const char *config_path)
         return false;
     }
 
-    S9xInitSound(0);
+    // Use 80ms buffer for smooth audio with vsync throttle strategy.
+    // Too small causes crackling; too large adds latency.
+    S9xInitSound(80);
 
     if (!S9xGraphicsInit())
     {
