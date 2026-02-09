@@ -24,9 +24,15 @@ class EmulatorActivity : NativeActivity() {
         super.onNewIntent(intent)
         // Check if this is a ROM open intent (has data URI)
         if (intent.data != null) {
-            // Recreate activity to load new ROM (restarts native code)
+            // Restart with new ROM - clear task to ensure clean process restart
+            val restartIntent = intent.apply {
+                addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
             finish()
-            startActivity(intent)
+            startActivity(restartIntent)
+
+            // Kill process to ensure clean native code restart
+            android.os.Process.killProcess(android.os.Process.myPid())
         }
     }
 
