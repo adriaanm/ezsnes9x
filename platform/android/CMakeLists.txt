@@ -30,13 +30,13 @@ target_include_directories(snes9x PRIVATE
 
 target_link_libraries(snes9x PRIVATE
     snes9x-core
+    # Whole-archive to ensure ANativeActivity_onCreate is exported
+    -Wl,--whole-archive
     native_app_glue
+    -Wl,--no-whole-archive
     oboe
     GLESv3
     EGL
     android
     log
 )
-
-# Ensure native_app_glue's ANativeActivity_onCreate is exported
-target_link_options(snes9x PRIVATE "-u ANativeActivity_onCreate")
