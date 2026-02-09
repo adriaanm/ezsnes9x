@@ -60,6 +60,7 @@ bool Init(const char *config_path)
     Settings.StopEmulation       = true;
     Settings.MaxSpriteTilesPerLine = 34; // Enable sprite rendering (34 = standard limit)
     Settings.SuperFXClockMultiplier = 100; // 100% = normal Super FX speed
+    Settings.InterpolationMethod = 2; // 0=none, 1=linear, 2=gaussian, 3=cubic, 4=sinc
 
     // Default controller setup: pad0 on port 0, pad1 on port 1
     S9xSetController(0, CTL_JOYPAD, 0);
