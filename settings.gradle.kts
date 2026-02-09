@@ -15,4 +15,5 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "snes9x"
-include(":app")
+include(":app-android")
+

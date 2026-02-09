@@ -515,3 +515,11 @@ profile
 /build/
 /build-android/
 
+# Gradle / Android
+.gradle/
+local.properties
+*.iml
+app-android/.cxx/
+app-android/build/
+/build/
+/gradle/

@@ -436,7 +436,7 @@ static std::string GetRomPathFromIntent(struct android_app *app)
     JNIEnv *env = nullptr;
     app->activity->vm->AttachCurrentThread(&env, nullptr);
 
-    // activity.getIntent().getStringExtra("rom_path")
+    // activity.getIntent()
     jclass activityClass = env->GetObjectClass(app->activity->clazz);
     jmethodID getIntent  = env->GetMethodID(activityClass, "getIntent", "()Landroid/content/Intent;");
     jobject intent       = env->CallObjectMethod(app->activity->clazz, getIntent);
@@ -444,22 +444,59 @@ static std::string GetRomPathFromIntent(struct android_app *app)
     std::string romPath;
 
     if (intent) {
-        jclass intentClass     = env->GetObjectClass(intent);
-        jmethodID getStringExtra = env->GetMethodID(intentClass, "getStringExtra",
-                                                     "(Ljava/lang/String;)Ljava/lang/String;");
-        jstring key   = env->NewStringUTF("rom_path");
-        jstring value = (jstring)env->CallObjectMethod(intent, getStringExtra, key);
+        jclass intentClass = env->GetObjectClass(intent);
 
-        if (value) {
-            const char *str = env->GetStringUTFChars(value, nullptr);
-            romPath = str;
-            env->ReleaseStringUTFChars(value, str);
+        // First, try getDataString() for VIEW intents with file:// URIs
+        jmethodID getDataString = env->GetMethodID(intentClass, "getDataString", "()Ljava/lang/String;");
+        jstring uriString = (jstring)env->CallObjectMethod(intent, getDataString);
+
+        if (uriString) {
+            const char *uriStr = env->GetStringUTFChars(uriString, nullptr);
+            std::string uri(uriStr);
+
+            // Convert file:// URI to path
+            if (uri.find("file://") == 0) {
+                romPath = uri.substr(7); // Skip "file://"
+                // URL decode the path (handle %20 for spaces, etc.)
+                for (size_t i = 0; i < romPath.length(); ) {
+                    if (romPath[i] == '%' && i + 2 < romPath.length()) {
+                        char hex[3] = { romPath[i+1], romPath[i+2], 0 };
+                        char c = (char)strtol(hex, nullptr, 16);
+                        romPath.replace(i, 3, 1, c);
+                        i++;
+                    } else {
+                        i++;
+                    }
+                }
+            }
+
+            env->ReleaseStringUTFChars(uriString, uriStr);
+            env->DeleteLocalRef(uriString);
         }
 
-        env->DeleteLocalRef(key);
+        // Fallback: check for "rom_path" extra (for custom intents)
+        if (romPath.empty()) {
+            jmethodID getStringExtra = env->GetMethodID(intentClass, "getStringExtra",
+                                                         "(Ljava/lang/String;)Ljava/lang/String;");
+            jstring key   = env->NewStringUTF("rom_path");
+            jstring value = (jstring)env->CallObjectMethod(intent, getStringExtra, key);
+
+            if (value) {
+                const char *str = env->GetStringUTFChars(value, nullptr);
+                romPath = str;
+                env->ReleaseStringUTFChars(value, str);
+            }
+
+            env->DeleteLocalRef(key);
+        }
     }
 
     app->activity->vm->DetachCurrentThread();
+
+    if (!romPath.empty()) {
+        LOGI("ROM path from intent: %s", romPath.c_str());
+    }
+
     return romPath;
 }
 
@@ -534,8 +571,8 @@ void android_main(struct android_app *app)
     // Get ROM path
     std::string romPath = GetRomPathFromIntent(app);
     if (romPath.empty()) {
-        // Fallback for development
-        romPath = "/sdcard/rom.sfc";
+        // Fallback for development - use app's external storage
+        romPath = "/storage/emulated/0/Android/data/com.snes9x.emulator/files/rom.sfc";
         LOGI("No ROM in intent, using fallback: %s", romPath.c_str());
     }
 

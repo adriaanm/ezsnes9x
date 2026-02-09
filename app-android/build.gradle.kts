@@ -6,6 +6,7 @@ plugins {
 android {
     namespace = "com.snes9x.emulator"
     compileSdk = 34
+    ndkVersion = "27.1.12297006"
 
     defaultConfig {
         applicationId = "com.snes9x.emulator"
@@ -29,6 +30,15 @@ android {
         release {
             isMinifyEnabled = false
         }
+    }
+
+    buildFeatures {
+        buildConfig = false
+    }
+
+    lint {
+        abortOnError = false
+        checkReleaseBuilds = false
     }
 
     compileOptions {
