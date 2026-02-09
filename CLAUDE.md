@@ -20,33 +20,42 @@ cmake -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build -j$(nproc)
 ```
 
-### Android Cross-Compile (ARM64)
-
-Requires Android NDK r27+. The official NDK doesn't ship for aarch64 Linux hosts — use x86_64 NDK sysroot with host clang:
+### Android Build (APK)
 
 ```bash
-# Download NDK (x86_64 version works — we only need the sysroot)
-wget https://dl.google.com/android/repository/android-ndk-r27c-linux.zip
-unzip android-ndk-r27c-linux.zip -d /opt
+# Set up local.properties with SDK/NDK paths
+echo "sdk.dir=$HOME/Library/Android/sdk" > local.properties  # macOS
+echo "ndk.dir=$HOME/Library/Android/sdk/ndk/27.1.12297006" >> local.properties
 
-# Create libgcc.a stub (NDK provides libclang_rt.builtins instead)
-echo 'INPUT(-lclang_rt.builtins-aarch64-android)' > \
-  /opt/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/30/libgcc.a
+# Build debug APK (Gradle at repo root invokes CMake via AGP)
+gradle assembleDebug
+```
 
-# Clone Oboe manually (FetchContent fails with cross-compile sysroot)
+**Output:** `app-android/build/outputs/apk/debug/app-android-debug.apk` (~6MB)
+
+**Key points:**
+- Gradle build is at repo root (moved from platform/android/ for simpler CMake path resolution)
+- AGP invokes CMake automatically via `externalNativeBuild` in app-android/build.gradle.kts
+- `app-android/build.gradle.kts` references `../../CMakeLists.txt` (repo root)
+- No manual CMake steps needed for APK builds
+
+### Android Cross-Compile (Standalone .so)
+
+For building just the native library without APK (e.g., for ARM64 Linux hosts):
+
+```bash
+# Clone Oboe manually (FetchContent fails with some toolchain setups)
 git clone --depth 1 --branch 1.9.0 https://github.com/google/oboe.git /tmp/oboe
 
-# Configure with custom toolchain
+# Configure with platform toolchain
 cmake -B build-android \
-  -DCMAKE_TOOLCHAIN_FILE=platform/android/toolchain.cmake \
+  -DCMAKE_TOOLCHAIN_FILE=platform/android/toolchain-macos.cmake \
   -DCMAKE_BUILD_TYPE=Release \
   -DFETCHCONTENT_SOURCE_DIR_OBOE=/tmp/oboe
 
 # Build
 cmake --build build-android -j$(nproc)
 ```
-
-Output: `build-android/platform/android/libsnes9x.so` (2.6MB, ARM64 ELF)
 
 **Note:** There is no test suite. The build itself is the primary verification.
 
@@ -57,7 +66,8 @@ Output: `build-android/platform/android/libsnes9x.so` (2.6MB, ARM64 ELF)
 - **`/` (root):** Core emulation engine — platform-independent, built as static library `libsnes9x-core.a`
 - **`platform/shared/`:** Shared emulator wrapper (`emulator.cpp`) — high-level API used by both frontends
 - **`platform/macos/`:** macOS frontend — Metal + AVAudioEngine + GCController, builds app bundle
-- **`platform/android/`:** Android frontend — OpenGL ES 3.0 + Oboe + NativeActivity, builds `libsnes9x.so`
+- **`platform/android/`:** Android frontend — OpenGL ES 3.0 + Oboe + NativeActivity, builds native lib
+- **`app-android/`:** Android app module (Gradle/Kotlin) — at repo root for simpler CMake paths
 
 ### Core Emulation (root directory)
 
@@ -113,11 +123,19 @@ All other port functions (file I/O, input polling, etc.) are implemented in `pla
 **NDK API usage:**
 - `ALooper_pollOnce()` — Event loop (not `ALooper_pollAll`, which is deprecated in r27+)
 - `AInputEvent` — Gamepad input (`AKEYCODE_BUTTON_*`, `AMOTION_EVENT_AXIS_HAT_*`)
-- JNI — ROM path extraction from `Intent` extras
+- JNI — ROM path extraction from `Intent.getDataString()` (file:// URIs from file manager)
+
+**Intent handling:**
+- File managers send VIEW intents with `file://` URIs in `intent.getData()`
+- Must call `intent.getDataString()` then strip `file://` prefix and URL-decode
+- URL decoding handles spaces (`%20`) and special characters in paths
+- Fallback path: `/storage/emulated/0/Android/data/com.snes9x.emulator/files/rom.sfc`
 
 **Build quirks:**
-- FetchContent's git clone inherits cross-compile sysroot and fails — pre-clone Oboe and use `FETCHCONTENT_SOURCE_DIR_OBOE`
-- NDK provides `libclang_rt.builtins-aarch64-android.a` but CMake looks for `libgcc.a` — create a linker script stub
+- Gradle at repo root — simpler CMake path resolution (`../../CMakeLists.txt`)
+- AGP 8.7.3 + Kotlin 2.1.0 — modern versions for Android 14 support
+- `requestLegacyExternalStorage="true"` — for Android 10 scoped storage compatibility
+- `READ_EXTERNAL_STORAGE` permission — required for accessing ROM files
 
 ## External Dependencies
 

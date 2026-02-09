@@ -35,88 +35,36 @@ Optional flags:
 
 #### Prerequisites
 
-- Android NDK r27+ (download from [developer.android.com/ndk/downloads](https://developer.android.com/ndk/downloads))
-- CMake 3.20+
-- Clang/LLVM (for cross-compilation)
-- Git (for fetching Oboe dependency)
+- Android SDK with NDK r27+ (Android Studio, or SDK with NDK via `sdkmanager`)
+- Java 17+ (for Gradle)
+- Gradle (or use Gradle Wrapper)
 
-#### macOS Host
-
-```bash
-# Install NDK (download from link above and extract)
-unzip android-ndk-r27c-darwin.zip -d /opt
-
-# Clone Oboe dependency (FetchContent fails in cross-compile)
-git clone --depth 1 --branch 1.9.0 https://github.com/google/oboe.git /tmp/oboe
-
-# Configure
-cmake -B build-android \
-  -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK/build/cmake/android.toolchain.cmake \
-  -DANDROID_ABI=arm64-v8a \
-  -DANDROID_PLATFORM=android-30 \
-  -DCMAKE_BUILD_TYPE=Release \
-  -DFETCHCONTENT_SOURCE_DIR_OBOE=/tmp/oboe
-
-# Build
-cmake --build build-android -j$(sysctl -n hw.ncpu)
-
-# Build APK (from platform/android directory)
-cd platform/android && ./gradlew assembleDebug
-```
-
-#### Linux Host (x86_64 or aarch64)
-
-For **x86_64 Linux**, use the official NDK toolchain as shown above for macOS.
-
-For **aarch64 Linux** (ARM64 hosts), the official NDK doesn't provide prebuilt binaries. Use the host clang with the NDK sysroot:
+#### Build APK
 
 ```bash
-# Download NDK (x86_64 version - we only need the sysroot)
-wget https://dl.google.com/android/repository/android-ndk-r27c-linux.zip
-unzip android-ndk-r27c-linux.zip -d /opt
+# Create local.properties with SDK/NDK paths
+echo "sdk.dir=$HOME/Library/Android/sdk" > local.properties  # macOS
+echo "sdk.dir=$HOME/Android/Sdk" > local.properties         # Linux
 
-# Create libgcc.a stub (NDK provides libclang_rt.builtins instead)
-echo 'INPUT(-lclang_rt.builtins-aarch64-android)' > \
-  /opt/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/30/libgcc.a
-
-# Install host clang if not present
-sudo apt-get install clang lld  # Debian/Ubuntu
-# or: brew install llvm           # Homebrew (if on Linux ARM)
-
-# Clone Oboe dependency
-git clone --depth 1 --branch 1.9.0 https://github.com/google/oboe.git /tmp/oboe
-
-# Configure with custom toolchain
-cmake -B build-android \
-  -DCMAKE_TOOLCHAIN_FILE=platform/android/toolchain.cmake \
-  -DCMAKE_BUILD_TYPE=Release \
-  -DFETCHCONTENT_SOURCE_DIR_OBOE=/tmp/oboe
-
-# Build
-cmake --build build-android -j$(nproc)
-
-# Build APK (from platform/android directory)
-cd platform/android && ./gradlew assembleDebug
+# Build debug APK
+gradle assembleDebug
+# Or: ./gradlew assembleDebug  (if using Gradle Wrapper)
 ```
 
-**Output:**
-- Native library: `build-android/platform/android/libsnes9x.so` (2.6MB ARM64 ELF)
-- APK: `platform/android/app/build/outputs/apk/debug/app-debug.apk`
+**Output:** `app-android/build/outputs/apk/debug/app-android-debug.apk` (~6MB)
 
 #### Installation
 
 ```bash
-# Install APK on device
-adb install platform/android/app/build/outputs/apk/debug/app-debug.apk
+# Install APK
+adb install app-android/build/outputs/apk/debug/app-android-debug.apk
 
-# Push ROM to device
-adb push path/to/rom.sfc /sdcard/rom.sfc
-
-# Launch (ROM path can be passed via intent or defaults to /sdcard/rom.sfc)
+# Launch via file manager: open any .sfc/.smc/.fig/.swc file
+# Or launch directly:
 adb shell am start -n com.snes9x.emulator/.EmulatorActivity
 ```
 
-For file manager integration, open `.sfc`/`.smc`/`.fig`/`.swc` files with the Snes9x app.
+The app supports opening ROMs directly from any file manager (uses VIEW intent with file:// URIs).
 
 ## Configuration
 
@@ -233,9 +181,10 @@ snes9x/
 │   │   └── main.mm          # Single-file Metal+Audio+Input app
 │   └── android/             # Android OpenGL ES frontend
 │       ├── main.cpp         # Single-file NativeActivity app
-│       ├── CMakeLists.txt   # Native library build (links Oboe)
-│       ├── toolchain.cmake  # Cross-compile toolchain (for ARM64 Linux hosts)
-│       └── app/             # Gradle/Kotlin wrapper
+│       └── CMakeLists.txt   # Native library build (links Oboe)
+├── app-android/             # Android app module (Gradle/Kotlin)
+│   └── src/main/            # AndroidManifest, EmulatorActivity.kt
+├── build.gradle.kts         # Root Gradle build (Android)
 └── data/                    # Resources (icons, etc.)
 ```
 

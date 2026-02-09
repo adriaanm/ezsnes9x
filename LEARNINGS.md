@@ -135,3 +135,117 @@ git diff
 - The codebase compiles cleanly with `-Wall` plus a few `-Wno-*` flags
 - `HAVE_STDINT_H` and `HAVE_STRINGS_H` should be defined for modern systems
 - No external dependencies needed for the core library (all self-contained)
+
+## Android Build Learnings
+
+### Gradle + CMake Integration
+
+**Project structure:**
+- Gradle build files at repo root (moved from `platform/android/` for simpler CMake paths)
+- `app-android/` contains the Android app module (manifest, kotlin sources)
+- `build.gradle.kts` (root) defines AGP version and Kotlin plugin
+- `app-android/build.gradle.kts` references `../../CMakeLists.txt` for native builds
+- `settings.gradle.kts` includes `:app-android` module
+
+**Why Gradle at root?**
+- AGP's `externalNativeBuild` path resolution is relative to the module directory
+- From `app-android/`, `../../CMakeLists.txt` correctly points to repo root
+- From `platform/android/app/`, would need `../../../CMakeLists.txt` which is fragile
+
+**local.properties:**
+```properties
+sdk.dir=/Users/adriaan/Library/Android/sdk
+ndk.dir=/Users/adriaan/Library/Android/sdk/ndk/27.1.12297006
+```
+- Required for Gradle to find SDK/NDK
+- Add `.gradle/` to `.gitignore` (and `*.gradle.kts` except for tracked files)
+
+### Android NDK r27+ Quirks
+
+**AGP + NDK version:**
+- Must set `ndkVersion = "27.1.12297006"` in `build.gradle.kts` to match installed NDK
+- AGP 8.7+ required for NDK r27 compatibility
+- Use `android { ndkVersion = "..." }` in app module
+
+**Lint issues:**
+- Lint can fail with cryptic errors like "25.0.2" (version mismatch)
+- Disable with:
+  ```kotlin
+  lint {
+      abortOnError = false
+      checkReleaseBuilds = false
+  }
+  ```
+
+### Intent Handling for File Manager Integration
+
+**File managers send VIEW intents:**
+- Data is in `intent.getData()` as a `Uri` (NOT in `getStringExtra`)
+- Returns `file:///storage/emulated/0/...` format
+- Must strip `file://` prefix and URL-decode the path
+
+**JNI code pattern:**
+```cpp
+// Get intent
+jmethodID getData = env->GetMethodID(intentClass, "getDataString", "()Ljava/lang/String;");
+jstring uriString = (jstring)env->CallObjectMethod(intent, getData);
+
+// Convert to string and strip "file://"
+std::string uri(env->GetStringUTFChars(uriString, nullptr));
+if (uri.find("file://") == 0) {
+    romPath = uri.substr(7);
+    // URL decode %20, etc.
+}
+```
+
+**URL decoding:**
+- Spaces in filenames become `%20`
+- Parentheses and special chars are percent-encoded
+- Simple decoder: find `%`, read next 2 hex digits, replace with decoded char
+
+### Storage Permissions on Android 10+
+
+**Scoped storage (Android 10+):**
+- Direct file access to `/sdcard/` requires `READ_EXTERNAL_STORAGE`
+- Better to use app-specific storage: `/storage/emulated/0/Android/data/com.snes9x.emulator/files/`
+- Add `requestLegacyExternalStorage="true"` for Android 10 compatibility
+
+**Manifest permissions:**
+```xml
+<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+<application android:requestLegacyExternalStorage="true" ...>
+```
+
+### Oboe Audio Library
+
+**FetchContent issues:**
+- During Gradle builds, FetchContent works fine (AGP handles git)
+- For standalone CMake builds with cross-toolchains, pre-clone:
+  ```bash
+  git clone --depth 1 --branch 1.9.0 https://github.com/google/oboe.git /tmp/oboe
+  cmake -DFETCHCONTENT_SOURCE_DIR_OBOE=/tmp/oboe ...
+  ```
+
+### Debugging with adb
+
+**Find ROM files on device:**
+```bash
+adb shell "find /storage/emulated/0 -type f \( -iname '*.sfc' -o -iname '*.smc' \)"
+```
+
+**Check app logs:**
+```bash
+adb logcat -d | grep -E "(snes9x|Loaded ROM|Failed)"
+```
+
+**Common issues:**
+- ANR (Application Not Responding): Usually caused by ROM load failure without proper error handling
+- "Failed to load ROM": Check file permissions (adb shell `ls -la`)
+- MediaProvider errors: Storage permission issues
+
+**Copy ROM for testing:**
+```bash
+adb shell mkdir -p /storage/emulated/0/Android/data/com.snes9x.emulator/files
+adb push rom.sfc /storage/emulated/0/Android/data/com.snes9x.emulator/files/rom.sfc
+adb shell chmod 666 /storage/emulated/0/Android/data/com.snes9x.emulator/files/rom.sfc
+```
