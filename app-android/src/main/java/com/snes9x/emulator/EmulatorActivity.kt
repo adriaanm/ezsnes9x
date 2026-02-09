@@ -22,9 +22,12 @@ class EmulatorActivity : NativeActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        setIntent(intent)
-        // Handle new intent (e.g., opening another ROM while app is running)
-        extractRomPath(intent)
+        // Check if this is a ROM open intent (has data URI)
+        if (intent.data != null) {
+            // Recreate activity to load new ROM (restarts native code)
+            finish()
+            startActivity(intent)
+        }
     }
 
     private fun extractRomPath(intent: Intent) {
