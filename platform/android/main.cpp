@@ -26,6 +26,8 @@
 #include <cstring>
 #include <string>
 #include <cmath>
+#include <chrono>
+#include <thread>
 
 #define LOG_TAG "snes9x"
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO,  LOG_TAG, __VA_ARGS__)
@@ -36,6 +38,65 @@
 // ---------------------------------------------------------------------------
 
 extern void EmulatorSetFrameSize(int width, int height);
+
+// ---------------------------------------------------------------------------
+// Frame Throttle
+// ---------------------------------------------------------------------------
+// Vsync-locked frame pacing using C++11 <chrono> for smooth emulation timing.
+
+class FrameThrottle {
+public:
+    void set_frame_rate(double fps) {
+        frame_duration_ns_ = static_cast<long long>(1e9 / fps);
+    }
+
+    // Call this AFTER swap/present to advance to next frame time
+    void advance() {
+        next_frame_time_ += std::chrono::nanoseconds(frame_duration_ns_);
+    }
+
+    // Call this BEFORE swap/present to pace the frame rate
+    void wait_for_frame() {
+        auto now = std::chrono::steady_clock::now();
+        auto time_until_next = std::chrono::duration_cast<std::chrono::nanoseconds>(
+            next_frame_time_ - now
+        ).count();
+
+        // Reset if we're way behind (prevents spiral of death)
+        if (time_until_next < -frame_duration_ns_) {
+            reset();
+            return;
+        }
+
+        // Sleep if we're ahead (leave 1ms margin for spin-wait precision)
+        if (time_until_next > 1'000'000LL) {
+            std::this_thread::sleep_for(std::chrono::nanoseconds(
+                time_until_next - 1'000'000LL
+            ));
+        }
+
+        // Spin-wait for final precision (yield to be CPU-friendly)
+        now = std::chrono::steady_clock::now();
+        while (now < next_frame_time_) {
+            std::this_thread::yield();
+            now = std::chrono::steady_clock::now();
+        }
+    }
+
+    // Combined wait + advance - call this BEFORE swap
+    void wait_for_frame_and_rebase_time() {
+        wait_for_frame();
+        advance();
+    }
+
+    void reset() {
+        next_frame_time_ = std::chrono::steady_clock::now();
+    }
+
+private:
+    long long frame_duration_ns_ = 16'666'667LL;  // ~60fps default
+    std::chrono::time_point<std::chrono::steady_clock> next_frame_time_;
+};
 
 // ---------------------------------------------------------------------------
 // Globals
@@ -60,6 +121,8 @@ static GLuint g_color_program = 0;  // For overlays
 static GLuint g_color_vbo     = 0;  // Vertex buffer for overlay quads
 static int    g_surface_width  = 0;
 static int    g_surface_height = 0;
+
+static FrameThrottle g_frame_throttle;
 
 // ---------------------------------------------------------------------------
 // OpenGL ES shaders
@@ -442,6 +505,12 @@ static void RenderFrame()
     // Reset GL state for next frame
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(g_vao);
+
+    // Pace frame rate before swap (vsync throttle)
+    g_frame_throttle.set_frame_rate(Emulator::IsPAL()
+        ? PAL_PROGRESSIVE_FRAME_RATE
+        : NTSC_PROGRESSIVE_FRAME_RATE);
+    g_frame_throttle.wait_for_frame_and_rebase_time();
 
     eglSwapBuffers(g_egl_display, g_egl_surface);
 }
@@ -917,6 +986,12 @@ void android_main(struct android_app *app)
     }
 
     LOGI("Loaded ROM: %s", Emulator::GetROMName());
+
+    // Initialize frame throttle based on ROM region
+    g_frame_throttle.set_frame_rate(Emulator::IsPAL()
+        ? PAL_PROGRESSIVE_FRAME_RATE
+        : NTSC_PROGRESSIVE_FRAME_RATE);
+    g_frame_throttle.reset();
 
     // Start audio
     StartAudio();
