@@ -315,8 +315,18 @@ bool8 S9xContinueUpdate(int width, int height)
 
 void S9xSyncSpeed()
 {
-    // Timing handled by display driver at vsync/swap time.
-    // No-op here to avoid conflicting with frame throttle.
+    // No-op: timing is handled by the display driver at vsync/swap time.
+    //
+    // The frontend uses a vsync throttle strategy:
+    // 1. Vsync (eglSwapInterval=1 on Android, CVDisplayLink on macOS) provides
+    //    the master clock, blocking swap/present at the display refresh rate.
+    // 2. FrameThrottle prevents CPU busy-wait by sleeping before swap.
+    // 3. DynamicRateControl handles audio drift via +/-5% playback rate adjustment.
+    //
+    // This approach provides smoother AV sync than the old S9xSyncSpeed sleep loop,
+    // which would fight with vsync and cause stutter. With vsync as the clock,
+    // small timing differences (60.0Hz display vs 60.1Hz SNES) are absorbed by
+    // the audio drift correction rather than causing visible judder.
 }
 
 bool8 S9xOpenSoundDevice()

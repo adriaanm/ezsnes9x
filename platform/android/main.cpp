@@ -313,7 +313,10 @@ static bool InitEGL(ANativeWindow *window)
 
     eglMakeCurrent(g_egl_display, g_egl_surface, g_egl_surface, g_egl_context);
 
-    // Enable vsync (swap interval 1)
+    // Enable vsync (swap interval 1). This blocks eglSwapBuffers() at the display's
+    // native refresh rate. We assume 60Hz for typical Android gaming handhelds
+    // (Retroid Pocket, Anbernic). The small difference between 60.0Hz (display)
+    // and 60.1Hz (SNES NTSC) is handled by DynamicRateControl audio drift correction.
     eglSwapInterval(g_egl_display, 1);
 
     eglQuerySurface(g_egl_display, g_egl_surface, EGL_WIDTH, &g_surface_width);
@@ -506,7 +509,11 @@ static void RenderFrame()
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(g_vao);
 
-    // Pace frame rate before swap (vsync throttle)
+    // Pace frame rate before swap. We target the SNES frame rate (~60.1Hz NTSC,
+    // ~50.0Hz PAL) rather than the display refresh rate. On a 60Hz display (assumed
+    // for typical Android handhelds), eglSwapBuffers below will block at 60Hz while
+    // this throttle prevents busy-waiting. The small rate difference is handled by
+    // DynamicRateControl audio drift correction.
     g_frame_throttle.set_frame_rate(Emulator::IsPAL()
         ? PAL_PROGRESSIVE_FRAME_RATE
         : NTSC_PROGRESSIVE_FRAME_RATE);
