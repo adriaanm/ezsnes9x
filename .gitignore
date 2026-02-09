@@ -511,3 +511,7 @@ profile
 *.jpg
 *.raw
 
+# CMake build directories
+/build/
+/build-android/
+
