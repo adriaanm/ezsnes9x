@@ -25,6 +25,7 @@
 
 #include <cstring>
 #include <string>
+#include <cmath>
 
 #define LOG_TAG "snes9x"
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO,  LOG_TAG, __VA_ARGS__)
@@ -509,14 +510,17 @@ static void StopAudio()
 
 static uint16_t g_pad_buttons = 0;
 
-// Touch gesture tracking for pause (single tap) and rewind (double-tap hold)
+// Touch gesture tracking for pause (two-finger tap) and rewind (two-finger swipe)
 static struct TouchState {
-    int64_t last_tap_time = 0;
-    float last_tap_x = 0.0f;
-    float last_tap_y = 0.0f;
-    int tap_count = 0;
-    bool is_holding = false;
-    int64_t hold_start_time = 0;
+    int activePointerCount = 0;
+    float pointerX[2] = {0.0f, 0.0f};
+    float pointerY[2] = {0.0f, 0.0f};
+    float initialX[2] = {0.0f, 0.0f};  // Initial positions for tap detection
+    float initialY[2] = {0.0f, 0.0f};
+    float swipeStartX = 0.0f;
+    bool twoFingerTapDetected = false;
+    int64_t twoFingerTapTime = 0;
+    bool rewinding = false;
 } g_touch;
 
 static void UpdateRewindState(bool rewindRequested)
@@ -577,92 +581,148 @@ static int32_t HandleInputEvent(struct android_app *app, AInputEvent *event)
     if (type == AINPUT_EVENT_TYPE_MOTION) {
         int32_t source = AInputEvent_getSource(event);
 
-        // Handle touchscreen events (tap to pause, double-tap hold to rewind)
+        // Handle touchscreen events (two-finger tap to pause, two-finger swipe to rewind)
         if (source & AINPUT_SOURCE_TOUCHSCREEN) {
             int32_t action = AMotionEvent_getAction(event);
             int32_t actionCode = action & AMOTION_EVENT_ACTION_MASK;
+            int32_t pointerIndex = (action >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT) & 0xff;
+            int32_t pointerCount = AMotionEvent_getPointerCount(event);
             int64_t eventTime = AMotionEvent_getEventTime(event);
-            float x = AMotionEvent_getX(event, 0);
-            float y = AMotionEvent_getY(event, 0);
 
-            // Constants for gesture detection (times in nanoseconds)
-            static constexpr int64_t DOUBLE_TAP_TIMEOUT_NS = 300000000;  // 300 ms
-            static constexpr int64_t DOUBLE_TAP_DISTANCE = 100; // squared distance in pixels
-            static constexpr int64_t HOLD_DELAY_NS = 200000000;  // 200 ms
+            // Constants for gesture detection
+            static constexpr int64_t TWO_FINGER_TAP_TIMEOUT_NS = 300000000;  // 300 ms
+            static constexpr float TWO_FINGER_TAP_DISTANCE = 50.0f; // max movement for tap (pixels)
+            static constexpr float SWIPE_THRESHOLD = 100.0f; // min swipe distance to activate rewind (pixels)
+            static constexpr float SWIPE_CANCEL_THRESHOLD = 30.0f; // min swipe distance to cancel rewind (pixels)
 
             switch (actionCode) {
-                case AMOTION_EVENT_ACTION_DOWN: {
-                    // Check if this is a double tap
-                    int64_t time_diff = eventTime - g_touch.last_tap_time;
-                    float dx = x - g_touch.last_tap_x;
-                    float dy = y - g_touch.last_tap_y;
-                    float dist_sq = dx * dx + dy * dy;
-
-                    if (time_diff < DOUBLE_TAP_TIMEOUT_NS && dist_sq < DOUBLE_TAP_DISTANCE) {
-                        // Double tap detected - start watching for hold
-                        g_touch.tap_count = 2;
-                        g_touch.hold_start_time = eventTime;
-                        g_touch.is_holding = false;
-                    } else {
-                        // First or isolated tap
-                        g_touch.tap_count = 1;
+                case AMOTION_EVENT_ACTION_DOWN:
+                case AMOTION_EVENT_ACTION_POINTER_DOWN: {
+                    g_touch.activePointerCount = pointerCount;
+                    if (pointerCount <= 2) {
+                        // Track current and initial pointer positions
+                        for (int i = 0; i < pointerCount; i++) {
+                            g_touch.pointerX[i] = AMotionEvent_getX(event, i);
+                            g_touch.pointerY[i] = AMotionEvent_getY(event, i);
+                            g_touch.initialX[i] = g_touch.pointerX[i];
+                            g_touch.initialY[i] = g_touch.pointerY[i];
+                        }
+                        // Initialize gesture tracking when second finger goes down
+                        if (pointerCount == 2) {
+                            // Use average X position as swipe reference point
+                            g_touch.swipeStartX = (g_touch.pointerX[0] + g_touch.pointerX[1]) / 2.0f;
+                            g_touch.twoFingerTapDetected = true;
+                            g_touch.twoFingerTapTime = eventTime;
+                            g_touch.rewinding = false;
+                        }
                     }
                     break;
                 }
 
-                case AMOTION_EVENT_ACTION_UP: {
-                    if (g_touch.tap_count == 2 && !g_touch.is_holding) {
-                        // Double tap released before hold threshold - treat as toggle pause
-                        g_paused = !g_paused;
-                        LOGI("Pause %s", g_paused ? "enabled" : "disabled");
-                    } else if (g_touch.tap_count == 1) {
-                        // Single tap - check it wasn't actually the start of a double tap
-                        int64_t time_diff = eventTime - g_touch.last_tap_time;
-                        float dx = x - g_touch.last_tap_x;
-                        float dy = y - g_touch.last_tap_y;
-                        float dist_sq = dx * dx + dy * dy;
+                case AMOTION_EVENT_ACTION_MOVE: {
+                    if (g_touch.activePointerCount == 2) {
+                        // Update pointer positions
+                        for (int i = 0; i < 2; i++) {
+                            g_touch.pointerX[i] = AMotionEvent_getX(event, i);
+                            g_touch.pointerY[i] = AMotionEvent_getY(event, i);
+                        }
 
-                        if (time_diff >= DOUBLE_TAP_TIMEOUT_NS || dist_sq >= DOUBLE_TAP_DISTANCE) {
-                            // Confirmed single tap - toggle pause
-                            g_paused = !g_paused;
-                            LOGI("Pause %s", g_paused ? "enabled" : "disabled");
+                        // Check for swipe gesture (right to left)
+                        float avgX = (g_touch.pointerX[0] + g_touch.pointerX[1]) / 2.0f;
+                        float swipeDelta = g_touch.swipeStartX - avgX;
+
+                        if (swipeDelta > SWIPE_THRESHOLD) {
+                            // Swiping/holding left - activate/maintain rewind
+                            if (!g_touch.rewinding) {
+                                g_touch.rewinding = true;
+                                UpdateRewindState(true);
+                                LOGI("Rewind activated by two-finger swipe left (delta: %.1f)", swipeDelta);
+                                g_touch.twoFingerTapDetected = false; // Cancel tap detection
+                            }
+                            // Keep rewinding as long as fingers stay to the left
+                        } else if (swipeDelta < -SWIPE_CANCEL_THRESHOLD) {
+                            // Swiped back right enough - stop rewind
+                            if (g_touch.rewinding) {
+                                g_touch.rewinding = false;
+                                UpdateRewindState(false);
+                                LOGI("Rewind stopped by two-finger swipe right");
+                            }
+                        }
+
+                        // Check if fingers moved too much for tap detection
+                        if (g_touch.twoFingerTapDetected) {
+                            float maxMovement = 0.0f;
+                            for (int i = 0; i < 2; i++) {
+                                float dx = g_touch.pointerX[i] - g_touch.initialX[i];
+                                float dy = g_touch.pointerY[i] - g_touch.initialY[i];
+                                float movement = sqrtf(dx * dx + dy * dy);
+                                if (movement > maxMovement) {
+                                    maxMovement = movement;
+                                }
+                            }
+                            // Cancel tap if fingers moved too much
+                            if (maxMovement > TWO_FINGER_TAP_DISTANCE) {
+                                g_touch.twoFingerTapDetected = false;
+                            }
+                        }
+                    }
+                    break;
+                }
+
+                case AMOTION_EVENT_ACTION_UP:
+                case AMOTION_EVENT_ACTION_POINTER_UP: {
+                    int newCount = pointerCount - 1;
+                    g_touch.activePointerCount = newCount;
+
+                    // Check for two-finger tap when lifting a finger from 2-finger gesture
+                    if (pointerCount == 2 && g_touch.twoFingerTapDetected && !g_touch.rewinding) {
+                        // Verify it was quick (within timeout)
+                        int64_t elapsed = eventTime - g_touch.twoFingerTapTime;
+                        if (elapsed < TWO_FINGER_TAP_TIMEOUT_NS) {
+                            // Verify fingers didn't move much (already checked in MOVE, but double-check)
+                            float maxMovement = 0.0f;
+                            for (int i = 0; i < 2; i++) {
+                                float dx = g_touch.pointerX[i] - g_touch.initialX[i];
+                                float dy = g_touch.pointerY[i] - g_touch.initialY[i];
+                                float movement = sqrtf(dx * dx + dy * dy);
+                                if (movement > maxMovement) {
+                                    maxMovement = movement;
+                                }
+                            }
+
+                            if (maxMovement < TWO_FINGER_TAP_DISTANCE) {
+                                // Two-finger tap detected!
+                                g_paused = !g_paused;
+                                LOGI("Pause %s by two-finger tap (movement: %.1fpx, time: %lldms)",
+                                     g_paused ? "enabled" : "disabled",
+                                     maxMovement, elapsed / 1000000LL);
+                            }
                         }
                     }
 
-                    // Stop rewinding if we were
-                    if (g_touch.is_holding) {
+                    // Stop rewind if we're down to 0 or 1 fingers
+                    if (newCount < 2 && g_touch.rewinding) {
+                        g_touch.rewinding = false;
                         UpdateRewindState(false);
-                        g_touch.is_holding = false;
+                        LOGI("Rewind stopped (fingers lifted)");
                     }
 
-                    // Record this tap for potential double-tap detection
-                    g_touch.last_tap_time = eventTime;
-                    g_touch.last_tap_x = x;
-                    g_touch.last_tap_y = y;
-                    g_touch.tap_count = 0;
+                    g_touch.twoFingerTapDetected = false;
                     break;
                 }
 
                 case AMOTION_EVENT_ACTION_CANCEL:
                     // Cancel any ongoing gesture
-                    if (g_touch.is_holding) {
+                    if (g_touch.rewinding) {
                         UpdateRewindState(false);
-                        g_touch.is_holding = false;
+                        g_touch.rewinding = false;
                     }
-                    g_touch.tap_count = 0;
+                    g_touch.twoFingerTapDetected = false;
+                    g_touch.activePointerCount = 0;
                     break;
 
                 default:
                     break;
-            }
-
-            // Check for hold during double-tap
-            if (g_touch.tap_count == 2 && !g_touch.is_holding) {
-                if (eventTime - g_touch.hold_start_time >= HOLD_DELAY_NS) {
-                    g_touch.is_holding = true;
-                    UpdateRewindState(true);
-                    LOGI("Rewind triggered by double-tap hold");
-                }
             }
 
             return 1;
