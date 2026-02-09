@@ -6,65 +6,38 @@ This is a fork of [Snes9x](https://github.com/snes9xgit/snes9x) focused on a "pl
 - **macOS** — Metal rendering, GCController input
 - **Android gaming handhelds** — OpenGL ES, gamepad input
 
+See **[BUILD.md](BUILD.md)** for build instructions.
+
 ## Philosophy
 
 - **No UI complexity**: No menus, configuration screens, or on-screen displays
 - **Gamepad-only**: Keyboard for development/testing, but designed for controllers
 - **Two quality-of-life features**:
   - **Suspend/Resume**: Automatic save state on app suspend
-  - **Rewind**: 30-second rewind buffer (hold L2/ZL trigger)
+  - **Rewind**: 30-second rewind buffer
 - **External configuration**: YAML config file, ROM specified at launch
 - **Modern codebase**: Removed debugger, netplay, movie recording, cheats, light gun support, display overlays, compressed ROM loading, CPU overclock, turbo mode, screenshots
 
-## Building
+## Quick Start
 
-### macOS
-
+**macOS:**
 ```bash
+# Build (see BUILD.md for details)
 cmake -G "Unix Makefiles" -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build -j$(sysctl -n hw.ncpu)
-./build/platform/macos/snes9x-macos.app/Contents/MacOS/snes9x-macos path/to/rom.sfc
+
+# Run
+open build/platform/macos/snes9x-macos.app
 ```
 
-Optional flags:
-- `--config path/to/config.yaml` — Load configuration file
-- `--debug` — Enable debug logging
-- `--no-rewind` — Disable rewind feature
-
-### Android
-
-#### Prerequisites
-
-- Android SDK with NDK r27+ (Android Studio, or SDK with NDK via `sdkmanager`)
-- Java 17+ (for Gradle)
-- Gradle (or use Gradle Wrapper)
-
-#### Build APK
-
+**Android:**
 ```bash
-# Create local.properties with SDK/NDK paths
-echo "sdk.dir=$HOME/Library/Android/sdk" > local.properties  # macOS
-echo "sdk.dir=$HOME/Android/Sdk" > local.properties         # Linux
+# Build (see BUILD.md for prerequisites)
+gradle assembleRelease
+adb install -r app-android/build/outputs/apk/release/app-android-release.apk
 
-# Build debug APK
-gradle assembleDebug
-# Or: ./gradlew assembleDebug  (if using Gradle Wrapper)
+# Open any .sfc file from your file manager
 ```
-
-**Output:** `app-android/build/outputs/apk/debug/app-android-debug.apk` (~6MB)
-
-#### Installation
-
-```bash
-# Install APK
-adb install app-android/build/outputs/apk/debug/app-android-debug.apk
-
-# Launch via file manager: open any .sfc/.smc/.fig/.swc file
-# Or launch directly:
-adb shell am start -n com.snes9x.emulator/.EmulatorActivity
-```
-
-The app supports opening ROMs directly from any file manager (uses VIEW intent with file:// URIs).
 
 ## Configuration
 
@@ -123,8 +96,8 @@ Config file is searched in order:
 ### macOS
 
 **Keyboard** (configurable, see Configuration section):
-- Default mapping: Arrow keys for D-pad, A/W/X/D for Y/X/B/A buttons, Q/P for L/R shoulders, Enter/Space for Start/Select
-- **Backspace**: Rewind (hold to rewind, release to resume)
+- Default mapping: Arrow keys for D-pad, D/W/A/X for Y/X/B/A buttons, Q/P for L/R shoulders, Enter/Space for Start/Select
+- **Backspace**: Rewind (hold to rewind time, release to resume)
 
 **Game Controller**:
 - D-pad: D-pad
@@ -132,10 +105,10 @@ Config file is searched in order:
 - L1/R1: SNES L/R
 - Menu: Start
 - Options: Select
-- **L2/ZL**: Rewind (hold to rewind, release to resume)
+- **L2/ZL**: Rewind (hold to rewind time, release to resume)
 
 **Mouse**:
-- Click: Toggle pause
+- Click: Pause/unpause (toggle)
 
 ### Android
 
@@ -144,7 +117,11 @@ Config file is searched in order:
 - A/B/X/Y: SNES A/B/X/Y
 - L1/R1: SNES L/R
 - Start/Select: Start/Select
-- **L2**: Rewind (hold to rewind, release to resume)
+- **L2**: Rewind (hold to rewind time, release to resume)
+
+**Touch Gestures**:
+- **Two-finger tap**: Pause/unpause (toggle)
+- **Two-finger swipe right-to-left**: Rewind (swipe and hold left, or hold L2)
 
 No touch controls or on-screen buttons. Physical gamepad required.
 
