@@ -466,8 +466,18 @@ static void HandleKeyEvent(NSEvent *event, BOOL pressed) {
     MTKView *mtkView = (MTKView *)self.view;
     mtkView.device = self.device;
     mtkView.delegate = self;
+
+    // Set vsync-enabled frame rate to match SNES timing. MTKView with delegate
+    // uses the display's refresh rate as the master clock (vsync throttle strategy).
+    // The small difference between display rate (typically 60Hz) and SNES rate
+    // (60.0988Hz NTSC) is handled by DynamicRateControl audio drift correction.
     mtkView.preferredFramesPerSecond = Settings.PAL ? 50 : 60;
     mtkView.colorPixelFormat = MTLPixelFormatBGRA8Unorm;
+
+    // Ensure vsync is enabled by using timer-based redraw (delegate-driven)
+    // rather than manual setNeedsDisplay calls. This is equivalent to
+    // CAMetalLayer.displaySyncEnabled = YES.
+    mtkView.enableSetNeedsDisplay = NO;
 
     self.commandQueue = [self.device newCommandQueue];
 
