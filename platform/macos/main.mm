@@ -914,37 +914,6 @@ static void HandleKeyEvent(NSEvent *event, BOOL pressed) {
 @end
 
 // ---------------------------------------------------------------------------
-// Port interface stubs — platform-specific (macOS)
-// ---------------------------------------------------------------------------
-
-bool8 S9xInitUpdate()
-{
-    return true;
-}
-
-bool8 S9xDeinitUpdate(int width, int height)
-{
-    EmulatorSetFrameSize(width, height);
-    return true;
-}
-
-bool8 S9xContinueUpdate(int width, int height)
-{
-    EmulatorSetFrameSize(width, height);
-    return true;
-}
-
-void S9xSyncSpeed()
-{
-    // MTKView's preferredFramesPerSecond handles timing
-}
-
-bool8 S9xOpenSoundDevice()
-{
-    return true;
-}
-
-// ---------------------------------------------------------------------------
 // main
 // ---------------------------------------------------------------------------
 

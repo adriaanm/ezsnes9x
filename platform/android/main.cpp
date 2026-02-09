@@ -626,33 +626,3 @@ void android_main(struct android_app *app)
     TeardownEGL();
 }
 
-// ---------------------------------------------------------------------------
-// Port interface stubs — platform-specific (Android)
-// ---------------------------------------------------------------------------
-
-bool8 S9xInitUpdate()
-{
-    return true;
-}
-
-bool8 S9xDeinitUpdate(int width, int height)
-{
-    EmulatorSetFrameSize(width, height);
-    return true;
-}
-
-bool8 S9xContinueUpdate(int width, int height)
-{
-    EmulatorSetFrameSize(width, height);
-    return true;
-}
-
-void S9xSyncSpeed()
-{
-    // EGL swap interval handles timing
-}
-
-bool8 S9xOpenSoundDevice()
-{
-    return true;
-}

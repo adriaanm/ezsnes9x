@@ -164,6 +164,21 @@ No touch controls or on-screen buttons. Physical gamepad required.
 - macOS frontend: ✅ Complete (Metal, AVAudioEngine, GCController, suspend/resume, rewind with progress bar)
 - Android frontend: ✅ Complete (OpenGL ES 3.0, Oboe audio, NativeActivity, gamepad input, suspend/resume, rewind)
 
+## Collection Manager
+
+A Python tool to organize personal ROM collections. It scans a directory of `.sfc` files, extracts game names from ROM headers, runs headless emulation to capture title screen screenshots, and outputs a flat directory of normalized filenames with PNGs alongside each ROM.
+
+```bash
+# Build the headless shared library
+cmake -G "Unix Makefiles" -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build -j$(sysctl -n hw.ncpu)
+
+# Run (uv auto-installs dependencies)
+uv run tools/collection_manager.py /path/to/roms --output-dir /path/to/output --copy-roms
+```
+
+Use `--override "GAME_NAME=15"` to set a fixed capture time (in seconds) for games whose title screens don't stabilize automatically. See `docs/collection-manager.md` for details.
+
 ## Architecture
 
 ```
@@ -177,6 +192,7 @@ snes9x/
 ├── platform/
 │   ├── shared/              # Shared emulator wrapper API
 │   │   ├── emulator.cpp/h   # Init, run frame, rewind, suspend/resume
+│   │   └── headless.cpp     # extern "C" API for ctypes/FFI
 │   ├── macos/               # macOS Metal frontend
 │   │   └── main.mm          # Single-file Metal+Audio+Input app
 │   └── android/             # Android OpenGL ES frontend
@@ -184,11 +200,13 @@ snes9x/
 │       └── CMakeLists.txt   # Native library build (links Oboe)
 ├── app-android/             # Android app module (Gradle/Kotlin)
 │   └── src/main/            # AndroidManifest, EmulatorActivity.kt
+├── tools/
+│   └── collection_manager.py  # ROM collection organizer (Python/ctypes)
 ├── build.gradle.kts         # Root Gradle build (Android)
 └── data/                    # Resources (icons, etc.)
 ```
 
-The core emulator builds as a static library (`libsnes9x-core.a`). Platform frontends link against it and implement 5 port interface functions (`S9xInitUpdate`, `S9xDeinitUpdate`, `S9xContinueUpdate`, `S9xSyncSpeed`, `S9xOpenSoundDevice`).
+The core emulator builds as a static library (`libsnes9x-core.a`). Platform frontends link against it. The shared emulator wrapper (`emulator.cpp`) provides the high-level API and implements the 5 port interface functions. A headless shared library (`libsnes9x-headless.dylib`) exposes this API via `extern "C"` for scripting with Python/ctypes.
 
 ## Documentation
 

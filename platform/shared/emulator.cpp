@@ -286,6 +286,37 @@ void EmulatorSetFrameSize(int width, int height)
 }
 
 // ---------------------------------------------------------------------------
+// Port interface: platform-specific stubs (identical across all frontends)
+// ---------------------------------------------------------------------------
+
+bool8 S9xInitUpdate()
+{
+    return true;
+}
+
+bool8 S9xDeinitUpdate(int width, int height)
+{
+    EmulatorSetFrameSize(width, height);
+    return true;
+}
+
+bool8 S9xContinueUpdate(int width, int height)
+{
+    EmulatorSetFrameSize(width, height);
+    return true;
+}
+
+void S9xSyncSpeed()
+{
+    // vsync handles timing
+}
+
+bool8 S9xOpenSoundDevice()
+{
+    return true;
+}
+
+// ---------------------------------------------------------------------------
 // Port interface: shared stubs (platform-independent)
 // ---------------------------------------------------------------------------
 

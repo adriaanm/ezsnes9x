@@ -126,6 +126,19 @@ if(SANITIZE)
     message(STATUS "Sanitizers enabled: ${SANITIZE}")
 endif()
 
+# ---------------------------------------------------------------------------
+# Headless shared library (for Python ctypes / scripting)
+# ---------------------------------------------------------------------------
+add_library(snes9x-headless SHARED
+    platform/shared/emulator.cpp
+    platform/shared/headless.cpp
+)
+target_link_libraries(snes9x-headless PRIVATE snes9x-core)
+target_include_directories(snes9x-headless PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/apu
+)
+
 # Platform frontends
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/platform/macos/CMakeLists.txt" AND APPLE)
     add_subdirectory(platform/macos)
