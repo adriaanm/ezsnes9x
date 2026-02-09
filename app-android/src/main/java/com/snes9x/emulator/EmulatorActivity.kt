@@ -37,11 +37,17 @@ class EmulatorActivity : NativeActivity() {
                 }
                 "content" -> {
                     // Content URI (modern Android file picker)
-                    // Take persistent permission so we can access later
-                    contentResolver.takePersistableUriPermission(
-                        uri,
-                        Intent.FLAG_GRANT_READ_URI_PERMISSION
-                    )
+                    // Take persistent permission if available
+                    val flags = intent.flags and Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    try {
+                        contentResolver.takePersistableUriPermission(
+                            uri,
+                            Intent.FLAG_GRANT_READ_URI_PERMISSION
+                        )
+                    } catch (e: SecurityException) {
+                        // Not all URIs support persistable permissions (e.g., Downloads)
+                        // We'll just access it immediately below
+                    }
                     // Copy to internal storage for native code access
                     copyUriToInternalStorage(uri)
                 }
