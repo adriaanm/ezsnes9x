@@ -44,6 +44,7 @@ static struct android_app *g_app = nullptr;
 static bool g_running   = false;
 static bool g_has_focus = false;
 static bool g_rewinding = false;
+static bool g_paused    = false;
 
 // EGL state
 static EGLDisplay g_egl_display = EGL_NO_DISPLAY;
@@ -344,6 +345,16 @@ static void StopAudio()
 
 static uint16_t g_pad_buttons = 0;
 
+// Touch gesture tracking for pause (single tap) and rewind (double-tap hold)
+static struct TouchState {
+    int64_t last_tap_time = 0;
+    float last_tap_x = 0.0f;
+    float last_tap_y = 0.0f;
+    int tap_count = 0;
+    bool is_holding = false;
+    int64_t hold_start_time = 0;
+} g_touch;
+
 static void UpdateRewindState(bool rewindRequested)
 {
     if (rewindRequested && !Emulator::IsRewinding()) {
@@ -401,6 +412,99 @@ static int32_t HandleInputEvent(struct android_app *app, AInputEvent *event)
 
     if (type == AINPUT_EVENT_TYPE_MOTION) {
         int32_t source = AInputEvent_getSource(event);
+
+        // Handle touchscreen events (tap to pause, double-tap hold to rewind)
+        if (source & AINPUT_SOURCE_TOUCHSCREEN) {
+            int32_t action = AMotionEvent_getAction(event);
+            int32_t actionCode = action & AMOTION_EVENT_ACTION_MASK;
+            int64_t eventTime = AMotionEvent_getEventTime(event);
+            float x = AMotionEvent_getX(event, 0);
+            float y = AMotionEvent_getY(event, 0);
+
+            // Constants for gesture detection (times in nanoseconds)
+            static constexpr int64_t DOUBLE_TAP_TIMEOUT_NS = 300000000;  // 300 ms
+            static constexpr int64_t DOUBLE_TAP_DISTANCE = 100; // squared distance in pixels
+            static constexpr int64_t HOLD_DELAY_NS = 200000000;  // 200 ms
+
+            switch (actionCode) {
+                case AMOTION_EVENT_ACTION_DOWN: {
+                    // Check if this is a double tap
+                    int64_t time_diff = eventTime - g_touch.last_tap_time;
+                    float dx = x - g_touch.last_tap_x;
+                    float dy = y - g_touch.last_tap_y;
+                    float dist_sq = dx * dx + dy * dy;
+
+                    if (time_diff < DOUBLE_TAP_TIMEOUT_NS && dist_sq < DOUBLE_TAP_DISTANCE) {
+                        // Double tap detected - start watching for hold
+                        g_touch.tap_count = 2;
+                        g_touch.hold_start_time = eventTime;
+                        g_touch.is_holding = false;
+                    } else {
+                        // First or isolated tap
+                        g_touch.tap_count = 1;
+                    }
+                    break;
+                }
+
+                case AMOTION_EVENT_ACTION_UP: {
+                    if (g_touch.tap_count == 2 && !g_touch.is_holding) {
+                        // Double tap released before hold threshold - treat as toggle pause
+                        g_paused = !g_paused;
+                        LOGI("Pause %s", g_paused ? "enabled" : "disabled");
+                    } else if (g_touch.tap_count == 1) {
+                        // Single tap - check it wasn't actually the start of a double tap
+                        int64_t time_diff = eventTime - g_touch.last_tap_time;
+                        float dx = x - g_touch.last_tap_x;
+                        float dy = y - g_touch.last_tap_y;
+                        float dist_sq = dx * dx + dy * dy;
+
+                        if (time_diff >= DOUBLE_TAP_TIMEOUT_NS || dist_sq >= DOUBLE_TAP_DISTANCE) {
+                            // Confirmed single tap - toggle pause
+                            g_paused = !g_paused;
+                            LOGI("Pause %s", g_paused ? "enabled" : "disabled");
+                        }
+                    }
+
+                    // Stop rewinding if we were
+                    if (g_touch.is_holding) {
+                        UpdateRewindState(false);
+                        g_touch.is_holding = false;
+                    }
+
+                    // Record this tap for potential double-tap detection
+                    g_touch.last_tap_time = eventTime;
+                    g_touch.last_tap_x = x;
+                    g_touch.last_tap_y = y;
+                    g_touch.tap_count = 0;
+                    break;
+                }
+
+                case AMOTION_EVENT_ACTION_CANCEL:
+                    // Cancel any ongoing gesture
+                    if (g_touch.is_holding) {
+                        UpdateRewindState(false);
+                        g_touch.is_holding = false;
+                    }
+                    g_touch.tap_count = 0;
+                    break;
+
+                default:
+                    break;
+            }
+
+            // Check for hold during double-tap
+            if (g_touch.tap_count == 2 && !g_touch.is_holding) {
+                if (eventTime - g_touch.hold_start_time >= HOLD_DELAY_NS) {
+                    g_touch.is_holding = true;
+                    UpdateRewindState(true);
+                    LOGI("Rewind triggered by double-tap hold");
+                }
+            }
+
+            return 1;
+        }
+
+        // Handle joystick/gamepad events
         if ((source & AINPUT_SOURCE_JOYSTICK) == 0)
             return 0;
 
@@ -524,13 +628,13 @@ static void HandleAppCmd(struct android_app *app, int32_t cmd)
 
         case APP_CMD_GAINED_FOCUS:
             g_has_focus = true;
-            if (g_running)
+            if (g_running && !g_paused)
                 Emulator::Resume();
             break;
 
         case APP_CMD_LOST_FOCUS:
             g_has_focus = false;
-            if (g_running)
+            if (g_running && !g_paused)
                 Emulator::Suspend();
             break;
 
@@ -605,11 +709,13 @@ void android_main(struct android_app *app)
         if (app->destroyRequested) break;
 
         if (g_running && g_has_focus && g_egl_display != EGL_NO_DISPLAY) {
-            // Run one frame
-            if (Emulator::IsRewinding()) {
-                Emulator::RewindTick();
-            } else {
-                Emulator::RunFrame();
+            // Run one frame (skip if paused)
+            if (!g_paused) {
+                if (Emulator::IsRewinding()) {
+                    Emulator::RewindTick();
+                } else {
+                    Emulator::RunFrame();
+                }
             }
 
             RenderFrame();
