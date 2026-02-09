@@ -5,7 +5,7 @@
     <key>CFBundleDevelopmentRegion</key>
     <string>en</string>
     <key>CFBundleExecutable</key>
-    <string>$(EXECUTABLE_NAME)</string>
+    <string>snes9x-macos</string>
     <key>CFBundleIdentifier</key>
     <string>com.snes9x.emulator</string>
     <key>CFBundleInfoDictionaryVersion</key>
