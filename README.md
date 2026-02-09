@@ -33,7 +33,90 @@ Optional flags:
 
 ### Android
 
-*Coming soon*
+#### Prerequisites
+
+- Android NDK r27+ (download from [developer.android.com/ndk/downloads](https://developer.android.com/ndk/downloads))
+- CMake 3.20+
+- Clang/LLVM (for cross-compilation)
+- Git (for fetching Oboe dependency)
+
+#### macOS Host
+
+```bash
+# Install NDK (download from link above and extract)
+unzip android-ndk-r27c-darwin.zip -d /opt
+
+# Clone Oboe dependency (FetchContent fails in cross-compile)
+git clone --depth 1 --branch 1.9.0 https://github.com/google/oboe.git /tmp/oboe
+
+# Configure
+cmake -B build-android \
+  -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK/build/cmake/android.toolchain.cmake \
+  -DANDROID_ABI=arm64-v8a \
+  -DANDROID_PLATFORM=android-30 \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DFETCHCONTENT_SOURCE_DIR_OBOE=/tmp/oboe
+
+# Build
+cmake --build build-android -j$(sysctl -n hw.ncpu)
+
+# Build APK (from platform/android directory)
+cd platform/android && ./gradlew assembleDebug
+```
+
+#### Linux Host (x86_64 or aarch64)
+
+For **x86_64 Linux**, use the official NDK toolchain as shown above for macOS.
+
+For **aarch64 Linux** (ARM64 hosts), the official NDK doesn't provide prebuilt binaries. Use the host clang with the NDK sysroot:
+
+```bash
+# Download NDK (x86_64 version - we only need the sysroot)
+wget https://dl.google.com/android/repository/android-ndk-r27c-linux.zip
+unzip android-ndk-r27c-linux.zip -d /opt
+
+# Create libgcc.a stub (NDK provides libclang_rt.builtins instead)
+echo 'INPUT(-lclang_rt.builtins-aarch64-android)' > \
+  /opt/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/30/libgcc.a
+
+# Install host clang if not present
+sudo apt-get install clang lld  # Debian/Ubuntu
+# or: brew install llvm           # Homebrew (if on Linux ARM)
+
+# Clone Oboe dependency
+git clone --depth 1 --branch 1.9.0 https://github.com/google/oboe.git /tmp/oboe
+
+# Configure with custom toolchain
+cmake -B build-android \
+  -DCMAKE_TOOLCHAIN_FILE=platform/android/toolchain.cmake \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DFETCHCONTENT_SOURCE_DIR_OBOE=/tmp/oboe
+
+# Build
+cmake --build build-android -j$(nproc)
+
+# Build APK (from platform/android directory)
+cd platform/android && ./gradlew assembleDebug
+```
+
+**Output:**
+- Native library: `build-android/platform/android/libsnes9x.so` (2.6MB ARM64 ELF)
+- APK: `platform/android/app/build/outputs/apk/debug/app-debug.apk`
+
+#### Installation
+
+```bash
+# Install APK on device
+adb install platform/android/app/build/outputs/apk/debug/app-debug.apk
+
+# Push ROM to device
+adb push path/to/rom.sfc /sdcard/rom.sfc
+
+# Launch (ROM path can be passed via intent or defaults to /sdcard/rom.sfc)
+adb shell am start -n com.snes9x.emulator/.EmulatorActivity
+```
+
+For file manager integration, open `.sfc`/`.smc`/`.fig`/`.swc` files with the Snes9x app.
 
 ## Configuration
 
@@ -106,6 +189,17 @@ Config file is searched in order:
 **Mouse**:
 - Click: Toggle pause
 
+### Android
+
+**Built-in Gamepad** (Retroid Pocket, Anbernic, etc.):
+- D-pad: D-pad
+- A/B/X/Y: SNES A/B/X/Y
+- L1/R1: SNES L/R
+- Start/Select: Start/Select
+- **L2**: Rewind (hold to rewind, release to resume)
+
+No touch controls or on-screen buttons. Physical gamepad required.
+
 ## Project Status
 
 **Phase 1** (Strip Core): ✅ Complete
@@ -118,9 +212,9 @@ Config file is searched in order:
 - XOR-delta compressed rewind engine (600 snapshots, ~30 seconds)
 - Deleted all old frontends and most external dependencies
 
-**Phase 3** (New Frontends): 🚧 In Progress
+**Phase 3** (New Frontends): ✅ Complete
 - macOS frontend: ✅ Complete (Metal, AVAudioEngine, GCController, suspend/resume, rewind with progress bar)
-- Android frontend: ⏳ Pending
+- Android frontend: ✅ Complete (OpenGL ES 3.0, Oboe audio, NativeActivity, gamepad input, suspend/resume, rewind)
 
 ## Architecture
 
@@ -135,12 +229,17 @@ snes9x/
 ├── platform/
 │   ├── shared/              # Shared emulator wrapper API
 │   │   ├── emulator.cpp/h   # Init, run frame, rewind, suspend/resume
-│   └── macos/               # macOS Metal frontend
-│       └── main.mm          # Single-file Metal+Audio+Input app
+│   ├── macos/               # macOS Metal frontend
+│   │   └── main.mm          # Single-file Metal+Audio+Input app
+│   └── android/             # Android OpenGL ES frontend
+│       ├── main.cpp         # Single-file NativeActivity app
+│       ├── CMakeLists.txt   # Native library build (links Oboe)
+│       ├── toolchain.cmake  # Cross-compile toolchain (for ARM64 Linux hosts)
+│       └── app/             # Gradle/Kotlin wrapper
 └── data/                    # Resources (icons, etc.)
 ```
 
-The core emulator builds as a static library (`libsnes9x-core`). Platform frontends link against it and implement the port interface functions declared in `display.h`.
+The core emulator builds as a static library (`libsnes9x-core.a`). Platform frontends link against it and implement 5 port interface functions (`S9xInitUpdate`, `S9xDeinitUpdate`, `S9xContinueUpdate`, `S9xSyncSpeed`, `S9xOpenSoundDevice`).
 
 ## Documentation
 
