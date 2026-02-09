@@ -52,9 +52,11 @@ static EGLSurface g_egl_surface = EGL_NO_SURFACE;
 static EGLContext  g_egl_context = EGL_NO_CONTEXT;
 
 // GL state
-static GLuint g_texture  = 0;
-static GLuint g_program  = 0;
-static GLuint g_vao      = 0;
+static GLuint g_texture       = 0;
+static GLuint g_program       = 0;
+static GLuint g_vao           = 0;
+static GLuint g_color_program = 0;  // For overlays
+static GLuint g_color_vbo     = 0;  // Vertex buffer for overlay quads
 static int    g_surface_width  = 0;
 static int    g_surface_height = 0;
 
@@ -88,6 +90,26 @@ out vec4 fragColor;
 uniform sampler2D uTexture;
 void main() {
     fragColor = texture(uTexture, vTexCoord);
+}
+)";
+
+// Simple 2D color shader for overlays (pause indicator, rewind bar)
+static const char *kColorVertexShader = R"(#version 300 es
+in vec2 aPosition;
+uniform vec2 uResolution;
+void main() {
+    // Convert pixel coords to clip space (-1 to 1)
+    vec2 clip = (aPosition / uResolution) * 2.0 - 1.0;
+    gl_Position = vec4(clip.x, -clip.y, 0.0, 1.0);
+}
+)";
+
+static const char *kColorFragmentShader = R"(#version 300 es
+precision mediump float;
+uniform vec4 uColor;
+out vec4 fragColor;
+void main() {
+    fragColor = uColor;
 }
 )";
 
@@ -135,8 +157,31 @@ static bool InitGL()
         return false;
     }
 
+    // Create color overlay program
+    vs = CompileShader(GL_VERTEX_SHADER, kColorVertexShader);
+    fs = CompileShader(GL_FRAGMENT_SHADER, kColorFragmentShader);
+    if (!vs || !fs) return false;
+
+    g_color_program = glCreateProgram();
+    glAttachShader(g_color_program, vs);
+    glAttachShader(g_color_program, fs);
+    glLinkProgram(g_color_program);
+    glDeleteShader(vs);
+    glDeleteShader(fs);
+
+    glGetProgramiv(g_color_program, GL_LINK_STATUS, &ok);
+    if (!ok) {
+        char buf[512];
+        glGetProgramInfoLog(g_color_program, sizeof(buf), nullptr, buf);
+        LOGE("Color program link error: %s", buf);
+        return false;
+    }
+
     // Create VAO (required for ES 3.0, even with no vertex attribs)
     glGenVertexArrays(1, &g_vao);
+
+    // Create VBO for overlay quads
+    glGenBuffers(1, &g_color_vbo);
 
     // Create texture for SNES framebuffer (RGB565)
     glGenTextures(1, &g_texture);
@@ -156,9 +201,11 @@ static bool InitGL()
 
 static void TeardownGL()
 {
-    if (g_texture) { glDeleteTextures(1, &g_texture); g_texture = 0; }
-    if (g_vao)     { glDeleteVertexArrays(1, &g_vao); g_vao = 0; }
-    if (g_program) { glDeleteProgram(g_program); g_program = 0; }
+    if (g_texture)       { glDeleteTextures(1, &g_texture); g_texture = 0; }
+    if (g_vao)           { glDeleteVertexArrays(1, &g_vao); g_vao = 0; }
+    if (g_color_vbo)     { glDeleteBuffers(1, &g_color_vbo); g_color_vbo = 0; }
+    if (g_program)       { glDeleteProgram(g_program); g_program = 0; }
+    if (g_color_program) { glDeleteProgram(g_color_program); g_color_program = 0; }
 }
 
 // ---------------------------------------------------------------------------
@@ -231,6 +278,106 @@ static void TeardownEGL()
 // Rendering
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// Overlay drawing
+// ---------------------------------------------------------------------------
+
+struct Vertex {
+    float x, y;
+};
+
+// Draw a solid color quad (pixel coordinates)
+static void DrawQuad(float x, float y, float w, float h, float r, float g, float b, float a)
+{
+    Vertex verts[6] = {
+        { x,     y },
+        { x + w, y },
+        { x,     y + h },
+        { x,     y + h },
+        { x + w, y },
+        { x + w, y + h }
+    };
+
+    glBindBuffer(GL_ARRAY_BUFFER, g_color_vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_DYNAMIC_DRAW);
+
+    glUseProgram(g_color_program);
+    GLint posLoc = glGetAttribLocation(g_color_program, "aPosition");
+    glEnableVertexAttribArray(posLoc);
+    glVertexAttribPointer(posLoc, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
+
+    glUniform2f(glGetUniformLocation(g_color_program, "uResolution"),
+                (float)g_surface_width, (float)g_surface_height);
+    glUniform4f(glGetUniformLocation(g_color_program, "uColor"), r, g, b, a);
+
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+}
+
+// Draw pause indicator (two vertical bars)
+static void DrawPauseIndicator()
+{
+    float barWidth = 20.0f;
+    float barHeight = 60.0f;
+    float gap = 15.0f;
+    float centerX = g_surface_width / 2.0f - barWidth - gap / 2.0f;
+    float centerY = g_surface_height / 2.0f - barHeight / 2.0f;
+
+    // Semi-transparent dark background
+    DrawQuad(centerX - 10, centerY - 10, (barWidth * 2 + gap + 20), barHeight + 20,
+             0.0f, 0.0f, 0.0f, 0.5f);
+
+    // Two vertical bars (white)
+    DrawQuad(centerX, centerY, barWidth, barHeight, 1.0f, 1.0f, 1.0f, 0.9f);
+    DrawQuad(centerX + barWidth + gap, centerY, barWidth, barHeight, 1.0f, 1.0f, 1.0f, 0.9f);
+}
+
+// Draw rewind progress bar at bottom (<<<<< style)
+static void DrawRewindBar()
+{
+    int depth = Emulator::GetRewindBufferDepth();
+    int pos = Emulator::GetRewindPosition();
+    if (depth <= 0 || pos < 0) return;
+
+    float barHeight = 20.0f;
+    float margin = 20.0f;
+    float barY = g_surface_height - barHeight - margin;
+    float barMaxWidth = g_surface_width * 0.8f;
+    float barX = (g_surface_width - barMaxWidth) / 2.0f;
+
+    // Calculate progress (0.0 = oldest, 1.0 = newest)
+    float progress = (float)pos / (float)(depth - 1);
+    float filledWidth = barMaxWidth * progress;
+
+    // Background bar (dark gray)
+    DrawQuad(barX, barY, barMaxWidth, barHeight, 0.2f, 0.2f, 0.2f, 0.8f);
+
+    // Filled portion (cyan)
+    if (filledWidth > 0) {
+        DrawQuad(barX, barY, filledWidth, barHeight, 0.0f, 1.0f, 1.0f, 0.9f);
+    }
+
+    // Draw arrow indicators (<<<<<) getting shorter as we rewind
+    int numArrows = 8;
+    float arrowWidth = 10.0f;
+    float arrowGap = barMaxWidth / (float)(numArrows + 1);
+
+    for (int i = 0; i < numArrows; i++) {
+        float arrowX = barX + arrowGap * (i + 1) - arrowWidth / 2.0f;
+        // Make arrows fade out near the current position
+        float arrowProgress = (float)i / (float)numArrows;
+        float alpha = (arrowProgress < progress) ? 0.3f : 0.8f;
+
+        // Draw left arrow shape as two triangles
+        float ay = barY + barHeight / 2.0f - 3.0f;
+        float ah = 6.0f;
+        DrawQuad(arrowX, ay, arrowWidth * 0.6f, ah, 1.0f, 1.0f, 1.0f, alpha);
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Rendering
+// ---------------------------------------------------------------------------
+
 static void RenderFrame()
 {
     if (g_egl_display == EGL_NO_DISPLAY) return;
@@ -277,6 +424,13 @@ static void RenderFrame()
     glUniform1i(glGetUniformLocation(g_program, "uTexture"), 0);
 
     glDrawArrays(GL_TRIANGLES, 0, 6);
+
+    // Draw overlays
+    if (g_paused) {
+        DrawPauseIndicator();
+    } else if (Emulator::IsRewinding()) {
+        DrawRewindBar();
+    }
 
     eglSwapBuffers(g_egl_display, g_egl_surface);
 }
