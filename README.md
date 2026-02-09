@@ -96,7 +96,7 @@ Config file is searched in order:
 ### macOS
 
 **Keyboard** (configurable, see Configuration section):
-- Default mapping: Arrow keys for D-pad, D/W/A/X for Y/X/B/A buttons, Q/P for L/R shoulders, Enter/Space for Start/Select
+- Default mapping: Arrow keys for D-pad, D/X/W/A for A/B/X/Y buttons, Q/P for L/R shoulders, Enter/Space for Start/Select
 - **Backspace**: Rewind (hold to rewind time, release to resume)
 
 **Game Controller**:
