@@ -892,6 +892,9 @@ static void HandleKeyEvent(NSEvent *event, BOOL pressed) {
 
 - (void)applicationWillTerminate:(NSNotification *)notification {
     (void)notification;
+    // Save suspend state before quitting (even if app didn't lose focus first)
+    if (g_running)
+        Emulator::Suspend();
     g_running = false;
     [self.audio stop];
     [self.input teardown];

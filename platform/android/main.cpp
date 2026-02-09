@@ -969,6 +969,9 @@ static void HandleAppCmd(struct android_app *app, int32_t cmd)
 
         case APP_CMD_DESTROY:
             if (g_running) {
+                // Save suspend state before quitting (even if app didn't lose focus first)
+                if (!g_paused)
+                    Emulator::Suspend();
                 StopAudio();
                 Emulator::Shutdown();
                 g_running = false;
