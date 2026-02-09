@@ -89,6 +89,16 @@ public:
         advance();
     }
 
+    // Returns frames behind (positive) or ahead (negative)
+    // Useful for detecting when we're running too slowly
+    double get_late_frames() const {
+        auto now = std::chrono::steady_clock::now();
+        auto late_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(
+            now - next_frame_time_
+        ).count();
+        return static_cast<double>(late_ns) / frame_duration_ns_;
+    }
+
     void reset() {
         next_frame_time_ = std::chrono::steady_clock::now();
     }
@@ -123,6 +133,10 @@ static int    g_surface_width  = 0;
 static int    g_surface_height = 0;
 
 static FrameThrottle g_frame_throttle;
+
+// Frame timing diagnostics
+static int g_frame_count = 0;
+static int g_late_frame_count = 0;
 
 // ---------------------------------------------------------------------------
 // OpenGL ES shaders
@@ -518,6 +532,21 @@ static void RenderFrame()
         ? PAL_PROGRESSIVE_FRAME_RATE
         : NTSC_PROGRESSIVE_FRAME_RATE);
     g_frame_throttle.wait_for_frame_and_rebase_time();
+
+    // Check if we're running behind (for diagnostics)
+    g_frame_count++;
+    double late = g_frame_throttle.get_late_frames();
+    if (late >= 1.0) {
+        g_late_frame_count++;
+        // Log every ~5 seconds (at 60fps) if we're consistently late
+        if (g_late_frame_count % 300 == 0) {
+            LOGI("Frame timing: running %.2f frames behind target (%d late frames of %d total)",
+                 late, g_late_frame_count, g_frame_count);
+        }
+    } else if (g_frame_count % 1800 == 0) {
+        // Log status every ~30 seconds when running smoothly
+        LOGI("Frame timing: on schedule (%d frames, %d late)", g_frame_count, g_late_frame_count);
+    }
 
     eglSwapBuffers(g_egl_display, g_egl_surface);
 }
