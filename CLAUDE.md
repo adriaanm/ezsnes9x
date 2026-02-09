@@ -13,15 +13,51 @@ Snes9x is a portable SNES emulator being simplified to target only macOS and And
 
 ## Build Commands
 
+### Host Build (Core Library)
+
 ```bash
-# Configure and build core library
-cmake -G "Unix Makefiles" -B build -DCMAKE_BUILD_TYPE=Release
-cmake --build build -j$(sysctl -n hw.ncpu)
+cmake -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build -j$(nproc)
 ```
 
-There is no test suite. The build itself is the primary verification.
+### Android Cross-Compile (ARM64)
+
+Requires Android NDK r27+. The official NDK doesn't ship for aarch64 Linux hosts — use x86_64 NDK sysroot with host clang:
+
+```bash
+# Download NDK (x86_64 version works — we only need the sysroot)
+wget https://dl.google.com/android/repository/android-ndk-r27c-linux.zip
+unzip android-ndk-r27c-linux.zip -d /opt
+
+# Create libgcc.a stub (NDK provides libclang_rt.builtins instead)
+echo 'INPUT(-lclang_rt.builtins-aarch64-android)' > \
+  /opt/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/30/libgcc.a
+
+# Clone Oboe manually (FetchContent fails with cross-compile sysroot)
+git clone --depth 1 --branch 1.9.0 https://github.com/google/oboe.git /tmp/oboe
+
+# Configure with custom toolchain
+cmake -B build-android \
+  -DCMAKE_TOOLCHAIN_FILE=platform/android/toolchain.cmake \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DFETCHCONTENT_SOURCE_DIR_OBOE=/tmp/oboe
+
+# Build
+cmake --build build-android -j$(nproc)
+```
+
+Output: `build-android/platform/android/libsnes9x.so` (2.6MB, ARM64 ELF)
+
+**Note:** There is no test suite. The build itself is the primary verification.
 
 ## Architecture
+
+### Platform Structure
+
+- **`/` (root):** Core emulation engine — platform-independent, built as static library `libsnes9x-core.a`
+- **`platform/shared/`:** Shared emulator wrapper (`emulator.cpp`) — high-level API used by both frontends
+- **`platform/macos/`:** macOS frontend — Metal + AVAudioEngine + GCController, builds app bundle
+- **`platform/android/`:** Android frontend — OpenGL ES 3.0 + Oboe + NativeActivity, builds `libsnes9x.so`
 
 ### Core Emulation (root directory)
 
@@ -43,14 +79,45 @@ Several files `#include` other `.cpp` files and must NOT be compiled directly. S
 - `srtc.cpp` includes `srtcemu.cpp`
 - `apu/bapu/smp/smp.cpp` includes `algorithms.cpp`, `core.cpp`, etc.
 
-### Port Interface (`display.h`)
+### Port Interface
 
-Platform frontends must implement functions declared in `display.h`: `S9xPutImage()`, `S9xInitDisplay()`, `S9xProcessEvents()`, `S9xOpenSnapshotFile()`, etc.
+Frontends must implement 5 platform-specific port functions:
+
+- **`S9xInitUpdate()`** — Called before frame rendering starts (return true)
+- **`S9xDeinitUpdate(int w, int h)`** — Called after frame rendering completes; `w`/`h` are final dimensions
+- **`S9xContinueUpdate(int w, int h)`** — Called for interlaced fields
+- **`S9xSyncSpeed()`** — Frame rate throttling (no-op if vsync handles it)
+- **`S9xOpenSoundDevice()`** — Audio init (return true)
+
+All other port functions (file I/O, input polling, etc.) are implemented in `platform/shared/emulator.cpp`.
 
 ### Pixel Format
 
 - macOS: `RGB555` (via `__MACOSX__` define)
 - Android/other: `RGB565` (default)
+
+**Important:** The framebuffer pitch is `MAX_SNES_WIDTH` pixels regardless of actual frame width. When uploading to GPU textures, set `GL_UNPACK_ROW_LENGTH` to `MAX_SNES_WIDTH` before calling `glTexSubImage2D()`.
+
+### Android Frontend Details
+
+**Architecture:** Single-file C++ NativeActivity (`platform/android/main.cpp`) with thin Kotlin shim for intent handling.
+
+**Entry points:**
+- `ANativeActivity_onCreate` — Exported from `native_app_glue` static library (linked with `--whole-archive`)
+- `android_main()` — Main loop, called by app glue
+
+**Dependencies:**
+- Oboe (audio) — Fetched via CMake `FetchContent` from GitHub
+- Android NDK — native_app_glue, EGL, GLESv3, android, log
+
+**NDK API usage:**
+- `ALooper_pollOnce()` — Event loop (not `ALooper_pollAll`, which is deprecated in r27+)
+- `AInputEvent` — Gamepad input (`AKEYCODE_BUTTON_*`, `AMOTION_EVENT_AXIS_HAT_*`)
+- JNI — ROM path extraction from `Intent` extras
+
+**Build quirks:**
+- FetchContent's git clone inherits cross-compile sysroot and fails — pre-clone Oboe and use `FETCHCONTENT_SOURCE_DIR_OBOE`
+- NDK provides `libclang_rt.builtins-aarch64-android.a` but CMake looks for `libgcc.a` — create a linker script stub
 
 ## External Dependencies
 
