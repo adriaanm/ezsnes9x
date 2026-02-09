@@ -311,6 +311,10 @@ static void DrawQuad(float x, float y, float w, float h, float r, float g, float
     glUniform4f(glGetUniformLocation(g_color_program, "uColor"), r, g, b, a);
 
     glDrawArrays(GL_TRIANGLES, 0, 6);
+
+    // Clean up: disable vertex attribute array
+    glDisableVertexAttribArray(posLoc);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 // Draw pause indicator (two vertical bars)
@@ -425,12 +429,18 @@ static void RenderFrame()
 
     glDrawArrays(GL_TRIANGLES, 0, 6);
 
-    // Draw overlays
+    // Draw overlays on top of full screen (reset viewport first)
+    glViewport(0, 0, g_surface_width, g_surface_height);
+
     if (g_paused) {
         DrawPauseIndicator();
     } else if (Emulator::IsRewinding()) {
         DrawRewindBar();
     }
+
+    // Reset GL state for next frame
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(g_vao);
 
     eglSwapBuffers(g_egl_display, g_egl_surface);
 }
