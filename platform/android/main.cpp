@@ -524,7 +524,7 @@ void android_main(struct android_app *app)
     int events;
     struct android_poll_source *source;
     while (!app->destroyRequested && !app->window) {
-        ALooper_pollAll(-1, nullptr, &events, (void **)&source);
+        ALooper_pollOnce(-1, nullptr, &events, (void **)&source);
         if (source)
             source->process(app, source);
     }
@@ -560,7 +560,7 @@ void android_main(struct android_app *app)
     // Main loop
     while (!app->destroyRequested) {
         // Process all pending events
-        while (ALooper_pollAll(0, nullptr, &events, (void **)&source) >= 0) {
+        while (ALooper_pollOnce(0, nullptr, &events, (void **)&source) >= 0) {
             if (source)
                 source->process(app, source);
         }
