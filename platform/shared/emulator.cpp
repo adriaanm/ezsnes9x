@@ -23,6 +23,13 @@
 #include <string>
 #include <sys/stat.h>
 
+// Platform-specific timing for frame limiting
+#ifdef __APPLE__
+#include <mach/mach_time.h>
+#else
+#include <time.h>
+#endif
+
 // ---------------------------------------------------------------------------
 // Internal state
 // ---------------------------------------------------------------------------
@@ -34,10 +41,35 @@ static int s_frame_width  = 256;
 static int s_frame_height = 224;
 static bool s_rewinding = false;
 
+// Frame timing state for speed limiting
+#ifdef __APPLE__
+static mach_timebase_info_data_t s_timebase_info;
+static bool s_timebase_initialized = false;
+#endif
+static int64_t s_last_frame_time = 0;
+
 static bool file_exists(const char *path)
 {
     struct stat st;
     return stat(path, &st) == 0;
+}
+
+// Get current time in microseconds
+static int64_t get_time_us()
+{
+#ifdef __APPLE__
+    if (!s_timebase_initialized) {
+        mach_timebase_info(&s_timebase_info);
+        s_timebase_initialized = true;
+    }
+    int64_t time = mach_absolute_time();
+    // Convert to nanoseconds then to microseconds
+    return (time * s_timebase_info.numer / s_timebase_info.denom) / 1000;
+#else
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return (int64_t)ts.tv_sec * 1000000 + ts.tv_nsec / 1000;
+#endif
 }
 
 // ---------------------------------------------------------------------------
@@ -312,7 +344,29 @@ bool8 S9xContinueUpdate(int width, int height)
 
 void S9xSyncSpeed()
 {
-    // vsync handles timing
+    // Frame limiting to maintain correct emulation speed
+    // Settings.FrameTime is in microseconds (16667 for NTSC ~60fps, 20000 for PAL ~50fps)
+    int64_t target_frame_time = Settings.FrameTime;
+    int64_t current_time = get_time_us();
+
+    if (s_last_frame_time > 0) {
+        int64_t elapsed = current_time - s_last_frame_time;
+        int64_t remaining = target_frame_time - elapsed;
+
+        if (remaining > 0) {
+            // Sleep for the remaining time
+#ifdef __APPLE__
+            mach_wait_until(current_time + remaining * 1000);
+#else
+            struct timespec ts;
+            ts.tv_sec = remaining / 1000000;
+            ts.tv_nsec = (remaining % 1000000) * 1000;
+            nanosleep(&ts, nullptr);
+#endif
+        }
+    }
+
+    s_last_frame_time = get_time_us();
 }
 
 bool8 S9xOpenSoundDevice()
