@@ -1,4 +1,4 @@
-# Snes9x — Simplified Fork
+# EZSnes9x
 
 > A stripped-down SNES emulator targeting absolute simplicity with two indulgences: suspend/resume and rewind.
 
@@ -27,7 +27,7 @@ cmake -G "Unix Makefiles" -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build -j$(sysctl -n hw.ncpu)
 
 # Run
-open build/platform/macos/snes9x-macos.app
+open build/platform/macos/ezsnes9x-macos.app
 ```
 
 **Android:**
@@ -87,8 +87,8 @@ save_dir: /path/to/saves
 
 Config file is searched in order:
 1. Path specified with `--config`
-2. Current working directory (`snes9x.yaml`)
-3. `~/.snes9x/config.yaml`
+2. Current working directory (`ezsnes9x.yaml`)
+3. `~/.ezsnes9x/config.yaml`
 4. XDG config directory
 
 ## Controls

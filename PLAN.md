@@ -1,8 +1,8 @@
-# Snes9x Simplification Plan
+# EZSnes9x Simplification Plan
 
 ## Context
 
-Strip snes9x down to a focused, modern emulator targeting only macOS and Android gaming handhelds. "Plug in a cartridge and play" philosophy. Only gamepad input, suspend/resume, and 10-second rewind as modern additions. Configuration is external (YAML), game specified at launch.
+EZSnes9x is a simplified fork of Snes9x, targeting only macOS and Android gaming handhelds. "Plug in a cartridge and play" philosophy. Only gamepad input, suspend/resume, and 10-second rewind as modern additions. Configuration is external (YAML), game specified at launch.
 
 ---
 

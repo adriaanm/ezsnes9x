@@ -1,4 +1,4 @@
-package com.snes9x.emulator
+package com.ezsnes9x.emulator
 
 import android.app.NativeActivity
 import android.content.Intent

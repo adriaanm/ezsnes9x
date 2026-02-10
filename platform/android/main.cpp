@@ -1008,7 +1008,7 @@ void android_main(struct android_app *app)
     std::string romPath = GetRomPathFromIntent(app);
     if (romPath.empty()) {
         // Fallback for development - use app's external storage
-        romPath = "/storage/emulated/0/Android/data/com.snes9x.emulator/files/rom.sfc";
+        romPath = "/storage/emulated/0/Android/data/com.ezsnes9x.emulator/files/rom.sfc";
         LOGI("No ROM in intent, using fallback: %s", romPath.c_str());
     }
 

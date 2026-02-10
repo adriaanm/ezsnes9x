@@ -9,7 +9,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Snes9x is a portable SNES emulator being simplified to target only macOS and Android gaming handhelds. The core emulation engine is platform-independent, built as a static library (`libsnes9x-core`).
+EZSnes9x is a simplified SNES emulator targeting only macOS and Android gaming handhelds. It's a fork of Snes9x focused on simplicity. The core emulation engine is platform-independent, built as a static library (`libsnes9x-core`).
 
 ## Build Commands
 

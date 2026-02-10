@@ -4,12 +4,12 @@ plugins {
 }
 
 android {
-    namespace = "com.snes9x.emulator"
+    namespace = "com.ezsnes9x.emulator"
     compileSdk = 34
     ndkVersion = "27.1.12297006"
 
     defaultConfig {
-        applicationId = "com.snes9x.emulator"
+        applicationId = "com.ezsnes9x.emulator"
         minSdk = 30
         targetSdk = 34
         versionCode = 1

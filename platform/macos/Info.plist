@@ -5,13 +5,13 @@
     <key>CFBundleDevelopmentRegion</key>
     <string>en</string>
     <key>CFBundleExecutable</key>
-    <string>snes9x-macos</string>
+    <string>ezsnes9x-macos</string>
     <key>CFBundleIdentifier</key>
-    <string>com.snes9x.emulator</string>
+    <string>com.ezsnes9x.emulator</string>
     <key>CFBundleInfoDictionaryVersion</key>
     <string>6.0</string>
     <key>CFBundleName</key>
-    <string>Snes9x</string>
+    <string>EZSnes9x</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
