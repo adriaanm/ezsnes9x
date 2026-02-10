@@ -30,6 +30,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import com.ezsnes9x.launcher.ui.LauncherScreen
 
 class LauncherActivity : ComponentActivity() {
 
@@ -79,25 +80,12 @@ class LauncherActivity : ComponentActivity() {
         setContent {
             val games by viewModel.games.collectAsState()
 
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Black)
-            ) {
-                if (games.isEmpty()) {
-                    EmptyStateScreen(
-                        onOpenFilesClick = { openFileManager() }
-                    )
-                } else {
-                    // Phase 3: Show carousel here
-                    Text(
-                        text = "Found ${games.size} games\n(Carousel UI coming in Phase 3)",
-                        color = Color.White,
-                        fontSize = 20.sp,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.align(Alignment.Center)
-                    )
-                }
+            if (games.isEmpty()) {
+                EmptyStateScreen(
+                    onOpenFilesClick = { openFileManager() }
+                )
+            } else {
+                LauncherScreen(viewModel = viewModel)
             }
         }
     }
