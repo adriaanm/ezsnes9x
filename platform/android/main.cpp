@@ -1018,6 +1018,9 @@ void android_main(struct android_app *app)
         return;
     }
 
+    // Ensure un-paused when loading a new ROM (e.g., from launcher)
+    g_paused = false;
+
     if (!Emulator::LoadROM(romPath.c_str())) {
         LOGE("Failed to load ROM: %s", romPath.c_str());
         Emulator::Shutdown();
