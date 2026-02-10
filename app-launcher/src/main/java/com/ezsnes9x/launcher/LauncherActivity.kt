@@ -81,6 +81,18 @@ class LauncherActivity : ComponentActivity() {
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         Log.d("EZSNESINPUT", "Activity.dispatchKeyEvent: keyCode=${event.keyCode} (${KeyEvent.keyCodeToString(event.keyCode)}), action=${event.action}")
+
+        // Handle DPAD_CENTER (fake A button) to confirm reset dialog
+        if (showResetDialog && event.keyCode == KeyEvent.KEYCODE_DPAD_CENTER && event.action == KeyEvent.ACTION_DOWN) {
+            Log.d("EZSNESINPUT", "Activity: DPAD_CENTER pressed in reset dialog - confirming")
+            val currentGame = viewModel.getCurrentGame()
+            if (currentGame != null) {
+                viewModel.resetGameState(currentGame)
+                showResetDialog = false
+                return true
+            }
+        }
+
         return super.dispatchKeyEvent(event)
     }
 
