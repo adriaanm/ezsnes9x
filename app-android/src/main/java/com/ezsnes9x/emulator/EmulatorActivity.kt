@@ -22,8 +22,9 @@ class EmulatorActivity : NativeActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        // Check if this is a ROM open intent (has data URI)
-        if (intent.data != null) {
+        // Check if this is a ROM open intent (has data URI or rom_path extra)
+        val romPath = intent.getStringExtra("rom_path")
+        if (intent.data != null || romPath != null) {
             // Restart with new ROM - clear task to ensure clean process restart
             val restartIntent = intent.apply {
                 addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK)
