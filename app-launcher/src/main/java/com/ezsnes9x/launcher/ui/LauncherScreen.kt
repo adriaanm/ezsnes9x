@@ -42,6 +42,9 @@ fun LauncherScreen(
                     initialPage = lastGameIndex.coerceIn(0, games.size - 1),
                     onGameSelected = { index, game ->
                         viewModel.onGameSelected(index, game)
+                    },
+                    onPageChanged = { index ->
+                        viewModel.updateCurrentGameIndex(index)
                     }
                 )
             }

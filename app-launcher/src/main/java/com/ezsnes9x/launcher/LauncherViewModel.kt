@@ -36,9 +36,27 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
     private val _lastGameIndex = MutableStateFlow(0)
     val lastGameIndex: StateFlow<Int> = _lastGameIndex.asStateFlow()
 
+    private val _currentGameIndex = MutableStateFlow(0)
+    val currentGameIndex: StateFlow<Int> = _currentGameIndex.asStateFlow()
+
     init {
         loadLibrary()
         restoreLastGameIndex()
+    }
+
+    /**
+     * Updates the current game index (for tracking which game X button targets).
+     */
+    fun updateCurrentGameIndex(index: Int) {
+        _currentGameIndex.value = index
+    }
+
+    /**
+     * Gets the currently focused game.
+     */
+    fun getCurrentGame(): GameInfo? {
+        val index = _currentGameIndex.value
+        return _games.value.getOrNull(index)
     }
 
     /**
@@ -118,6 +136,56 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
                 "Failed to launch emulator: ${e.message}",
                 Toast.LENGTH_LONG
             ).show()
+        }
+    }
+
+    /**
+     * Resets game state by deleting save files (.srm and .suspend).
+     */
+    fun resetGameState(game: GameInfo): Boolean {
+        try {
+            val romFile = java.io.File(game.romPath)
+            val romDir = romFile.parentFile ?: return false
+            val baseName = romFile.nameWithoutExtension
+
+            // Delete .srm (SRAM save) file
+            val srmFile = java.io.File(romDir, "$baseName.srm")
+            var deleted = false
+            if (srmFile.exists()) {
+                deleted = srmFile.delete() || deleted
+                Log.d(TAG, "Deleted save file: ${srmFile.absolutePath}")
+            }
+
+            // Delete .suspend (save state) file
+            val suspendFile = java.io.File(romDir, "$baseName.suspend")
+            if (suspendFile.exists()) {
+                deleted = suspendFile.delete() || deleted
+                Log.d(TAG, "Deleted save state: ${suspendFile.absolutePath}")
+            }
+
+            if (deleted) {
+                Toast.makeText(
+                    getApplication(),
+                    "Reset save data for ${game.displayName}",
+                    Toast.LENGTH_SHORT
+                ).show()
+            } else {
+                Toast.makeText(
+                    getApplication(),
+                    "No save data found",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+
+            return deleted
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to reset game state", e)
+            Toast.makeText(
+                getApplication(),
+                "Failed to reset: ${e.message}",
+                Toast.LENGTH_SHORT
+            ).show()
+            return false
         }
     }
 }

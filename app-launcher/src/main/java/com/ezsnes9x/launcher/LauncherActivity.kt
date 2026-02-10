@@ -37,13 +37,16 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.ezsnes9x.launcher.ui.LauncherScreen
+import com.ezsnes9x.launcher.ui.ResetGameDialog
 import com.ezsnes9x.launcher.ui.SystemMenuDialog
 
 class LauncherActivity : ComponentActivity() {
 
     private val viewModel: LauncherViewModel by viewModels()
     private lateinit var volumeHandler: VolumeButtonHandler
+    private lateinit var resetHandler: GameResetHandler
     private var showSystemMenu by mutableStateOf(false)
+    private var showResetDialog by mutableStateOf(false)
 
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -65,15 +68,29 @@ class LauncherActivity : ComponentActivity() {
             }
         )
 
+        // Initialize reset button handler
+        resetHandler = GameResetHandler(
+            coroutineScope = lifecycleScope,
+            onResetRequested = {
+                // Haptic feedback when reset is triggered
+                window.decorView.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+                showResetDialog = true
+            }
+        )
+
         // Request runtime permissions
         requestPermissions()
     }
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
-        // Intercept gamepad Select + Start button events
+        // Intercept gamepad button events
         val handled = when (event.action) {
-            KeyEvent.ACTION_DOWN -> volumeHandler.onKeyDown(event.keyCode)
-            KeyEvent.ACTION_UP -> volumeHandler.onKeyUp(event.keyCode)
+            KeyEvent.ACTION_DOWN -> {
+                volumeHandler.onKeyDown(event.keyCode) || resetHandler.onKeyDown(event.keyCode)
+            }
+            KeyEvent.ACTION_UP -> {
+                volumeHandler.onKeyUp(event.keyCode) || resetHandler.onKeyUp(event.keyCode)
+            }
             else -> false
         }
 
@@ -126,6 +143,26 @@ class LauncherActivity : ComponentActivity() {
                         onOpenFiles = { openFileManager() },
                         onDismiss = { showSystemMenu = false }
                     )
+                }
+
+                // Reset game state dialog
+                if (showResetDialog) {
+                    val currentGame = viewModel.getCurrentGame()
+                    if (currentGame != null) {
+                        ResetGameDialog(
+                            gameName = currentGame.displayName,
+                            onConfirm = {
+                                viewModel.resetGameState(currentGame)
+                                showResetDialog = false
+                            },
+                            onCancel = {
+                                showResetDialog = false
+                            }
+                        )
+                    } else {
+                        // No game selected, dismiss dialog
+                        showResetDialog = false
+                    }
                 }
             }
         }
