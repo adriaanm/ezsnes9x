@@ -7,10 +7,14 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 
 /**
@@ -23,9 +27,16 @@ fun ResetGameDialog(
     onConfirm: () -> Unit,
     onCancel: () -> Unit
 ) {
-    // Use DisposableEffect to handle gamepad input via side effects
+    val focusRequester = remember { FocusRequester() }
+
+    // Request focus when dialog appears
+    LaunchedEffect(Unit) {
+        focusRequester.requestFocus()
+        Log.d("EZSNESINPUT", "ResetGameDialog: Requesting focus")
+    }
+
     DisposableEffect(Unit) {
-        Log.d("EZSNESINPUT", "ResetGameDialog: Dialog shown, listening for A/B buttons")
+        Log.d("EZSNESINPUT", "ResetGameDialog: Dialog shown")
         onDispose {
             Log.d("EZSNESINPUT", "ResetGameDialog: Dialog dismissed")
         }
@@ -33,21 +44,27 @@ fun ResetGameDialog(
 
     Box(
         modifier = Modifier
+            .focusRequester(focusRequester)
             .focusable()
-            .onKeyEvent { event ->
+            .onPreviewKeyEvent { event ->
                 val keyCode = event.key.keyCode
-                Log.d("EZSNESINPUT", "ResetGameDialog Box: keyCode=$keyCode, type=${event.type}")
+                Log.d("EZSNESINPUT", "ResetGameDialog: onPreviewKeyEvent keyCode=$keyCode, type=${event.type}")
 
                 if (event.type == KeyEventType.KeyDown) {
                     when (keyCode) {
-                        412316860416L -> { // BUTTON_A (Android keyCode 96)
+                        412316860416L -> { // BUTTON_A (Compose keyCode for Android 96)
                             Log.d("EZSNESINPUT", "ResetGameDialog: A button - confirming")
                             onConfirm()
                             true
                         }
-                        416611827712L -> { // BUTTON_B (Android keyCode 97)
+                        416611827712L -> { // BUTTON_B (Compose keyCode for Android 97)
                             Log.d("EZSNESINPUT", "ResetGameDialog: B button - canceling")
                             onCancel()
+                            true
+                        }
+                        98784247808L -> { // DPAD_CENTER (fake A button)
+                            Log.d("EZSNESINPUT", "ResetGameDialog: DPAD_CENTER (fake A) - confirming")
+                            onConfirm()
                             true
                         }
                         else -> {
