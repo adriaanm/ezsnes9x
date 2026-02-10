@@ -1,7 +1,6 @@
 package com.ezsnes9x.launcher.ui
 
 import android.util.Log
-import androidx.compose.foundation.focusable
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -54,7 +53,6 @@ fun ResetGameDialog(
                 onClick = onConfirm,
                 modifier = Modifier
                     .focusRequester(confirmFocusRequester)
-                    .focusable()
                     .onPreviewKeyEvent { event ->
                         val keyCode = event.key.keyCode
                         Log.d("EZSNESINPUT", "ConfirmButton: keyCode=$keyCode, type=${event.type}")
