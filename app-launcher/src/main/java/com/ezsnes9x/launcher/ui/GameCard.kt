@@ -26,6 +26,7 @@ import kotlin.math.abs
 
 /**
  * Displays a single game card with cover art or placeholder.
+ * Uses 2:3 aspect ratio matching SNES box art proportions.
  */
 @Composable
 fun GameCard(
@@ -39,9 +40,13 @@ fun GameCard(
         generatePlaceholderColor(game.filename)
     }
 
+    // SNES box art aspect ratio: 2:3 (width:height)
+    val cardWidth = 280.dp
+    val cardHeight = 420.dp // 280 * 1.5 = 420 (2:3 ratio)
+
     Box(
         modifier = modifier
-            .size(width = 280.dp, height = 400.dp)
+            .size(width = cardWidth, height = cardHeight)
             .clip(RoundedCornerShape(16.dp))
             .background(backgroundColor)
             .semantics {
@@ -50,12 +55,12 @@ fun GameCard(
         contentAlignment = Alignment.Center
     ) {
         if (game.coverPath != null && File(game.coverPath).exists()) {
-            // Show cover art
+            // Show cover art - use Fit to maintain aspect ratio without distortion
             AsyncImage(
                 model = File(game.coverPath),
                 contentDescription = "Cover art for ${game.displayName}",
                 modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop
+                contentScale = ContentScale.Fit
             )
         } else {
             // Show placeholder with game name and colored background
