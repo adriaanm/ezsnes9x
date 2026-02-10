@@ -6,6 +6,8 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
+import android.view.KeyEvent
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
@@ -23,6 +25,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -30,11 +34,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import com.ezsnes9x.launcher.ui.LauncherScreen
+import com.ezsnes9x.launcher.ui.SystemMenuDialog
 
 class LauncherActivity : ComponentActivity() {
 
     private val viewModel: LauncherViewModel by viewModels()
+    private lateinit var volumeHandler: VolumeButtonHandler
+    private var showSystemMenu by mutableStateOf(false)
 
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -46,8 +54,25 @@ class LauncherActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // Initialize volume button handler
+        volumeHandler = VolumeButtonHandler(
+            coroutineScope = lifecycleScope,
+            onMenuTriggered = { showSystemMenu = true }
+        )
+
         // Request runtime permissions
         requestPermissions()
+    }
+
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        // Intercept volume button events
+        val handled = when (event.action) {
+            KeyEvent.ACTION_DOWN -> volumeHandler.onKeyDown(event.keyCode)
+            KeyEvent.ACTION_UP -> volumeHandler.onKeyUp(event.keyCode)
+            else -> false
+        }
+
+        return if (handled) true else super.dispatchKeyEvent(event)
     }
 
     private fun requestPermissions() {
@@ -80,13 +105,35 @@ class LauncherActivity : ComponentActivity() {
         setContent {
             val games by viewModel.games.collectAsState()
 
-            if (games.isEmpty()) {
-                EmptyStateScreen(
-                    onOpenFilesClick = { openFileManager() }
-                )
-            } else {
-                LauncherScreen(viewModel = viewModel)
+            Box(modifier = Modifier.fillMaxSize()) {
+                if (games.isEmpty()) {
+                    EmptyStateScreen(
+                        onOpenFilesClick = { openFileManager() }
+                    )
+                } else {
+                    LauncherScreen(viewModel = viewModel)
+                }
+
+                // System menu overlay
+                if (showSystemMenu) {
+                    SystemMenuDialog(
+                        onOpenSettings = { openAndroidSettings() },
+                        onOpenFiles = { openFileManager() },
+                        onDismiss = { showSystemMenu = false }
+                    )
+                }
             }
+        }
+    }
+
+    private fun openAndroidSettings() {
+        try {
+            val intent = Intent(Settings.ACTION_SETTINGS).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            startActivity(intent)
+        } catch (e: Exception) {
+            // Settings app not available
         }
     }
 
