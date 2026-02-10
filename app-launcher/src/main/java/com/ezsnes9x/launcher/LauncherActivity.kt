@@ -179,7 +179,17 @@ class LauncherActivity : ComponentActivity() {
                         onOpenSettingsClick = { openAppSettings() }
                     )
                 } else {
-                    LauncherScreen(viewModel = viewModel)
+                    LauncherScreen(
+                        viewModel = viewModel,
+                        onShowSystemMenu = {
+                            window.decorView.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+                            showSystemMenu = true
+                        },
+                        onShowResetDialog = {
+                            window.decorView.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+                            showResetDialog = true
+                        }
+                    )
                 }
 
                 // System menu overlay
