@@ -399,8 +399,10 @@ The core emulator builds as a static library (`libsnes9x-core.a`). Platform fron
 ## Documentation
 
 - **[CLAUDE.md](CLAUDE.md)** — Guide for Claude Code when working with this repository
-- **[PLAN.md](PLAN.md)** — Detailed simplification plan with progress tracking
 - **[LEARNINGS.md](LEARNINGS.md)** — Critical codebase patterns and gotchas
+- **[docs/snes9x-simple-port.md](docs/snes9x-simple-port.md)** — Simplification plan history (completed)
+- **[docs/collection-manager.md](docs/collection-manager.md)** — ROM collection organizer tool
+- **[docs/launcher-plan.md](docs/launcher-plan.md)** — Android launcher implementation plan
 - **[LICENSE](LICENSE)** — Snes9x license
 
 ## Credits

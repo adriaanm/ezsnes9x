@@ -4,8 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Key Documents
 
-- **[PLAN.md](PLAN.md)** — Simplification plan with progress tracking (Phase 1 done, Phase 2 in progress)
-- **[LEARNINGS.md](LEARNINGS.md)** — Critical codebase patterns and gotchas (unity builds, Settings struct, port interface)
+- **[README.md](README.md)** — User-focused documentation (installation, controls, launcher setup)
+- **[LEARNINGS.md](LEARNINGS.md)** — Critical codebase patterns and gotchas (unity builds, scoped storage, Compose key handling)
+- **[docs/snes9x-simple-port.md](docs/snes9x-simple-port.md)** — Simplification plan history (all phases complete)
 
 ## Project Overview
 
