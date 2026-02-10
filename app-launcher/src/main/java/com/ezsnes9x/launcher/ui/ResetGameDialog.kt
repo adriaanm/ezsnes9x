@@ -1,6 +1,7 @@
 package com.ezsnes9x.launcher.ui
 
 import android.util.Log
+import androidx.compose.foundation.focusable
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -14,6 +15,7 @@ import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
+import kotlinx.coroutines.delay
 
 /**
  * Confirmation dialog for resetting game state.
@@ -28,9 +30,15 @@ fun ResetGameDialog(
     val confirmFocusRequester = remember { FocusRequester() }
 
     // Auto-focus the confirm button when dialog appears
+    // Small delay to ensure button is composed before requesting focus
     LaunchedEffect(Unit) {
-        confirmFocusRequester.requestFocus()
-        Log.d("EZSNESINPUT", "ResetGameDialog: Requesting focus on confirm button")
+        delay(100) // Wait for composition
+        try {
+            confirmFocusRequester.requestFocus()
+            Log.d("EZSNESINPUT", "ResetGameDialog: Focus requested on confirm button")
+        } catch (e: Exception) {
+            Log.e("EZSNESINPUT", "ResetGameDialog: Failed to request focus: ${e.message}")
+        }
     }
 
     AlertDialog(
@@ -46,6 +54,7 @@ fun ResetGameDialog(
                 onClick = onConfirm,
                 modifier = Modifier
                     .focusRequester(confirmFocusRequester)
+                    .focusable()
                     .onPreviewKeyEvent { event ->
                         val keyCode = event.key.keyCode
                         Log.d("EZSNESINPUT", "ConfirmButton: keyCode=$keyCode, type=${event.type}")
