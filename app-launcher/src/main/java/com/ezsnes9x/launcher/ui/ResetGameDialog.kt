@@ -18,7 +18,7 @@ import kotlinx.coroutines.delay
 
 /**
  * Confirmation dialog for resetting game state.
- * A button confirms, B button cancels.
+ * Cancel button is focused by default for safety.
  */
 @Composable
 fun ResetGameDialog(
@@ -26,15 +26,14 @@ fun ResetGameDialog(
     onConfirm: () -> Unit,
     onCancel: () -> Unit
 ) {
-    val confirmFocusRequester = remember { FocusRequester() }
+    val cancelFocusRequester = remember { FocusRequester() }
 
-    // Auto-focus the confirm button when dialog appears
-    // Small delay to ensure button is composed before requesting focus
+    // Auto-focus the cancel button when dialog appears (safer default for destructive action)
     LaunchedEffect(Unit) {
         delay(100) // Wait for composition
         try {
-            confirmFocusRequester.requestFocus()
-            Log.d("EZSNESINPUT", "ResetGameDialog: Focus requested on confirm button")
+            cancelFocusRequester.requestFocus()
+            Log.d("EZSNESINPUT", "ResetGameDialog: Focus requested on cancel button")
         } catch (e: Exception) {
             Log.e("EZSNESINPUT", "ResetGameDialog: Failed to request focus: ${e.message}")
         }
@@ -46,13 +45,12 @@ fun ResetGameDialog(
             Text(text = "Reset Game State?")
         },
         text = {
-            Text(text = "Delete save data for:\n$gameName\n\nThis will remove .srm and .suspend files.\n\nPress A to confirm, B to cancel.")
+            Text(text = "Delete save data for $gameName?")
         },
         confirmButton = {
             TextButton(
                 onClick = onConfirm,
                 modifier = Modifier
-                    .focusRequester(confirmFocusRequester)
                     .onPreviewKeyEvent { event ->
                         val keyCode = event.key.keyCode
                         Log.d("EZSNESINPUT", "ConfirmButton: keyCode=$keyCode, type=${event.type}")
@@ -76,13 +74,14 @@ fun ResetGameDialog(
                         }
                     }
             ) {
-                Text(text = "A: Confirm")
+                Text(text = "Confirm")
             }
         },
         dismissButton = {
             TextButton(
                 onClick = onCancel,
                 modifier = Modifier
+                    .focusRequester(cancelFocusRequester)
                     .onPreviewKeyEvent { event ->
                         val keyCode = event.key.keyCode
                         Log.d("EZSNESINPUT", "CancelButton: keyCode=$keyCode, type=${event.type}")
@@ -96,7 +95,7 @@ fun ResetGameDialog(
                         }
                     }
             ) {
-                Text(text = "B: Cancel")
+                Text(text = "Cancel")
             }
         }
     )
