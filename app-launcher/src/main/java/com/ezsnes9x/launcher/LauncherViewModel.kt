@@ -1,8 +1,12 @@
 package com.ezsnes9x.launcher
 
 import android.app.Application
+import android.content.ActivityNotFoundException
+import android.content.ComponentName
 import android.content.Context
+import android.content.Intent
 import android.util.Log
+import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
@@ -70,7 +74,7 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
 
     /**
      * Called when a game is selected from the carousel.
-     * Saves the game index for next launch.
+     * Saves the game index for next launch and launches the emulator.
      *
      * @param index Position in the games list
      * @param game The selected game
@@ -80,6 +84,40 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
         prefs.edit().putInt(KEY_LAST_GAME_INDEX, index).apply()
         Log.d(TAG, "Selected game: ${game.displayName} at index $index")
 
-        // TODO: Launch emulator in Phase 6
+        // Launch emulator with ROM path
+        launchEmulator(game)
+    }
+
+    /**
+     * Launches the EZSnes9x emulator with the specified ROM.
+     */
+    private fun launchEmulator(game: GameInfo) {
+        try {
+            val intent = Intent().apply {
+                component = ComponentName(
+                    "com.ezsnes9x.emulator",
+                    "com.ezsnes9x.emulator.EmulatorActivity"
+                )
+                putExtra("rom_path", game.romPath)
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+
+            getApplication<Application>().startActivity(intent)
+            Log.d(TAG, "Launched emulator with ROM: ${game.romPath}")
+        } catch (e: ActivityNotFoundException) {
+            Log.e(TAG, "EZSnes9x emulator not found", e)
+            Toast.makeText(
+                getApplication(),
+                "EZSnes9x emulator not installed",
+                Toast.LENGTH_LONG
+            ).show()
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to launch emulator", e)
+            Toast.makeText(
+                getApplication(),
+                "Failed to launch emulator: ${e.message}",
+                Toast.LENGTH_LONG
+            ).show()
+        }
     }
 }
