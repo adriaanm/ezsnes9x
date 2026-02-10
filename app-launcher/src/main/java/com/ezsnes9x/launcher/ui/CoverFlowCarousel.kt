@@ -77,10 +77,11 @@ fun CoverFlowCarousel(
             .focusRequester(focusRequester)
             .focusable()
             .onKeyEvent { event ->
-                Log.d("EZSNESINPUT", "CoverFlowCarousel: onKeyEvent: keyCode=${event.key.keyCode}, type=${event.type}")
+                val keyCode = event.key.keyCode
+                Log.d("EZSNESINPUT", "CoverFlowCarousel: onKeyEvent: keyCode=$keyCode, type=${event.type}")
                 if (event.type == KeyEventType.KeyDown) {
-                    when (event.key.keyCode.toLong()) {
-                        android.view.KeyEvent.KEYCODE_DPAD_LEFT.toLong() -> {
+                    when {
+                        event.key == Key.DirectionLeft -> {
                             Log.d("EZSNESINPUT", "CoverFlowCarousel: DPAD_LEFT - navigating to previous game")
                             // Navigate to previous game
                             if (pagerState.currentPage > 0) {
@@ -91,7 +92,7 @@ fun CoverFlowCarousel(
                             }
                             true
                         }
-                        android.view.KeyEvent.KEYCODE_DPAD_RIGHT.toLong() -> {
+                        event.key == Key.DirectionRight -> {
                             Log.d("EZSNESINPUT", "CoverFlowCarousel: DPAD_RIGHT - navigating to next game")
                             // Navigate to next game
                             if (pagerState.currentPage < games.size - 1) {
@@ -102,7 +103,7 @@ fun CoverFlowCarousel(
                             }
                             true
                         }
-                        android.view.KeyEvent.KEYCODE_BUTTON_START.toLong() -> {
+                        keyCode == 463856467968L -> { // BUTTON_START
                             Log.d("EZSNESINPUT", "CoverFlowCarousel: BUTTON_START - launching game")
                             // Launch currently selected game
                             view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
@@ -111,7 +112,7 @@ fun CoverFlowCarousel(
                             true
                         }
                         else -> {
-                            Log.d("EZSNESINPUT", "CoverFlowCarousel: Unhandled key: ${event.key.keyCode}")
+                            Log.d("EZSNESINPUT", "CoverFlowCarousel: Unhandled keyCode: $keyCode")
                             false
                         }
                     }

@@ -81,13 +81,14 @@ fun LauncherScreen(
             .background(Color.Black)
             .onPreviewKeyEvent { event ->
                 // Handle key events at screen level (before carousel intercepts)
-                val keyCode = event.key.keyCode.toLong()
-                val eventType = event.type
-                Log.d("EZSNESINPUT", "LauncherScreen: onPreviewKeyEvent: keyCode=$keyCode, type=$eventType")
+                val keyCode = event.key.keyCode
+                Log.d("EZSNESINPUT", "LauncherScreen: onPreviewKeyEvent: keyCode=$keyCode, type=${event.type}")
 
+                // Note: Gamepads send both real gamepad codes AND fake keyboard equivalents
+                // We only handle the real gamepad codes (not the fake MENU/DPAD_CENTER/DEL/SPACE)
                 when (keyCode) {
-                    android.view.KeyEvent.KEYCODE_BUTTON_SELECT.toLong() -> {
-                        when (eventType) {
+                    468151435264L -> { // BUTTON_SELECT
+                        when (event.type) {
                             KeyEventType.KeyDown -> {
                                 Log.d("EZSNESINPUT", "LauncherScreen: SELECT KeyDown - setting selectPressed=true")
                                 selectPressed = true
@@ -99,8 +100,8 @@ fun LauncherScreen(
                         }
                         true // Consume Select button
                     }
-                    android.view.KeyEvent.KEYCODE_BUTTON_X.toLong() -> {
-                        when (eventType) {
+                    425201762304L -> { // BUTTON_X
+                        when (event.type) {
                             KeyEventType.KeyDown -> {
                                 if (!xPressed) {
                                     Log.d("EZSNESINPUT", "LauncherScreen: X KeyDown - setting xPressed=true")
@@ -116,8 +117,8 @@ fun LauncherScreen(
                         }
                         true // Consume X button
                     }
-                    android.view.KeyEvent.KEYCODE_BUTTON_START.toLong() -> {
-                        when (eventType) {
+                    463856467968L -> { // BUTTON_START
+                        when (event.type) {
                             KeyEventType.KeyDown -> {
                                 Log.d("EZSNESINPUT", "LauncherScreen: START KeyDown - setting startPressed=true")
                                 startPressed = true
@@ -127,14 +128,14 @@ fun LauncherScreen(
                                 startPressed = false
                             }
                         }
-                        // Don't consume if Select not pressed (allow Start to launch games)
+                        // Don't consume if Select not pressed (allow Start to launch games via carousel)
                         val consumed = selectPressed
                         Log.d("EZSNESINPUT", "LauncherScreen: START event - selectPressed=$selectPressed, consuming=$consumed")
                         consumed
                     }
                     else -> {
-                        Log.d("EZSNESINPUT", "LauncherScreen: Unhandled key: $keyCode")
-                        false // Let other keys pass through
+                        // Let other keys (including fake keyboard equivalents) pass through
+                        false
                     }
                 }
             }
