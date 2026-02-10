@@ -30,7 +30,7 @@ fun ResetGameDialog(
 
     // Auto-focus the cancel button when dialog appears (safer default for destructive action)
     LaunchedEffect(Unit) {
-        delay(100) // Wait for composition
+        delay(200) // Wait for composition to complete
         try {
             cancelFocusRequester.requestFocus()
             Log.d("EZSNESINPUT", "ResetGameDialog: Focus requested on cancel button")
