@@ -249,3 +249,164 @@ adb shell mkdir -p /storage/emulated/0/Android/data/com.snes9x.emulator/files
 adb push rom.sfc /storage/emulated/0/Android/data/com.snes9x.emulator/files/rom.sfc
 adb shell chmod 666 /storage/emulated/0/Android/data/com.snes9x.emulator/files/rom.sfc
 ```
+
+### Android 11+ Scoped Storage (Critical)
+
+**Problem:** Android 11+ scoped storage filters files by type. With only `READ_EXTERNAL_STORAGE`:
+- ✅ Images (.png, .jpg) are visible
+- ✅ Videos (.mp4, .mkv) are visible
+- ✅ Audio (.mp3, .wav) are visible
+- ❌ **ROM files (.sfc, .smc) are HIDDEN** (not recognized media types)
+
+**Solution:** Use `MANAGE_EXTERNAL_STORAGE` permission for full file system access:
+
+```xml
+<!-- manifest -->
+<uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
+    tools:ignore="ScopedStorage" />
+```
+
+**Granting permission:**
+- Opens Settings automatically on first launch
+- User must manually toggle "Allow access to manage all files"
+- Check permission: `Environment.isExternalStorageManager()` (API 30+)
+- Request permission: `Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION`
+
+**Required for:**
+- Emulator app (to read ROM files)
+- Launcher app (to scan ROM library and read cover art)
+
+**Why not SAF (Storage Access Framework)?**
+- SAF requires user to pick directory each launch (poor UX for launcher)
+- File manager apps, emulators, and launchers use MANAGE_EXTERNAL_STORAGE
+- Dedicated gaming handhelds need direct file access
+
+## Launcher App Architecture
+
+### Compose Key Input Handling
+
+**Problem:** Compose's `onKeyEvent` intercepts keys before Activity's `dispatchKeyEvent()`.
+- Keys handled in child composables don't bubble up to parent
+- Focus issues cause "unprocessed events" warnings
+- Special button combos (Select+Start, X hold) weren't working
+
+**Solution:** Use `onPreviewKeyEvent` at parent composable level:
+```kotlin
+Column(
+    modifier = Modifier.onPreviewKeyEvent { event ->
+        // Intercepts BEFORE child composables
+        when (event.key.keyCode.toLong()) {
+            KEYCODE_BUTTON_X -> { /* handle */ true }
+            else -> false // Let through to children
+        }
+    }
+)
+```
+
+**Key differences:**
+- `onPreviewKeyEvent` — Parent intercepts first (top-down)
+- `onKeyEvent` — Child handles first (bottom-up)
+- Return `true` to consume event (stop propagation)
+- Return `false` to pass event to next handler
+
+**Hold detection:** Use `LaunchedEffect` with `delay()`:
+```kotlin
+var xPressed by remember { mutableStateOf(false) }
+
+LaunchedEffect(xPressed) {
+    if (xPressed) {
+        delay(1000) // Wait 1 second
+        if (xPressed) onTrigger()
+    }
+}
+
+modifier.onPreviewKeyEvent { event ->
+    when (event.type) {
+        KeyEventType.KeyDown -> xPressed = true
+        KeyEventType.KeyUp -> xPressed = false
+    }
+    true
+}
+```
+
+### FileObserver for Auto-Rescan
+
+**Real-time directory monitoring** without polling:
+```kotlin
+class RomDirectoryObserver(
+    private val directory: File,
+    private val onChanged: () -> Unit
+) : FileObserver(directory, CREATE or DELETE or MOVED_TO or MOVED_FROM) {
+    override fun onEvent(event: Int, path: String?) {
+        if (path?.endsWith(".sfc") == true) {
+            onChanged() // Trigger rescan
+        }
+    }
+}
+```
+
+**Lifecycle:**
+- Start in `ViewModel.init {}` or after permission grant
+- Stop in `ViewModel.onCleared()`
+- Restart in `Activity.onResume()` (catches settings permission grant)
+
+**Benefits:**
+- Zero CPU overhead when idle (uses Linux inotify)
+- Instant detection when ROMs added
+- Empty state automatically transitions to carousel
+- No manual refresh needed
+
+**Gotcha:** Directory must exist and be readable before creating observer
+- Call `ensureRomDirectory()` before `startWatching()`
+- Check `canRead()` before creating observer
+- Restart observer after permission grant
+
+### Launcher Build Configuration
+
+**Two Android apps:**
+- `app-android` (emulator) — NativeActivity, OpenGL ES, Oboe
+- `app-launcher` (launcher) — Compose UI, HOME launcher
+
+**Launcher module:**
+```kotlin
+// app-launcher/build.gradle.kts
+plugins {
+    id("com.android.application")
+    id("org.jetbrains.kotlin.android")
+    id("org.jetbrains.kotlin.plugin.compose") // Required for Kotlin 2.1.0+
+}
+
+android {
+    buildFeatures { compose = true }
+    // No externalNativeBuild (launcher has no native code)
+}
+
+dependencies {
+    val composeBom = platform("androidx.compose:compose-bom:2024.02.00")
+    implementation(composeBom)
+    implementation("androidx.compose.ui:ui")
+    implementation("androidx.compose.material3:material3")
+    implementation("androidx.compose.foundation:foundation") // HorizontalPager
+    implementation("io.coil-kt:coil-compose:2.5.0") // Image loading
+}
+```
+
+**Kotlin 2.1.0 requires Compose Compiler plugin:**
+```kotlin
+// Root build.gradle.kts
+plugins {
+    id("org.jetbrains.kotlin.plugin.compose") version "2.1.0" apply false
+}
+```
+
+**HOME launcher manifest:**
+```xml
+<activity android:name=".LauncherActivity">
+    <intent-filter>
+        <action android:name="android.intent.action.MAIN" />
+        <category android:name="android.intent.category.HOME" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <category android:name="android.intent.category.LAUNCHER" />
+    </intent-filter>
+</activity>
+```

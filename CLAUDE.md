@@ -66,8 +66,9 @@ cmake --build build-android -j$(nproc)
 - **`/` (root):** Core emulation engine — platform-independent, built as static library `libsnes9x-core.a`
 - **`platform/shared/`:** Shared emulator wrapper (`emulator.cpp`) — high-level API used by both frontends
 - **`platform/macos/`:** macOS frontend — Metal + AVAudioEngine + GCController, builds app bundle
-- **`platform/android/`:** Android frontend — OpenGL ES 3.0 + Oboe + NativeActivity, builds native lib
-- **`app-android/`:** Android app module (Gradle/Kotlin) — at repo root for simpler CMake paths
+- **`platform/android/`:** Android emulator frontend — OpenGL ES 3.0 + Oboe + NativeActivity, builds native lib
+- **`app-android/`:** Android emulator app (Gradle/Kotlin) — at repo root for simpler CMake paths
+- **`app-launcher/`:** Android launcher app (Gradle/Kotlin/Compose) — HOME launcher with Cover Flow UI
 
 ### Core Emulation (root directory)
 
@@ -135,7 +136,46 @@ All other port functions (file I/O, input polling, etc.) are implemented in `pla
 - Gradle at repo root — simpler CMake path resolution (`../../CMakeLists.txt`)
 - AGP 8.7.3 + Kotlin 2.1.0 — modern versions for Android 14 support
 - `requestLegacyExternalStorage="true"` — for Android 10 scoped storage compatibility
-- `READ_EXTERNAL_STORAGE` permission — required for accessing ROM files
+- **`MANAGE_EXTERNAL_STORAGE` permission** — required on Android 11+ to access ROM files (scoped storage hides non-media files)
+
+### Android Launcher App
+
+**Architecture:** Jetpack Compose UI with Cover Flow carousel, gamepad-only navigation.
+
+**Key features:**
+- HOME launcher replacement (set as default launcher)
+- Cover Flow carousel with 3D rotation effects
+- ROM scanning from `/storage/emulated/0/ezsnes9x/`
+- Cover art support (PNG files matching ROM names)
+- FileObserver for automatic library updates
+- Game state reset (.srm/.suspend deletion)
+- System status bar (time, WiFi, battery)
+- Gamepad controls (D-pad, Start, Select+Start combo, X hold)
+
+**Dependencies:**
+- Jetpack Compose (UI framework)
+- Coil (image loading)
+- No native code (pure Kotlin/Compose)
+
+**Permissions:**
+- `MANAGE_EXTERNAL_STORAGE` — full file access for ROM scanning (Android 11+)
+- `READ_EXTERNAL_STORAGE` — legacy permission (Android 10 and below)
+- `ACCESS_WIFI_STATE` / `ACCESS_NETWORK_STATE` — status bar
+
+**Gamepad controls:**
+- D-pad Left/Right: Navigate carousel
+- Start: Launch selected game
+- Select+Start (hold 1s): System menu (Settings/Files)
+- X (hold 1s): Reset game state (delete saves)
+- A: Confirm in dialogs
+- B: Cancel in dialogs
+
+**Key implementation details:**
+- `onPreviewKeyEvent` for button handling (intercepts before child composables)
+- `LaunchedEffect` with `delay()` for hold detection
+- `FileObserver` for real-time ROM directory monitoring
+- `StateFlow` for reactive UI updates
+- `SharedPreferences` for position persistence
 
 ## External Dependencies
 
