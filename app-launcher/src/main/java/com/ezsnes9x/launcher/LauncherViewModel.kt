@@ -5,6 +5,7 @@ import android.content.ActivityNotFoundException
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.os.Environment
 import android.util.Log
 import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
@@ -14,6 +15,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.io.File
 
 /**
  * ViewModel for the launcher screen.
@@ -29,6 +31,7 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
 
     private val scanner = RomScanner()
     private val prefs = application.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    private var directoryObserver: RomDirectoryObserver? = null
 
     private val _games = MutableStateFlow<List<GameInfo>>(emptyList())
     val games: StateFlow<List<GameInfo>> = _games.asStateFlow()
@@ -47,6 +50,39 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
         scanner.ensureRomDirectory()
         loadLibrary()
         restoreLastGameIndex()
+        startDirectoryObserver()
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        stopDirectoryObserver()
+    }
+
+    /**
+     * Starts observing the ROM directory for file changes.
+     */
+    private fun startDirectoryObserver() {
+        try {
+            val romDir = File(Environment.getExternalStorageDirectory(), "ezsnes9x")
+            if (romDir.exists() && romDir.isDirectory) {
+                directoryObserver = RomDirectoryObserver(romDir) {
+                    Log.d(TAG, "ROM directory changed, rescanning...")
+                    rescanLibrary()
+                }
+                directoryObserver?.startWatching()
+                Log.d(TAG, "Started watching ROM directory: ${romDir.absolutePath}")
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to start directory observer", e)
+        }
+    }
+
+    /**
+     * Stops observing the ROM directory.
+     */
+    private fun stopDirectoryObserver() {
+        directoryObserver?.stopWatching()
+        directoryObserver = null
     }
 
     /**

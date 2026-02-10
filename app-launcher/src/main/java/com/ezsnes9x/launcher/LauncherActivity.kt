@@ -82,6 +82,14 @@ class LauncherActivity : ComponentActivity() {
         requestPermissions()
     }
 
+    override fun onResume() {
+        super.onResume()
+        // Rescan library when returning to launcher (e.g., after adding ROMs via file manager)
+        if (hasStoragePermission()) {
+            viewModel.rescanLibrary()
+        }
+    }
+
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         // Intercept gamepad button events
         val handled = when (event.action) {
