@@ -20,6 +20,7 @@ import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
+import android.util.Log
 import com.ezsnes9x.launcher.LauncherViewModel
 import kotlinx.coroutines.delay
 
@@ -45,10 +46,14 @@ fun LauncherScreen(
 
     // X button hold detection (1 second)
     LaunchedEffect(xPressed) {
+        Log.d("LauncherScreen", "X button LaunchedEffect triggered: xPressed=$xPressed")
         if (xPressed) {
             xPressTime = System.currentTimeMillis()
+            Log.d("LauncherScreen", "X button pressed, waiting 1 second...")
             delay(1000) // Wait 1 second
+            Log.d("LauncherScreen", "X button delay complete: xPressed=$xPressed, elapsed=${System.currentTimeMillis() - xPressTime}ms")
             if (xPressed && System.currentTimeMillis() - xPressTime >= 1000) {
+                Log.d("LauncherScreen", "X button hold confirmed - showing reset dialog")
                 onShowResetDialog()
             }
         }
@@ -56,10 +61,14 @@ fun LauncherScreen(
 
     // Select+Start hold detection (1 second)
     LaunchedEffect(selectPressed, startPressed) {
+        Log.d("LauncherScreen", "Select+Start LaunchedEffect triggered: select=$selectPressed, start=$startPressed")
         selectStartComboTriggered = false
         if (selectPressed && startPressed) {
+            Log.d("LauncherScreen", "Select+Start combo detected, waiting 1 second...")
             delay(1000) // Wait 1 second
+            Log.d("LauncherScreen", "Select+Start delay complete: select=$selectPressed, start=$startPressed, triggered=$selectStartComboTriggered")
             if (selectPressed && startPressed && !selectStartComboTriggered) {
+                Log.d("LauncherScreen", "Select+Start hold confirmed - showing system menu")
                 selectStartComboTriggered = true
                 onShowSystemMenu()
             }
@@ -72,30 +81,61 @@ fun LauncherScreen(
             .background(Color.Black)
             .onPreviewKeyEvent { event ->
                 // Handle key events at screen level (before carousel intercepts)
-                when (event.key.keyCode.toLong()) {
+                val keyCode = event.key.keyCode.toLong()
+                val eventType = event.type
+                Log.d("LauncherScreen", "onPreviewKeyEvent: keyCode=$keyCode, type=$eventType")
+
+                when (keyCode) {
                     android.view.KeyEvent.KEYCODE_BUTTON_SELECT.toLong() -> {
-                        when (event.type) {
-                            KeyEventType.KeyDown -> selectPressed = true
-                            KeyEventType.KeyUp -> selectPressed = false
+                        when (eventType) {
+                            KeyEventType.KeyDown -> {
+                                Log.d("LauncherScreen", "SELECT KeyDown - setting selectPressed=true")
+                                selectPressed = true
+                            }
+                            KeyEventType.KeyUp -> {
+                                Log.d("LauncherScreen", "SELECT KeyUp - setting selectPressed=false")
+                                selectPressed = false
+                            }
                         }
                         true // Consume Select button
                     }
                     android.view.KeyEvent.KEYCODE_BUTTON_X.toLong() -> {
-                        when (event.type) {
-                            KeyEventType.KeyDown -> if (!xPressed) xPressed = true
-                            KeyEventType.KeyUp -> xPressed = false
+                        when (eventType) {
+                            KeyEventType.KeyDown -> {
+                                if (!xPressed) {
+                                    Log.d("LauncherScreen", "X KeyDown - setting xPressed=true")
+                                    xPressed = true
+                                } else {
+                                    Log.d("LauncherScreen", "X KeyDown - already pressed, ignoring")
+                                }
+                            }
+                            KeyEventType.KeyUp -> {
+                                Log.d("LauncherScreen", "X KeyUp - setting xPressed=false")
+                                xPressed = false
+                            }
                         }
                         true // Consume X button
                     }
                     android.view.KeyEvent.KEYCODE_BUTTON_START.toLong() -> {
-                        when (event.type) {
-                            KeyEventType.KeyDown -> startPressed = true
-                            KeyEventType.KeyUp -> startPressed = false
+                        when (eventType) {
+                            KeyEventType.KeyDown -> {
+                                Log.d("LauncherScreen", "START KeyDown - setting startPressed=true")
+                                startPressed = true
+                            }
+                            KeyEventType.KeyUp -> {
+                                Log.d("LauncherScreen", "START KeyUp - setting startPressed=false")
+                                startPressed = false
+                            }
                         }
                         // Don't consume if Select not pressed (allow Start to launch games)
-                        selectPressed
+                        val consumed = selectPressed
+                        Log.d("LauncherScreen", "START event - selectPressed=$selectPressed, consuming=$consumed")
+                        consumed
                     }
-                    else -> false // Let other keys pass through
+                    else -> {
+                        Log.d("LauncherScreen", "Unhandled key: $keyCode")
+                        false // Let other keys pass through
+                    }
                 }
             }
     ) {

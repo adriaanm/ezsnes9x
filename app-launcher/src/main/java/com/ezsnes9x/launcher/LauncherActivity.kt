@@ -9,7 +9,6 @@ import android.os.Bundle
 import android.os.Environment
 import android.provider.Settings
 import android.view.HapticFeedbackConstants
-import android.view.KeyEvent
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
@@ -36,7 +35,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.lifecycleScope
 import com.ezsnes9x.launcher.ui.LauncherScreen
 import com.ezsnes9x.launcher.ui.ResetGameDialog
 import com.ezsnes9x.launcher.ui.SystemMenuDialog
@@ -44,8 +42,6 @@ import com.ezsnes9x.launcher.ui.SystemMenuDialog
 class LauncherActivity : ComponentActivity() {
 
     private val viewModel: LauncherViewModel by viewModels()
-    private lateinit var volumeHandler: VolumeButtonHandler
-    private lateinit var resetHandler: GameResetHandler
     private var showSystemMenu by mutableStateOf(false)
     private var showResetDialog by mutableStateOf(false)
 
@@ -67,26 +63,6 @@ class LauncherActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Initialize volume button handler
-        volumeHandler = VolumeButtonHandler(
-            coroutineScope = lifecycleScope,
-            onMenuTriggered = {
-                // Haptic feedback when menu is triggered
-                window.decorView.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
-                showSystemMenu = true
-            }
-        )
-
-        // Initialize reset button handler
-        resetHandler = GameResetHandler(
-            coroutineScope = lifecycleScope,
-            onResetRequested = {
-                // Haptic feedback when reset is triggered
-                window.decorView.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
-                showResetDialog = true
-            }
-        )
-
         // Request runtime permissions
         requestPermissions()
     }
@@ -99,21 +75,6 @@ class LauncherActivity : ComponentActivity() {
             viewModel.startDirectoryObserver()
             viewModel.rescanLibrary()
         }
-    }
-
-    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
-        // Intercept gamepad button events
-        val handled = when (event.action) {
-            KeyEvent.ACTION_DOWN -> {
-                volumeHandler.onKeyDown(event.keyCode) || resetHandler.onKeyDown(event.keyCode)
-            }
-            KeyEvent.ACTION_UP -> {
-                volumeHandler.onKeyUp(event.keyCode) || resetHandler.onKeyUp(event.keyCode)
-            }
-            else -> false
-        }
-
-        return if (handled) true else super.dispatchKeyEvent(event)
     }
 
     private fun requestPermissions() {

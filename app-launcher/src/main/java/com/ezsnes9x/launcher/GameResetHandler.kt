@@ -1,5 +1,6 @@
 package com.ezsnes9x.launcher
 
+import android.util.Log
 import android.view.KeyEvent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -25,8 +26,10 @@ class GameResetHandler(
      * @return true if the event should be consumed
      */
     fun onKeyDown(keyCode: Int): Boolean {
+        Log.d("GameResetHandler", "onKeyDown: keyCode=$keyCode")
         when (keyCode) {
             KeyEvent.KEYCODE_BUTTON_X -> {
+                Log.d("GameResetHandler", "X button down - starting trigger")
                 xPressed = true
                 startTrigger()
                 return true
@@ -40,8 +43,10 @@ class GameResetHandler(
      * @return true if the event should be consumed
      */
     fun onKeyUp(keyCode: Int): Boolean {
+        Log.d("GameResetHandler", "onKeyUp: keyCode=$keyCode")
         when (keyCode) {
             KeyEvent.KEYCODE_BUTTON_X -> {
+                Log.d("GameResetHandler", "X button up - canceling trigger")
                 xPressed = false
                 cancelTrigger()
                 return true
@@ -54,12 +59,18 @@ class GameResetHandler(
      * Starts the trigger timer for X button hold.
      */
     private fun startTrigger() {
+        Log.d("GameResetHandler", "startTrigger: canceling previous job")
         triggerJob?.cancel()
         triggerJob = coroutineScope.launch {
+            Log.d("GameResetHandler", "Waiting ${HOLD_DURATION_MS}ms for hold confirmation")
             delay(HOLD_DURATION_MS)
             // Still pressed after delay - trigger reset confirmation
+            Log.d("GameResetHandler", "Hold delay complete: xPressed=$xPressed")
             if (xPressed) {
+                Log.d("GameResetHandler", "X button hold confirmed - triggering reset")
                 onResetRequested()
+            } else {
+                Log.d("GameResetHandler", "X button released before hold timeout")
             }
         }
     }
