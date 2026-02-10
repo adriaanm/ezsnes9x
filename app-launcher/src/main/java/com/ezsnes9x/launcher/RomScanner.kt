@@ -92,10 +92,18 @@ class RomScanner {
             }
 
             val games = allFiles
+                .also { files ->
+                    Log.d(TAG, "All files in directory:")
+                    files.forEach { file ->
+                        Log.d(TAG, "  - ${file.name} (isFile: ${file.isFile}, extension: '${file.extension}')")
+                    }
+                }
                 .filter { file ->
-                    val isRom = file.isFile && file.extension.lowercase() in ROM_EXTENSIONS
+                    val ext = file.extension.lowercase()
+                    val isRom = file.isFile && ext in ROM_EXTENSIONS
+                    Log.d(TAG, "Checking ${file.name}: isFile=${file.isFile}, ext='$ext', matches=${ext in ROM_EXTENSIONS}")
                     if (isRom) {
-                        Log.d(TAG, "Found ROM: ${file.name}")
+                        Log.d(TAG, "  ✓ Found ROM: ${file.name}")
                     }
                     isRom
                 }
