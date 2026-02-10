@@ -3,6 +3,7 @@ package com.ezsnes9x.launcher.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -12,11 +13,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
@@ -63,7 +66,7 @@ fun GameCard(
                 contentScale = ContentScale.Fit
             )
         } else {
-            // Show placeholder with game name and colored background
+            // Show placeholder with game name and colored background (centered)
             Text(
                 text = game.displayName,
                 color = Color.White,
@@ -73,6 +76,33 @@ fun GameCard(
                 modifier = Modifier
                     .align(Alignment.Center)
                     .padding(16.dp)
+            )
+        }
+
+        // Game name overlay at bottom (for both cover art and placeholder)
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            Color.Transparent,
+                            Color.Black.copy(alpha = 0.8f)
+                        )
+                    )
+                )
+                .padding(horizontal = 12.dp, vertical = 16.dp)
+        ) {
+            Text(
+                text = game.displayName,
+                color = Color.White,
+                fontSize = 18.sp,
+                textAlign = TextAlign.Center,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.fillMaxWidth()
             )
         }
     }
