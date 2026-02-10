@@ -19,6 +19,7 @@ target_link_libraries(ezsnes9x-macos PRIVATE
 )
 
 set_target_properties(ezsnes9x-macos PROPERTIES
+    OUTPUT_NAME "EZSnes9x"
     MACOSX_BUNDLE true
     MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist
     MACOSX_BUNDLE_GUI_IDENTIFIER "com.ezsnes9x.emulator"

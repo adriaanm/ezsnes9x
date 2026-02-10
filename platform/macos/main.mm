@@ -824,7 +824,7 @@ static void HandleKeyEvent(NSEvent *event, BOOL pressed) {
                                               styleMask:style
                                                 backing:NSBackingStoreBuffered
                                                   defer:NO];
-    self.window.title = [NSString stringWithFormat:@"Snes9x — %s", Emulator::GetROMName()];
+    self.window.title = [NSString stringWithFormat:@"EZSnes9x — %s", Emulator::GetROMName()];
     [self.window center];
 
     // Create Metal view (GameView subclass for keyboard input)
