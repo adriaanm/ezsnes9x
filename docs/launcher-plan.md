@@ -45,7 +45,7 @@ Android launcher app for a dedicated gaming handheld running EZSnes9x. Displays 
 **Collection manager usage**:
 ```bash
 uv run tools/collection_manager.py ~/roms \
-  --output-dir /storage/emulated/0/snes9x \
+  --output-dir /storage/emulated/0/ezsnes9x \
   --copy-roms
 ```
 
@@ -96,8 +96,8 @@ uv run tools/collection_manager.py ~/roms \
 ```kotlin
 data class GameInfo(
     val filename: String,        // e.g., "GAME_NAME_1"
-    val romPath: String,          // /storage/.../snes9x/GAME_NAME_1.sfc
-    val coverPath: String?,       // /storage/.../snes9x/GAME_NAME_1.png (null if missing)
+    val romPath: String,          // /storage/.../ezsnes9x/GAME_NAME_1.sfc
+    val coverPath: String?,       // /storage/.../ezsnes9x/GAME_NAME_1.png (null if missing)
     val displayName: String       // Fallback: filename with underscores → spaces
 )
 ```
@@ -106,7 +106,7 @@ data class GameInfo(
 1. **RomScanner.kt**
    ```kotlin
    class RomScanner(private val context: Context) {
-       private val baseDir = File(Environment.getExternalStorageDirectory(), "snes9x")
+       private val baseDir = File(Environment.getExternalStorageDirectory(), "ezsnes9x")
 
        fun scanLibrary(): List<GameInfo> {
            if (!baseDir.exists()) return emptyList()
@@ -609,7 +609,7 @@ These are noted for future iterations but NOT part of v1 implementation:
    - Complex: needs video encoding or frame-by-frame playback
 
 3. **Play time tracking**:
-   - Emulator needs to log play time to shared file (e.g., JSON in `/snes9x/stats.json`)
+   - Emulator needs to log play time to shared file (e.g., JSON in `/ezsnes9x/stats.json`)
    - Launcher reads and displays total hours per game
    - Requires emulator modifications
 
@@ -635,14 +635,14 @@ cmake --build build
 
 # 2. Run collection manager (outputs flat structure)
 uv run tools/collection_manager.py ~/Desktop/my-roms \
-  --output-dir /tmp/snes9x-output \
+  --output-dir /tmp/ezsnes9x-output \
   --copy-roms
 
 # 3. Create directory on device
-adb shell mkdir -p /storage/emulated/0/snes9x
+adb shell mkdir -p /storage/emulated/0/ezsnes9x
 
 # 4. Push entire flat structure to device
-adb push /tmp/snes9x-output/. /storage/emulated/0/ezsnes9x/
+adb push /tmp/ezsnes9x-output/. /storage/emulated/0/ezsnes9x/
 ```
 
 Result on device:
@@ -706,7 +706,7 @@ snes9x/
 │   ├── build.gradle.kts
 │   └── src/main/
 │       ├── AndroidManifest.xml
-│       ├── java/com/snes9x/launcher/
+│       ├── java/com/ezsnes9x/launcher/
 │       │   ├── LauncherActivity.kt
 │       │   ├── LauncherViewModel.kt
 │       │   ├── RomScanner.kt
