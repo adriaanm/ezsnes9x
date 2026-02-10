@@ -228,21 +228,28 @@ class LauncherActivity : ComponentActivity() {
 
     private fun openFileManager() {
         try {
-            val intent = Intent(Intent.ACTION_VIEW).apply {
-                setDataAndType(
-                    Uri.parse("content://com.android.externalstorage.documents/root/primary"),
-                    "*/*"
-                )
+            // Launch the Files app directly
+            val intent = Intent().apply {
+                action = Intent.ACTION_MAIN
+                addCategory(Intent.CATEGORY_APP_FILES)
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
             startActivity(intent)
         } catch (e: Exception) {
-            // Fallback: open generic file manager
-            val fallbackIntent = Intent(Intent.ACTION_GET_CONTENT).apply {
-                type = "*/*"
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            // Fallback: try launching by package name for Google Files
+            try {
+                val pm = packageManager
+                val intent = pm.getLaunchIntentForPackage("com.google.android.apps.nbu.files")
+                intent?.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                startActivity(intent)
+            } catch (e2: Exception) {
+                // Last resort: open generic file picker
+                val fallbackIntent = Intent(Intent.ACTION_GET_CONTENT).apply {
+                    type = "*/*"
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+                startActivity(Intent.createChooser(fallbackIntent, "Open File Manager"))
             }
-            startActivity(Intent.createChooser(fallbackIntent, "Open File Manager"))
         }
     }
 }
