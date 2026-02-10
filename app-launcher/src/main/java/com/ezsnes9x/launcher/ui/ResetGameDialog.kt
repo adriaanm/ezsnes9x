@@ -1,5 +1,6 @@
 package com.ezsnes9x.launcher.ui
 
+import android.util.Log
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -45,17 +46,25 @@ fun ResetGameDialog(
         modifier = Modifier
             .focusRequester(focusRequester)
             .onKeyEvent { event ->
+                val keyCode = event.key.keyCode
+                Log.d("EZSNESINPUT", "ResetGameDialog: keyCode=$keyCode, type=${event.type}")
+
                 if (event.type == KeyEventType.KeyDown) {
-                    when (event.key.keyCode.toLong()) {
-                        android.view.KeyEvent.KEYCODE_BUTTON_A.toLong() -> {
+                    when (keyCode) {
+                        412316860416L -> { // BUTTON_A (Android keyCode 96)
+                            Log.d("EZSNESINPUT", "ResetGameDialog: A button - confirming")
                             onConfirm()
                             true
                         }
-                        android.view.KeyEvent.KEYCODE_BUTTON_B.toLong() -> {
+                        416611827712L -> { // BUTTON_B (Android keyCode 97)
+                            Log.d("EZSNESINPUT", "ResetGameDialog: B button - canceling")
                             onCancel()
                             true
                         }
-                        else -> false
+                        else -> {
+                            Log.d("EZSNESINPUT", "ResetGameDialog: Unhandled keyCode: $keyCode")
+                            false
+                        }
                     }
                 } else {
                     false
