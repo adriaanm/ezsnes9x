@@ -2,9 +2,7 @@
 
 > A stripped-down SNES emulator targeting absolute simplicity with two indulgences: **suspend/resume** and **rewind**.
 
-This is a fork of [Snes9x](https://github.com/snes9xgit/snes9x) that lets you just "plug in a cartridge and play", nothing more.
-
-When you need to step away, just close the app. Your game state is saved. When you missed that jump again, just rewind to travel back in time.
+This is a fork of [Snes9x](https://github.com/snes9xgit/snes9x) with the sole aim of casual vintage gaming, as close to the good old "plug in a cartridge and play" as possible. Two modern conveniences: your game will be ready to resume where you left it, and, when you missed that jump again, just rewind to travel back in time.
 
 **Platforms:** macOS and Android gaming handhelds only.
 
