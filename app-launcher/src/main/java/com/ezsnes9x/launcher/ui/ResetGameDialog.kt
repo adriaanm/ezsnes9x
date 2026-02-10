@@ -5,6 +5,7 @@ import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -86,10 +87,14 @@ fun ResetGameDialog(
                 Text(text = "Delete save data for:\n$gameName\n\nThis will remove .srm and .suspend files.\n\nPress A to confirm, B to cancel.")
             },
             confirmButton = {
-                Text(text = "A: Confirm")
+                TextButton(onClick = onConfirm) {
+                    Text(text = "A: Confirm")
+                }
             },
             dismissButton = {
-                Text(text = "B: Cancel")
+                TextButton(onClick = onCancel) {
+                    Text(text = "B: Cancel")
+                }
             }
         )
     }
