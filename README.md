@@ -41,13 +41,13 @@ See [docs/controls.md](docs/controls.md) for complete control reference.
 
 | Platform | Rendering | Audio | Input | Docs |
 |----------|-----------|-------|-------|------|
-| **macOS** | Metal | AVAudioEngine | GCController | [docs/macos.md](docs/macos.md) |
+| **macOS** | Metal | AVAudioEngine | GCController / keyboard | [docs/macos.md](docs/macos.md) |
 | **Android (emulator)** | OpenGL ES 3.0 | Oboe | Native gamepad | [docs/android.md](docs/android.md) |
-| **Android (launcher)** | Jetpack Compose | — | Gamepad-only | [docs/launcher.md](docs/launcher.md) |
+| **Android (launcher)** | Jetpack Compose | — | Gamepad & touch | [docs/launcher.md](docs/launcher.md) |
 
 ## Android Launcher
 
-EZSnes9x includes a custom HOME launcher for Android gaming handhelds. Cover Flow carousel, gamepad-only navigation, automatic ROM scanning, cover art support, system status bar (time/WiFi/battery), game state reset.
+EZSnes9x includes a custom HOME launcher for Android gaming handhelds. Cover Flow carousel, gamepad & touch navigation, cover art support, system status bar (time/WiFi/battery), game state reset.
 
 See [docs/launcher.md](docs/launcher.md) for setup and usage.
 
