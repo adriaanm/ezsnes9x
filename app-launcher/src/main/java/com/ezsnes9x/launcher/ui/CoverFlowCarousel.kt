@@ -1,5 +1,6 @@
 package com.ezsnes9x.launcher.ui
 
+import android.util.Log
 import android.view.HapticFeedbackConstants
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
@@ -76,9 +77,11 @@ fun CoverFlowCarousel(
             .focusRequester(focusRequester)
             .focusable()
             .onKeyEvent { event ->
+                Log.d("EZSNESINPUT", "CoverFlowCarousel: onKeyEvent: keyCode=${event.key.keyCode}, type=${event.type}")
                 if (event.type == KeyEventType.KeyDown) {
                     when (event.key.keyCode.toLong()) {
                         android.view.KeyEvent.KEYCODE_DPAD_LEFT.toLong() -> {
+                            Log.d("EZSNESINPUT", "CoverFlowCarousel: DPAD_LEFT - navigating to previous game")
                             // Navigate to previous game
                             if (pagerState.currentPage > 0) {
                                 view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
@@ -89,6 +92,7 @@ fun CoverFlowCarousel(
                             true
                         }
                         android.view.KeyEvent.KEYCODE_DPAD_RIGHT.toLong() -> {
+                            Log.d("EZSNESINPUT", "CoverFlowCarousel: DPAD_RIGHT - navigating to next game")
                             // Navigate to next game
                             if (pagerState.currentPage < games.size - 1) {
                                 view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
@@ -99,13 +103,17 @@ fun CoverFlowCarousel(
                             true
                         }
                         android.view.KeyEvent.KEYCODE_BUTTON_START.toLong() -> {
+                            Log.d("EZSNESINPUT", "CoverFlowCarousel: BUTTON_START - launching game")
                             // Launch currently selected game
                             view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
                             val currentGame = games[pagerState.currentPage]
                             onGameSelected(pagerState.currentPage, currentGame)
                             true
                         }
-                        else -> false
+                        else -> {
+                            Log.d("EZSNESINPUT", "CoverFlowCarousel: Unhandled key: ${event.key.keyCode}")
+                            false
+                        }
                     }
                 } else {
                     false

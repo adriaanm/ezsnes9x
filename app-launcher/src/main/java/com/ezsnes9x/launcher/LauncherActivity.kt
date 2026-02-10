@@ -8,7 +8,9 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.provider.Settings
+import android.util.Log
 import android.view.HapticFeedbackConstants
+import android.view.KeyEvent
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
@@ -75,6 +77,21 @@ class LauncherActivity : ComponentActivity() {
             viewModel.startDirectoryObserver()
             viewModel.rescanLibrary()
         }
+    }
+
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        Log.d("EZSNESINPUT", "Activity.dispatchKeyEvent: keyCode=${event.keyCode} (${KeyEvent.keyCodeToString(event.keyCode)}), action=${event.action}")
+        return super.dispatchKeyEvent(event)
+    }
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
+        Log.d("EZSNESINPUT", "Activity.onKeyDown: keyCode=$keyCode (${KeyEvent.keyCodeToString(keyCode)})")
+        return super.onKeyDown(keyCode, event)
+    }
+
+    override fun onKeyUp(keyCode: Int, event: KeyEvent): Boolean {
+        Log.d("EZSNESINPUT", "Activity.onKeyUp: keyCode=$keyCode (${KeyEvent.keyCodeToString(keyCode)})")
+        return super.onKeyUp(keyCode, event)
     }
 
     private fun requestPermissions() {

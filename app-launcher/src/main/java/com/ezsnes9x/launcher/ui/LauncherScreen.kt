@@ -46,14 +46,14 @@ fun LauncherScreen(
 
     // X button hold detection (1 second)
     LaunchedEffect(xPressed) {
-        Log.d("LauncherScreen", "X button LaunchedEffect triggered: xPressed=$xPressed")
+        Log.d("EZSNESINPUT", "LauncherScreen: X button LaunchedEffect triggered: xPressed=$xPressed")
         if (xPressed) {
             xPressTime = System.currentTimeMillis()
-            Log.d("LauncherScreen", "X button pressed, waiting 1 second...")
+            Log.d("EZSNESINPUT", "LauncherScreen: X button pressed, waiting 1 second...")
             delay(1000) // Wait 1 second
-            Log.d("LauncherScreen", "X button delay complete: xPressed=$xPressed, elapsed=${System.currentTimeMillis() - xPressTime}ms")
+            Log.d("EZSNESINPUT", "LauncherScreen: X button delay complete: xPressed=$xPressed, elapsed=${System.currentTimeMillis() - xPressTime}ms")
             if (xPressed && System.currentTimeMillis() - xPressTime >= 1000) {
-                Log.d("LauncherScreen", "X button hold confirmed - showing reset dialog")
+                Log.d("EZSNESINPUT", "LauncherScreen: X button hold confirmed - showing reset dialog")
                 onShowResetDialog()
             }
         }
@@ -61,14 +61,14 @@ fun LauncherScreen(
 
     // Select+Start hold detection (1 second)
     LaunchedEffect(selectPressed, startPressed) {
-        Log.d("LauncherScreen", "Select+Start LaunchedEffect triggered: select=$selectPressed, start=$startPressed")
+        Log.d("EZSNESINPUT", "LauncherScreen: Select+Start LaunchedEffect triggered: select=$selectPressed, start=$startPressed")
         selectStartComboTriggered = false
         if (selectPressed && startPressed) {
-            Log.d("LauncherScreen", "Select+Start combo detected, waiting 1 second...")
+            Log.d("EZSNESINPUT", "LauncherScreen: Select+Start combo detected, waiting 1 second...")
             delay(1000) // Wait 1 second
-            Log.d("LauncherScreen", "Select+Start delay complete: select=$selectPressed, start=$startPressed, triggered=$selectStartComboTriggered")
+            Log.d("EZSNESINPUT", "LauncherScreen: Select+Start delay complete: select=$selectPressed, start=$startPressed, triggered=$selectStartComboTriggered")
             if (selectPressed && startPressed && !selectStartComboTriggered) {
-                Log.d("LauncherScreen", "Select+Start hold confirmed - showing system menu")
+                Log.d("EZSNESINPUT", "LauncherScreen: Select+Start hold confirmed - showing system menu")
                 selectStartComboTriggered = true
                 onShowSystemMenu()
             }
@@ -83,17 +83,17 @@ fun LauncherScreen(
                 // Handle key events at screen level (before carousel intercepts)
                 val keyCode = event.key.keyCode.toLong()
                 val eventType = event.type
-                Log.d("LauncherScreen", "onPreviewKeyEvent: keyCode=$keyCode, type=$eventType")
+                Log.d("EZSNESINPUT", "LauncherScreen: onPreviewKeyEvent: keyCode=$keyCode, type=$eventType")
 
                 when (keyCode) {
                     android.view.KeyEvent.KEYCODE_BUTTON_SELECT.toLong() -> {
                         when (eventType) {
                             KeyEventType.KeyDown -> {
-                                Log.d("LauncherScreen", "SELECT KeyDown - setting selectPressed=true")
+                                Log.d("EZSNESINPUT", "LauncherScreen: SELECT KeyDown - setting selectPressed=true")
                                 selectPressed = true
                             }
                             KeyEventType.KeyUp -> {
-                                Log.d("LauncherScreen", "SELECT KeyUp - setting selectPressed=false")
+                                Log.d("EZSNESINPUT", "LauncherScreen: SELECT KeyUp - setting selectPressed=false")
                                 selectPressed = false
                             }
                         }
@@ -103,14 +103,14 @@ fun LauncherScreen(
                         when (eventType) {
                             KeyEventType.KeyDown -> {
                                 if (!xPressed) {
-                                    Log.d("LauncherScreen", "X KeyDown - setting xPressed=true")
+                                    Log.d("EZSNESINPUT", "LauncherScreen: X KeyDown - setting xPressed=true")
                                     xPressed = true
                                 } else {
-                                    Log.d("LauncherScreen", "X KeyDown - already pressed, ignoring")
+                                    Log.d("EZSNESINPUT", "LauncherScreen: X KeyDown - already pressed, ignoring")
                                 }
                             }
                             KeyEventType.KeyUp -> {
-                                Log.d("LauncherScreen", "X KeyUp - setting xPressed=false")
+                                Log.d("EZSNESINPUT", "LauncherScreen: X KeyUp - setting xPressed=false")
                                 xPressed = false
                             }
                         }
@@ -119,21 +119,21 @@ fun LauncherScreen(
                     android.view.KeyEvent.KEYCODE_BUTTON_START.toLong() -> {
                         when (eventType) {
                             KeyEventType.KeyDown -> {
-                                Log.d("LauncherScreen", "START KeyDown - setting startPressed=true")
+                                Log.d("EZSNESINPUT", "LauncherScreen: START KeyDown - setting startPressed=true")
                                 startPressed = true
                             }
                             KeyEventType.KeyUp -> {
-                                Log.d("LauncherScreen", "START KeyUp - setting startPressed=false")
+                                Log.d("EZSNESINPUT", "LauncherScreen: START KeyUp - setting startPressed=false")
                                 startPressed = false
                             }
                         }
                         // Don't consume if Select not pressed (allow Start to launch games)
                         val consumed = selectPressed
-                        Log.d("LauncherScreen", "START event - selectPressed=$selectPressed, consuming=$consumed")
+                        Log.d("EZSNESINPUT", "LauncherScreen: START event - selectPressed=$selectPressed, consuming=$consumed")
                         consumed
                     }
                     else -> {
-                        Log.d("LauncherScreen", "Unhandled key: $keyCode")
+                        Log.d("EZSNESINPUT", "LauncherScreen: Unhandled key: $keyCode")
                         false // Let other keys pass through
                     }
                 }

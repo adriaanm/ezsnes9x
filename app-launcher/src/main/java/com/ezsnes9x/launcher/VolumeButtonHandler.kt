@@ -27,16 +27,16 @@ class VolumeButtonHandler(
      * @return true if the event should be consumed
      */
     fun onKeyDown(keyCode: Int): Boolean {
-        Log.d("VolumeButtonHandler", "onKeyDown: keyCode=$keyCode")
+        Log.d("EZSNESINPUT", "VolumeButtonHandler: onKeyDown: keyCode=$keyCode")
         when (keyCode) {
             KeyEvent.KEYCODE_BUTTON_SELECT -> {
-                Log.d("VolumeButtonHandler", "SELECT button down - setting selectPressed=true")
+                Log.d("EZSNESINPUT", "VolumeButtonHandler: SELECT button down - setting selectPressed=true")
                 selectPressed = true
                 checkBothPressed()
                 return true // Consume event
             }
             KeyEvent.KEYCODE_BUTTON_START -> {
-                Log.d("VolumeButtonHandler", "START button down - setting startPressed=true")
+                Log.d("EZSNESINPUT", "VolumeButtonHandler: START button down - setting startPressed=true")
                 startPressed = true
                 checkBothPressed()
                 return true // Consume event
@@ -50,16 +50,16 @@ class VolumeButtonHandler(
      * @return true if the event should be consumed
      */
     fun onKeyUp(keyCode: Int): Boolean {
-        Log.d("VolumeButtonHandler", "onKeyUp: keyCode=$keyCode")
+        Log.d("EZSNESINPUT", "VolumeButtonHandler: onKeyUp: keyCode=$keyCode")
         when (keyCode) {
             KeyEvent.KEYCODE_BUTTON_SELECT -> {
-                Log.d("VolumeButtonHandler", "SELECT button up - setting selectPressed=false")
+                Log.d("EZSNESINPUT", "VolumeButtonHandler: SELECT button up - setting selectPressed=false")
                 selectPressed = false
                 cancelTrigger()
                 return true // Consume event
             }
             KeyEvent.KEYCODE_BUTTON_START -> {
-                Log.d("VolumeButtonHandler", "START button up - setting startPressed=false")
+                Log.d("EZSNESINPUT", "VolumeButtonHandler: START button up - setting startPressed=false")
                 startPressed = false
                 cancelTrigger()
                 return true // Consume event
@@ -72,21 +72,21 @@ class VolumeButtonHandler(
      * Checks if both Select and Start buttons are pressed and starts the trigger timer.
      */
     private fun checkBothPressed() {
-        Log.d("VolumeButtonHandler", "checkBothPressed: select=$selectPressed, start=$startPressed")
+        Log.d("EZSNESINPUT", "VolumeButtonHandler: checkBothPressed: select=$selectPressed, start=$startPressed")
         if (selectPressed && startPressed) {
-            Log.d("VolumeButtonHandler", "Both buttons pressed - starting timer")
+            Log.d("EZSNESINPUT", "VolumeButtonHandler: Both buttons pressed - starting timer")
             // Both buttons pressed - start timer
             triggerJob?.cancel()
             triggerJob = coroutineScope.launch {
-                Log.d("VolumeButtonHandler", "Waiting ${HOLD_DURATION_MS}ms for hold confirmation")
+                Log.d("EZSNESINPUT", "VolumeButtonHandler: Waiting ${HOLD_DURATION_MS}ms for hold confirmation")
                 delay(HOLD_DURATION_MS)
                 // Still both pressed after delay - trigger menu
-                Log.d("VolumeButtonHandler", "Hold delay complete: select=$selectPressed, start=$startPressed")
+                Log.d("EZSNESINPUT", "VolumeButtonHandler: Hold delay complete: select=$selectPressed, start=$startPressed")
                 if (selectPressed && startPressed) {
-                    Log.d("VolumeButtonHandler", "Select+Start hold confirmed - triggering menu")
+                    Log.d("EZSNESINPUT", "VolumeButtonHandler: Select+Start hold confirmed - triggering menu")
                     onMenuTriggered()
                 } else {
-                    Log.d("VolumeButtonHandler", "Buttons released before hold timeout")
+                    Log.d("EZSNESINPUT", "VolumeButtonHandler: Buttons released before hold timeout")
                 }
             }
         }
