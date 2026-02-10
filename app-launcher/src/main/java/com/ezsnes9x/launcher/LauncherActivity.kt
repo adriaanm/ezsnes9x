@@ -65,7 +65,7 @@ class LauncherActivity : ComponentActivity() {
     }
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
-        // Intercept volume button events
+        // Intercept gamepad Select + Start button events
         val handled = when (event.action) {
             KeyEvent.ACTION_DOWN -> volumeHandler.onKeyDown(event.keyCode)
             KeyEvent.ACTION_UP -> volumeHandler.onKeyUp(event.keyCode)
