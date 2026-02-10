@@ -98,19 +98,11 @@ class LauncherActivity : ComponentActivity() {
     }
 
     private fun requestPermissions() {
-        val permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            arrayOf(
-                Manifest.permission.READ_MEDIA_IMAGES,
-                Manifest.permission.ACCESS_WIFI_STATE,
-                Manifest.permission.ACCESS_NETWORK_STATE
-            )
-        } else {
-            arrayOf(
-                Manifest.permission.READ_EXTERNAL_STORAGE,
-                Manifest.permission.ACCESS_WIFI_STATE,
-                Manifest.permission.ACCESS_NETWORK_STATE
-            )
-        }
+        val permissions = arrayOf(
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.ACCESS_WIFI_STATE,
+            Manifest.permission.ACCESS_NETWORK_STATE
+        )
 
         val needsPermission = permissions.any {
             ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
@@ -123,6 +115,13 @@ class LauncherActivity : ComponentActivity() {
         }
     }
 
+    private fun hasStoragePermission(): Boolean {
+        return ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.READ_EXTERNAL_STORAGE
+        ) == PackageManager.PERMISSION_GRANTED
+    }
+
     private fun initializeUI() {
         setContent {
             val games by viewModel.games.collectAsState()
@@ -130,7 +129,11 @@ class LauncherActivity : ComponentActivity() {
             Box(modifier = Modifier.fillMaxSize()) {
                 if (games.isEmpty()) {
                     EmptyStateScreen(
-                        onOpenFilesClick = { openFileManager() }
+                        hasPermission = hasStoragePermission(),
+                        romPath = viewModel.romDirectoryPath,
+                        onOpenFilesClick = { openFileManager() },
+                        onRequestPermissionsClick = { requestPermissions() },
+                        onOpenSettingsClick = { openAppSettings() }
                     )
                 } else {
                     LauncherScreen(viewModel = viewModel)
@@ -179,6 +182,19 @@ class LauncherActivity : ComponentActivity() {
         }
     }
 
+    private fun openAppSettings() {
+        try {
+            val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                data = Uri.fromParts("package", packageName, null)
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            startActivity(intent)
+        } catch (e: Exception) {
+            // Fallback to general settings
+            openAndroidSettings()
+        }
+    }
+
     private fun openFileManager() {
         try {
             val intent = Intent(Intent.ACTION_VIEW).apply {
@@ -201,7 +217,13 @@ class LauncherActivity : ComponentActivity() {
 }
 
 @Composable
-private fun EmptyStateScreen(onOpenFilesClick: () -> Unit) {
+private fun EmptyStateScreen(
+    hasPermission: Boolean,
+    romPath: String,
+    onOpenFilesClick: () -> Unit,
+    onRequestPermissionsClick: () -> Unit,
+    onOpenSettingsClick: () -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -218,17 +240,56 @@ private fun EmptyStateScreen(onOpenFilesClick: () -> Unit) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Text(
-            text = "Place .sfc files in:\n/storage/emulated/0/ezsnes9x/",
-            color = Color.Gray,
-            fontSize = 18.sp,
-            textAlign = TextAlign.Center
-        )
+        if (!hasPermission) {
+            Text(
+                text = "Storage permission required",
+                color = Color.Red,
+                fontSize = 24.sp,
+                textAlign = TextAlign.Center
+            )
 
-        Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
-        Button(onClick = onOpenFilesClick) {
-            Text(text = "Open Files")
+            Text(
+                text = "The launcher needs permission to read ROMs",
+                color = Color.Gray,
+                fontSize = 18.sp,
+                textAlign = TextAlign.Center
+            )
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Button(onClick = onRequestPermissionsClick) {
+                Text(text = "Grant Permission")
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Button(onClick = onOpenSettingsClick) {
+                Text(text = "Open App Settings")
+            }
+        } else {
+            Text(
+                text = "Place .sfc files in:",
+                color = Color.Gray,
+                fontSize = 18.sp,
+                textAlign = TextAlign.Center
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = romPath,
+                color = Color.White,
+                fontSize = 16.sp,
+                textAlign = TextAlign.Center
+            )
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Button(onClick = onOpenFilesClick) {
+                Text(text = "Open Files")
+            }
         }
     }
 }

@@ -39,7 +39,12 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
     private val _currentGameIndex = MutableStateFlow(0)
     val currentGameIndex: StateFlow<Int> = _currentGameIndex.asStateFlow()
 
+    val romDirectoryPath: String
+        get() = scanner.getRomDirectoryPath()
+
     init {
+        // Ensure ROM directory exists
+        scanner.ensureRomDirectory()
         loadLibrary()
         restoreLastGameIndex()
     }
