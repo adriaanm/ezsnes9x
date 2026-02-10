@@ -2,10 +2,12 @@ package com.ezsnes9x.launcher.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -13,7 +15,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.semantics.contentDescription
@@ -30,6 +31,13 @@ import kotlin.math.abs
 /**
  * Displays a single game card with cover art or placeholder.
  * Uses 2:3 aspect ratio matching SNES box art proportions.
+ *
+ * Vertical layout (fills available height):
+ *   - 30% top spacer
+ *   - Image (constrained width, maintains aspect ratio)
+ *   - 30% middle spacer
+ *   - Text (2 lines max)
+ *   - 40% bottom spacer
  */
 @Composable
 fun GameCard(
@@ -43,30 +51,62 @@ fun GameCard(
         generatePlaceholderColor(game.filename)
     }
 
-    // SNES box art aspect ratio: 2:3 (width:height)
+    // Fixed width for carousel consistency, height fills available space
     val cardWidth = 280.dp
-    val cardHeight = 420.dp // 280 * 1.5 = 420 (2:3 ratio)
 
     Box(
         modifier = modifier
-            .size(width = cardWidth, height = cardHeight)
+            .width(cardWidth)
+            .fillMaxHeight()
             .clip(RoundedCornerShape(16.dp))
             .background(backgroundColor)
             .semantics {
                 contentDescription = "Game: ${game.displayName}"
-            },
-        contentAlignment = Alignment.Center
+            }
     ) {
         if (game.coverPath != null && File(game.coverPath).exists()) {
-            // Show cover art - use Fit to maintain aspect ratio without distortion
-            AsyncImage(
-                model = File(game.coverPath),
-                contentDescription = "Cover art for ${game.displayName}",
+            // Vertical layout: 30% top, image, 30% middle, text, 40% bottom
+            Column(
                 modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Fit
-            )
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // Top spacer: 30% of empty space
+                Box(modifier = Modifier.weight(0.3f))
+
+                // Cover art - maintains 2:3 aspect ratio
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 6.dp)
+                ) {
+                    AsyncImage(
+                        model = File(game.coverPath),
+                        contentDescription = "Cover art for ${game.displayName}",
+                        modifier = Modifier.fillMaxWidth(),
+                        contentScale = ContentScale.Fit
+                    )
+                }
+
+                // Middle spacer: 30% of empty space
+                Box(modifier = Modifier.weight(0.3f))
+
+                // Game name text
+                Text(
+                    text = game.displayName,
+                    color = Color.White,
+                    fontSize = 18.sp,
+                    textAlign = TextAlign.Center,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(horizontal = 12.dp)
+                )
+
+                // Bottom spacer: 40% of empty space
+                Box(modifier = Modifier.weight(0.4f))
+            }
         } else {
-            // Show placeholder with game name and colored background (centered)
+            // Placeholder with centered text
             Text(
                 text = game.displayName,
                 color = Color.White,
@@ -76,33 +116,6 @@ fun GameCard(
                 modifier = Modifier
                     .align(Alignment.Center)
                     .padding(16.dp)
-            )
-        }
-
-        // Game name overlay at bottom (for both cover art and placeholder)
-        Box(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth()
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(
-                            Color.Transparent,
-                            Color.Black.copy(alpha = 0.8f)
-                        )
-                    )
-                )
-                .padding(horizontal = 12.dp, vertical = 16.dp)
-        ) {
-            Text(
-                text = game.displayName,
-                color = Color.White,
-                fontSize = 18.sp,
-                textAlign = TextAlign.Center,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.fillMaxWidth()
             )
         }
     }
