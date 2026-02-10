@@ -1,5 +1,6 @@
 package com.ezsnes9x.launcher.ui
 
+import android.view.HapticFeedbackConstants
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.PaddingValues
@@ -11,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
 import com.ezsnes9x.launcher.GameInfo
 import kotlinx.coroutines.launch
@@ -36,6 +38,7 @@ fun CoverFlowCarousel(
         pageCount = { games.size }
     )
     val coroutineScope = rememberCoroutineScope()
+    val view = LocalView.current
 
     HorizontalPager(
         state = pagerState,
@@ -65,6 +68,9 @@ fun CoverFlowCarousel(
                     translationX = pageOffset * -50f
                 }
                 .clickable {
+                    // Haptic feedback on tap
+                    view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+
                     if (page == pagerState.currentPage) {
                         // Center card tapped - select game
                         onGameSelected(page, game)

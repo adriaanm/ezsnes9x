@@ -7,6 +7,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import android.view.HapticFeedbackConstants
 import android.view.KeyEvent
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -57,7 +58,11 @@ class LauncherActivity : ComponentActivity() {
         // Initialize volume button handler
         volumeHandler = VolumeButtonHandler(
             coroutineScope = lifecycleScope,
-            onMenuTriggered = { showSystemMenu = true }
+            onMenuTriggered = {
+                // Haptic feedback when menu is triggered
+                window.decorView.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+                showSystemMenu = true
+            }
         )
 
         // Request runtime permissions

@@ -15,6 +15,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ezsnes9x.launcher.BatteryState
@@ -67,7 +69,14 @@ fun SystemStatusBar(
 private fun WifiIndicator(wifiState: WifiState) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp)
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        modifier = Modifier.semantics {
+            contentDescription = if (wifiState.connected) {
+                "WiFi connected"
+            } else {
+                "WiFi disconnected"
+            }
+        }
     ) {
         // Simple text indicator (icons would require drawable resources)
         Text(
@@ -85,7 +94,14 @@ private fun WifiIndicator(wifiState: WifiState) {
 private fun BatteryIndicator(batteryState: BatteryState) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp)
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        modifier = Modifier.semantics {
+            contentDescription = if (batteryState.isCharging) {
+                "Battery ${batteryState.level}% charging"
+            } else {
+                "Battery ${batteryState.level}%"
+            }
+        }
     ) {
         // Battery percentage
         Text(

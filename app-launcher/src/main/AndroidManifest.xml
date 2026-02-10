@@ -22,7 +22,8 @@
             android:exported="true"
             android:screenOrientation="landscape"
             android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
-            android:launchMode="singleTask">
+            android:launchMode="singleTask"
+            android:keepScreenOn="true">
 
             <!-- HOME launcher intent filter -->
             <intent-filter>
