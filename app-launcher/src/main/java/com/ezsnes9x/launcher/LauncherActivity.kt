@@ -51,7 +51,15 @@ class LauncherActivity : ComponentActivity() {
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
-        // Handle permission results - for now just continue
+        // Check if storage permission was granted
+        val storageGranted = permissions[Manifest.permission.READ_EXTERNAL_STORAGE] == true
+
+        if (storageGranted) {
+            // Permission granted - start directory observer and rescan
+            viewModel.startDirectoryObserver()
+            viewModel.rescanLibrary()
+        }
+
         initializeUI()
     }
 
@@ -86,6 +94,8 @@ class LauncherActivity : ComponentActivity() {
         super.onResume()
         // Rescan library when returning to launcher (e.g., after adding ROMs via file manager)
         if (hasStoragePermission()) {
+            // Restart observer in case it stopped (e.g., after permission grant in settings)
+            viewModel.startDirectoryObserver()
             viewModel.rescanLibrary()
         }
     }

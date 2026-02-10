@@ -60,17 +60,26 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
 
     /**
      * Starts observing the ROM directory for file changes.
+     * Public so it can be restarted when permissions are granted.
      */
-    private fun startDirectoryObserver() {
+    fun startDirectoryObserver() {
         try {
+            // Stop existing observer first
+            stopDirectoryObserver()
+
+            // Ensure directory exists
+            scanner.ensureRomDirectory()
+
             val romDir = File(Environment.getExternalStorageDirectory(), "ezsnes9x")
-            if (romDir.exists() && romDir.isDirectory) {
+            if (romDir.exists() && romDir.isDirectory && romDir.canRead()) {
                 directoryObserver = RomDirectoryObserver(romDir) {
                     Log.d(TAG, "ROM directory changed, rescanning...")
                     rescanLibrary()
                 }
                 directoryObserver?.startWatching()
                 Log.d(TAG, "Started watching ROM directory: ${romDir.absolutePath}")
+            } else {
+                Log.w(TAG, "Cannot start observer - directory not accessible: ${romDir.absolutePath}")
             }
         } catch (e: Exception) {
             Log.e(TAG, "Failed to start directory observer", e)
