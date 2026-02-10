@@ -2,23 +2,38 @@
 
 > A stripped-down SNES emulator targeting absolute simplicity with two indulgences: **suspend/resume** and **rewind**.
 
-This is a fork of [Snes9x](https://github.com/snes9xgit/snes9x) focused on a "plug in a cartridge and play" philosophy.
+This is a fork of [Snes9x](https://github.com/snes9xgit/snes9x) that lets you just "plug in a cartridge and play", nothing more.
 
-**Why be curious?** If you've ever wanted to just play games without navigating menus, configuring shaders, or managing save slots — this is for you. Pick up a controller, select a game, and play. When you need to step away, just close the app. Your game state is saved. When you make a mistake, hold a button to rewind.
+When you need to step away, just close the app. Your game state is saved. When you missed that jump again, just rewind to travel back in time.
 
 **Platforms:** macOS and Android gaming handhelds only.
 
 **Build instructions:** See [BUILDING.md](BUILDING.md)
+
+## Disclaimer
+
+This is a personal project implemented using AI. No binaries are provided.
+
+Although I'm using and enjoying this code, I make no claims regarding its quality or utility, nor do I make any commitments regarding fixing bugs or accepting changes. All AI-generated code in this repo is licensed under the Unlicense.
+
+## Credits
+
+Based on [Snes9x](https://github.com/snes9xgit/snes9x) by the Snes9x team.
 
 ---
 
 ## Features
 
 - **No UI complexity:** No menus, configuration screens, or on-screen displays
-- **Gamepad-only:** Designed for controllers (keyboard for development)
+- **Gamepad-only:** Designed for controllers (keyboard supported on Mac)
 - **30-second rewind:** Hold a button to rewind time, release to resume
 - **Auto-suspend:** Save state created automatically on app exit
-- **YAML configuration:** Optional config file for advanced users
+
+## Controls
+- Rewind: hold L2 on controller, backspace on keyboard, or two-finger swipe left (android).
+- To pause while the app is open: two-finger tap (android) or click (mac).
+
+See [docs/controls.md](docs/controls.md) for complete control reference.
 
 ## What's Included
 
@@ -29,6 +44,12 @@ This is a fork of [Snes9x](https://github.com/snes9xgit/snes9x) focused on a "pl
 | **macOS** | Metal | AVAudioEngine | GCController | [docs/macos.md](docs/macos.md) |
 | **Android (emulator)** | OpenGL ES 3.0 | Oboe | Native gamepad | [docs/android.md](docs/android.md) |
 | **Android (launcher)** | Jetpack Compose | — | Gamepad-only | [docs/launcher.md](docs/launcher.md) |
+
+## Android Launcher
+
+EZSnes9x includes a custom HOME launcher for Android gaming handhelds. Cover Flow carousel, gamepad-only navigation, automatic ROM scanning, cover art support, system status bar (time/WiFi/battery), game state reset.
+
+See [docs/launcher.md](docs/launcher.md) for setup and usage.
 
 ### Tools
 
@@ -52,36 +73,6 @@ adb install -r app-android/build/outputs/apk/release/app-android-release.apk
 
 For full build instructions, see [BUILDING.md](BUILDING.md).
 
-## Controls
-
-### Rewind (All Platforms)
-| Platform | Control |
-|----------|---------|
-| macOS (gamepad) | Hold **L2/ZL** |
-| macOS (keyboard) | Hold **Backspace** |
-| Android (gamepad) | Hold **L2** |
-
-### Basic Emulator Controls
-- **D-pad:** Directional pad
-- **A/B/X/Y:** SNES face buttons
-- **L1/R1:** Shoulder buttons
-- **Start/Select:** System buttons
-- **Back (Android):** Exit to launcher
-
-See [docs/controls.md](docs/controls.md) for complete control reference.
-
-## Android Launcher
-
-EZSnes9x includes a custom HOME launcher for Android gaming handhelds. Cover Flow carousel, gamepad-only navigation, automatic ROM scanning, cover art support, system status bar (time/WiFi/battery), game state reset.
-
-See [docs/launcher.md](docs/launcher.md) for setup and usage.
-
-## Configuration
-
-Optional YAML config file for controller assignments and keyboard mapping. Sensible defaults provided — works out of the box for most controllers.
-
-See [docs/configuration.md](docs/configuration.md) for details.
-
 ## Documentation
 
 - **[BUILDING.md](BUILDING.md)** — Build instructions for all platforms
@@ -92,21 +83,4 @@ See [docs/configuration.md](docs/configuration.md) for details.
 - **[docs/configuration.md](docs/configuration.md)** — YAML config reference
 - **[docs/architecture.md](docs/architecture.md)** — Codebase architecture
 - **[docs/collection-manager.md](docs/collection-manager.md)** — ROM collection tool
-
-## Project Status
-
-| Phase | Status |
-|-------|--------|
-| Strip core | ✅ Complete |
-| Build system & rewind | ✅ Complete |
-| New frontends | ✅ Complete |
-
-See [docs/snes9x-simple-port.md](docs/snes9x-simple-port.md) for the full simplification history.
-
-## Disclaimer
-
-**This is a personal project implemented using AI. No binaries are provided.** Build instructions are detailed in [BUILDING.md](BUILDING.md) if you want to try it yourself.
-
-## Credits
-
-Based on [Snes9x](https://github.com/snes9xgit/snes9x) by the Snes9x team.
+- **[docs/snes9x-simple-port.md](docs/snes9x-simple-port.md)** simplification history
