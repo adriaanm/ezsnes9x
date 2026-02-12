@@ -122,6 +122,7 @@ static bool g_paused    = false;
 static EGLDisplay g_egl_display = EGL_NO_DISPLAY;
 static EGLSurface g_egl_surface = EGL_NO_SURFACE;
 static EGLContext  g_egl_context = EGL_NO_CONTEXT;
+static ANativeWindow *g_native_window = nullptr;  // Saved for EGL recreation
 
 // GL state
 static GLuint g_texture       = 0;
@@ -292,8 +293,14 @@ static void TeardownGL()
 
 static bool InitEGL(ANativeWindow *window)
 {
-    g_egl_display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-    eglInitialize(g_egl_display, nullptr, nullptr);
+    // If display already initialized, just recreate surface/context
+    bool displayInitialized = (g_egl_display != EGL_NO_DISPLAY);
+
+    if (!displayInitialized) {
+        g_native_window = window;  // Save for potential recreation
+        g_egl_display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+        eglInitialize(g_egl_display, nullptr, nullptr);
+    }
 
     const EGLint configAttribs[] = {
         EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT,
@@ -336,8 +343,25 @@ static bool InitEGL(ANativeWindow *window)
     eglQuerySurface(g_egl_display, g_egl_surface, EGL_WIDTH, &g_surface_width);
     eglQuerySurface(g_egl_display, g_egl_surface, EGL_HEIGHT, &g_surface_height);
 
-    LOGI("EGL surface: %dx%d", g_surface_width, g_surface_height);
+    LOGI("EGL %s: %dx%d", displayInitialized ? "recreated" : "initialized",
+         g_surface_width, g_surface_height);
     return true;
+}
+
+// Release EGL surface/context when app goes to background (saves GPU power)
+// Display stays initialized for quick recreation via InitEGL()
+static void ReleaseEGLForBackground()
+{
+    if (g_egl_display != EGL_NO_DISPLAY) {
+        eglMakeCurrent(g_egl_display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+        if (g_egl_context != EGL_NO_CONTEXT)
+            eglDestroyContext(g_egl_display, g_egl_context);
+        if (g_egl_surface != EGL_NO_SURFACE)
+            eglDestroySurface(g_egl_display, g_egl_surface);
+    }
+    g_egl_surface = EGL_NO_SURFACE;
+    g_egl_context = EGL_NO_CONTEXT;
+    LOGI("EGL released for background (GPU power saved)");
 }
 
 static void TeardownEGL()
@@ -353,6 +377,7 @@ static void TeardownEGL()
     g_egl_display = EGL_NO_DISPLAY;
     g_egl_surface = EGL_NO_SURFACE;
     g_egl_context = EGL_NO_CONTEXT;
+    g_native_window = nullptr;
 }
 
 // ---------------------------------------------------------------------------
@@ -960,15 +985,17 @@ Java_com_ezsnes9x_emulator_EmulatorActivity_nativeResume(JNIEnv *env, jobject th
 extern "C" JNIEXPORT void JNICALL
 Java_com_ezsnes9x_emulator_EmulatorActivity_nativeStop(JNIEnv *env, jobject thiz) {
     (void)env; (void)thiz;
-    LOGI("Lifecycle: onStop - app no longer visible");
-    // Optional: Additional cleanup or state saving when fully stopped
+    LOGI("Lifecycle: onStop - releasing EGL to save GPU power");
+    ReleaseEGLForBackground();
 }
 
 extern "C" JNIEXPORT void JNICALL
 Java_com_ezsnes9x_emulator_EmulatorActivity_nativeStart(JNIEnv *env, jobject thiz) {
     (void)env; (void)thiz;
-    LOGI("Lifecycle: onStart - app visible");
-    // Optional: Any initialization when app becomes visible
+    LOGI("Lifecycle: onStart - recreating EGL");
+    if (g_native_window) {
+        InitEGL(g_native_window);
+    }
 }
 
 // ---------------------------------------------------------------------------
