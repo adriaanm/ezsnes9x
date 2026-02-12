@@ -14,10 +14,32 @@ import java.io.FileOutputStream
  */
 class EmulatorActivity : NativeActivity() {
 
+    // Native lifecycle control functions
+    external fun nativeSuspend()
+    external fun nativeResume()
+
+    companion object {
+        init {
+            System.loadLibrary("snes9x")
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         // Extract ROM path from intent before native code starts
         intent?.let { extractRomPath(it) }
         super.onCreate(savedInstanceState)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        // Suspend emulation when app is paused (screen lock, home button, etc.)
+        nativeSuspend()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Resume emulation when app returns to foreground
+        nativeResume()
     }
 
     override fun onNewIntent(intent: Intent) {

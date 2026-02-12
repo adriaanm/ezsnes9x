@@ -934,6 +934,28 @@ static std::string GetRomPathFromIntent(struct android_app *app)
 }
 
 // ---------------------------------------------------------------------------
+// JNI functions for lifecycle control from Kotlin side
+// ---------------------------------------------------------------------------
+
+extern "C" JNIEXPORT void JNICALL
+Java_com_ezsnes9x_emulator_EmulatorActivity_nativeSuspend(JNIEnv *env, jobject thiz) {
+    (void)env; (void)thiz;
+    if (g_running && !g_paused) {
+        Emulator::Suspend();
+        StopAudio();
+    }
+}
+
+extern "C" JNIEXPORT void JNICALL
+Java_com_ezsnes9x_emulator_EmulatorActivity_nativeResume(JNIEnv *env, jobject thiz) {
+    (void)env; (void)thiz;
+    if (g_running && !g_paused) {
+        StartAudio();
+        Emulator::Resume();
+    }
+}
+
+// ---------------------------------------------------------------------------
 // App lifecycle
 // ---------------------------------------------------------------------------
 
