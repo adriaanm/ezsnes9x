@@ -940,6 +940,7 @@ static std::string GetRomPathFromIntent(struct android_app *app)
 extern "C" JNIEXPORT void JNICALL
 Java_com_ezsnes9x_emulator_EmulatorActivity_nativeSuspend(JNIEnv *env, jobject thiz) {
     (void)env; (void)thiz;
+    LOGI("Lifecycle: onPause - suspending emulation");
     if (g_running && !g_paused) {
         Emulator::Suspend();
         StopAudio();
@@ -949,6 +950,7 @@ Java_com_ezsnes9x_emulator_EmulatorActivity_nativeSuspend(JNIEnv *env, jobject t
 extern "C" JNIEXPORT void JNICALL
 Java_com_ezsnes9x_emulator_EmulatorActivity_nativeResume(JNIEnv *env, jobject thiz) {
     (void)env; (void)thiz;
+    LOGI("Lifecycle: onResume - resuming emulation");
     if (g_running && !g_paused) {
         StartAudio();
         Emulator::Resume();
