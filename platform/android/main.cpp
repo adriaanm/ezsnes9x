@@ -957,6 +957,20 @@ Java_com_ezsnes9x_emulator_EmulatorActivity_nativeResume(JNIEnv *env, jobject th
     }
 }
 
+extern "C" JNIEXPORT void JNICALL
+Java_com_ezsnes9x_emulator_EmulatorActivity_nativeStop(JNIEnv *env, jobject thiz) {
+    (void)env; (void)thiz;
+    LOGI("Lifecycle: onStop - app no longer visible");
+    // Optional: Additional cleanup or state saving when fully stopped
+}
+
+extern "C" JNIEXPORT void JNICALL
+Java_com_ezsnes9x_emulator_EmulatorActivity_nativeStart(JNIEnv *env, jobject thiz) {
+    (void)env; (void)thiz;
+    LOGI("Lifecycle: onStart - app visible");
+    // Optional: Any initialization when app becomes visible
+}
+
 // ---------------------------------------------------------------------------
 // App lifecycle
 // ---------------------------------------------------------------------------

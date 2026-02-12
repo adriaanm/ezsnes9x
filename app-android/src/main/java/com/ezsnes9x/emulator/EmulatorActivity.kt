@@ -17,6 +17,8 @@ class EmulatorActivity : NativeActivity() {
     // Native lifecycle control functions
     external fun nativeSuspend()
     external fun nativeResume()
+    external fun nativeStop()
+    external fun nativeStart()
 
     companion object {
         init {
@@ -28,6 +30,18 @@ class EmulatorActivity : NativeActivity() {
         // Extract ROM path from intent before native code starts
         intent?.let { extractRomPath(it) }
         super.onCreate(savedInstanceState)
+    }
+
+    override fun onStart() {
+        super.onStart()
+        // App is now visible to user
+        nativeStart()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        // App is no longer visible (fully backgrounded)
+        nativeStop()
     }
 
     override fun onPause() {
