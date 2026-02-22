@@ -187,7 +187,6 @@ function(add_tvos_target TARGET_NAME SDK_NAME)
                 XCODE_ATTRIBUTE_CODE_SIGN_STYLE "Automatic"
                 XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "Apple Development"
                 XCODE_ATTRIBUTE_DEVELOPMENT_TEAM "${TVOS_DEVELOPMENT_TEAM}"
-                XCODE_ATTRIBUTE_CODE_SIGN_ENTITLEMENTS "${CMAKE_CURRENT_SOURCE_DIR}/EZSnes9x.entitlements"
             )
         else()
             message(WARNING "No DEVELOPMENT_TEAM set - device builds will fail code signing")
