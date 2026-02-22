@@ -65,9 +65,11 @@ open build/platform/macos/ezsnes9x-macos.app
 
 **tvOS (Apple TV):**
 ```bash
-cmake -G Xcode -B build-tvos -DCMAKE_SYSTEM_NAME=tvOS
-cmake --build build-tvos --config Release --target ezsnes9x-tvos-sim  # Simulator
-cmake --build build-tvos --config Release --target ezsnes9x-tvos      # Device
+# Configure with ROMs (bundled at build time)
+SNES_ROMS=~/snes_games cmake -B build-tvos -DCMAKE_SYSTEM_NAME=tvOS
+
+# Deploy to Apple TV (one command: builds + installs)
+TVOS_DEVICE_ID=00008110-000A68A00E2B801E ./platform/tvos/deploy.sh
 ```
 
 **Android:**

@@ -4,8 +4,8 @@ SwiftUI launcher with Cover Flow game picker and Metal emulator for Apple TV.
 
 ## Status
 
-**Implementation:** ✅ Complete (Phases 1-4 and 6 complete, Phase 5 web upload skipped for v1)
-**Testing:** ✅ Working in tvOS simulator
+**Implementation:** ✅ Complete (Phases 1-4 and 6 complete, Phase 5 web upload skipped — ROMs are bundled instead)
+**Testing:** ✅ Working on Apple TV device
 
 **Verified:**
 - Cover Flow UI with game carousel
@@ -13,6 +13,8 @@ SwiftUI launcher with Cover Flow game picker and Metal emulator for Apple TV.
 - Metal rendering (RGB555→BGRA8 conversion)
 - Audio playback via AVAudioEngine
 - Siri Remote and GCController input
+- Bundled ROMs at build time
+- Save states persist in Application Support
 
 **Fixed Issues:**
 - Metal shader SDK targeting: Resolved with separate simulator/device targets
@@ -25,6 +27,7 @@ SwiftUI launcher with Cover Flow game picker and Metal emulator for Apple TV.
 - Apple TV 4K (3rd generation) or later
 - Apple ID (free account works for personal development)
 - Xcode installed with tvOS support
+- ROM directory with `.sfc`/`.smc` files and `.png` cover art
 
 ### Step 1: Pair Your Apple TV
 
@@ -37,71 +40,44 @@ SwiftUI launcher with Cover Flow game picker and Metal emulator for Apple TV.
 **Option B: USB-C Cable** (Apple TV 4K 3rd gen)
 - Connect Apple TV directly to your Mac via USB-C
 
-### Step 2: Configure Code Signing
+### Step 2: Configure with ROMs
 
-1. Open the Xcode project:
-   ```bash
-   open build-tvos/snes9x.xcodeproj
-   ```
+tvOS apps cannot access a Documents folder like iOS. ROMs must be bundled at build time:
 
-2. Select `ezsnes9x-tvos` target (device build)
-3. Go to "Signing & Capabilities" tab
-4. Check "Automatically manage signing"
-5. Select your Personal Team from the dropdown
-6. Repeat for `ezsnes9x-tvos-sim` target (simulator build)
+```bash
+# Set SNES_ROMS to your ROM directory
+SNES_ROMS=~/snes_games cmake -B build-tvos -DCMAKE_SYSTEM_NAME=tvOS
+```
+
+**ROM directory structure:**
+```
+~/snes_games/
+├── SUPER_MARIO_WORLD.sfc
+├── SUPER_MARIO_WORLD.png    # Cover art (same name as ROM)
+├── ZELDA_A_LINK_TO_THE_PAST.sfc
+├── ZELDA_A_LINK_TO_THE_PAST.png
+└── ...
+```
 
 ### Step 3: Build and Deploy
 
-**From Xcode:**
-1. Select scheme: `ezsnes9x-tvos` (not -sim)
-2. Select destination: Your Apple TV device
-3. Click Run (▶) or press Cmd+R
-4. Xcode will build, sign, and install the app
+Use the deploy script for one-command deployment:
 
-**From Command Line:**
 ```bash
-# Build for device
-xcodebuild -project build-tvos/snes9x.xcodeproj \
-  -scheme ezsnes9x-tvos \
-  -destination 'id=YOUR_DEVICE_ID' \
-  -configuration Release \
-  -allowProvisioningUpdates
-
-# Install on device
-xcrun devicectl device install app \
-  --device YOUR_DEVICE_ID \
-  build-tvos/platform/tvos/Release-appletvos/EZSnes9x.app
-```
-
-**Find your device ID:**
-```bash
+# Find your device ID
 xcrun devicectl list devices
+
+# Deploy (builds Release + installs)
+TVOS_DEVICE_ID=00008110-000A68A00E2B801E ./platform/tvos/deploy.sh
 ```
 
-### Step 4: Copy ROMs and Cover Art
+Or manually from Xcode:
+1. Open `build-tvos/snes9x.xcodeproj`
+2. Select scheme: `ezsnes9x-tvos` (not -sim)
+3. Select destination: Your Apple TV device
+4. Click Run (▶) or press Cmd+R
 
-Copy your SNES ROMs (.sfc, .smc) and cover art (.png) to the app's Documents folder:
-
-```bash
-# Copy all ROMs and cover art from a local directory
-cd ~/your_roms_directory
-for file in *.sfc *.smc *.png; do
-  if [ -f "$file" ]; then
-    xcrun devicectl device copy to \
-      --device YOUR_DEVICE_ID \
-      --domain-type appDataContainer \
-      --domain-identifier com.ezsnes9x.tvos \
-      --source "$file" \
-      --destination "Documents/$file"
-  fi
-done
-```
-
-**Cover art naming:** Cover art PNG files must have the same name as the ROM file:
-- `SUPER_MARIO_WORLD.sfc` → `SUPER_MARIO_WORLD.png`
-- Underscores in filenames are replaced with spaces in the UI
-
-### Step 5: Launch the App
+### Step 4: Launch the App
 
 The app should be installed on your Apple TV's home screen. Launch it to see the Cover Flow launcher with your games!
 
@@ -109,19 +85,30 @@ The app should be installed on your Apple TV's home screen. Launch it to see the
 - Siri Remote: D-pad navigation, trackpad click to select, Menu button to exit
 - Game Controller: Full SNES controller mapping + L2 for rewind
 
+## Storage Architecture
+
+tvOS has restricted file access. The app uses:
+
+| Storage Area | Purpose | Access |
+|--------------|---------|--------|
+| **App Bundle (`ROMs/`)** | ROMs and cover art | Read-only (bundled at build) |
+| **Application Support** | Save states (`.srm`, `.suspend`) | Read-write |
+
+To update ROMs, you must rebuild and redeploy the app. Save states persist between launches.
+
 ## Architecture Overview
 
 ```
 EZSnes9x.app (tvOS)
 ├── Launcher (SwiftUI)          ← Cover Flow game browser
-│   ├── ROM Scanner             ← Scans app Documents directory
+│   ├── ROM Scanner             ← Scans bundled ROMs directory
 │   ├── Cover Flow Carousel     ← 3D card carousel (port from Android)
 │   └── Status Bar              ← Time + controller status
 ├── Emulator (Metal + ObjC++)   ← Port from macOS frontend
 │   ├── Metal Renderer          ← Reuse macOS Metal pipeline (minor changes)
 │   ├── Audio Engine            ← Reuse AVAudioEngine (identical on tvOS)
 │   └── Input Manager           ← GCController (+ Siri Remote mapping)
-├── Web Upload Server           ← Simple HTTP server for ROM transfer
+├── ROMs/                       ← Bundled ROMs and cover art (read-only)
 └── Shared Emulator             ← platform/shared/emulator.cpp (unchanged)
 ```
 
@@ -145,9 +132,8 @@ EZSnes9x.app (tvOS)
 | SwiftUI launcher screen | Android `LauncherScreen.kt` | tvOS focus engine instead of manual key handling |
 | Cover Flow carousel | Android `CoverFlowCarousel.kt` | SwiftUI + `rotation3DEffect` |
 | Game card view | Android `GameCard.kt` | SwiftUI `AsyncImage` or local image loading |
-| ROM scanner | Android `RomScanner.kt` | Scan app Documents dir instead of `/storage/...` |
+| ROM scanner | Android `RomScanner.kt` | Scan bundled `ROMs/` directory via Bundle.main |
 | Siri Remote → SNES mapping | New | Map trackpad edges to D-pad, buttons to A/B/X/Y |
-| Web upload server | New | Minimal HTTP server for ROM/cover art transfer |
 | tvOS app lifecycle | macOS `AppDelegate` | UIKit app delegate + SwiftUI scenes |
 
 ## File Structure
@@ -155,6 +141,7 @@ EZSnes9x.app (tvOS)
 ```
 platform/tvos/
 ├── CMakeLists.txt              # Build config for tvOS
+├── deploy.sh                   # One-command deploy script
 ├── Info.plist                  # tvOS bundle metadata
 ├── Assets.xcassets/            # App icon (layered for parallax)
 ├── EZSnes9xApp.swift           # App entry point (@main)
@@ -169,11 +156,8 @@ platform/tvos/
 │   ├── LauncherView.swift      # Main launcher screen
 │   ├── CoverFlowCarousel.swift # 3D carousel with focus engine
 │   ├── GameCardView.swift      # Individual game card
-│   ├── RomScanner.swift        # Documents directory scanner
+│   ├── RomScanner.swift        # Scans bundled ROMs directory
 │   └── StatusBar.swift         # Clock + controller status
-├── WebUpload/
-│   ├── WebUploadServer.swift   # HTTP server for file transfer
-│   └── upload.html             # Embedded upload page
 └── Bridging-Header.h          # ObjC++ ↔ Swift bridge
 ```
 
@@ -253,10 +237,11 @@ platform/tvos/
 **Goal:** Game browser with Cover Flow carousel, matching Android launcher's look and feel.
 
 1. `RomScanner.swift`
-   - Scan app's Documents directory for `.sfc`, `.smc` files
+   - Scan bundled `ROMs/` directory for `.sfc`, `.smc` files
+   - Access via `Bundle.main.url(forResource: "ROMs", withExtension: nil)`
    - Match cover art: `RomName.sfc` → `RomName.png`
    - Return `[GameInfo]` sorted alphabetically
-   - Use `DispatchSource.makeFileSystemObjectSource` for directory watching (tvOS equivalent of Android's FileObserver)
+   - `saveDirectory` property returns Application Support path for save states
 
 2. `GameCardView.swift`
    - Display cover art image (or colored placeholder with game name)
@@ -353,10 +338,10 @@ Two options:
 Recommend: **Xcode project for the app**, with CMake building `libsnes9x-core.a` as a pre-built static library. This matches how the Android app works (Gradle wraps CMake).
 
 ### ROM Storage
-- App's Documents directory: `<app-container>/Documents/`
-- Accessible via web upload server
-- On-device: files may be purged by OS under storage pressure (acceptable for v1)
-- Cover art stored alongside ROMs (same directory)
+- ROMs are bundled in the app at `ROMs/` (read-only)
+- Set `SNES_ROMS` env var during CMake configure to specify ROM directory
+- Save states stored in Application Support directory (read-write)
+- Cover art must have same filename as ROM (e.g., `GAME.sfc` + `GAME.png`)
 
 ### Siri Remote Considerations
 - `GCMicroGamepad` profile (limited buttons: D-pad + A + X + Menu)

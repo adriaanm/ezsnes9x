@@ -213,6 +213,15 @@ All other port functions (file I/O, input polling, etc.) are implemented in `pla
 - `AsyncImage` doesn't work with local `file://` URLs — use `UIImage(contentsOfFile:)`
 - Siri Remote mapped as: D-pad→D-pad, trackpad click→A, buttonX→B, menu→Start
 
+**tvOS storage (bundled ROMs + save states):**
+- tvOS has no Documents folder access — ROMs must be bundled in the app
+- Set `SNES_ROMS` env var to directory containing `.sfc`/`.smc` files and `.png` cover art
+- Build: `SNES_ROMS=~/snes_games cmake -B build-tvos -DCMAKE_SYSTEM_NAME=tvOS`
+- ROMs are bundled at `ROMs/` in app (accessed via `Bundle.main.url(forResource: "ROMs", withExtension: nil)`)
+- Save states (`.srm`, `.suspend`) stored in Application Support directory (read-write, created at runtime)
+- `RomScanner.saveDirectory` returns the Application Support path for saves
+- `EmulatorC_SetSaveDirectory()` called at init to configure save location
+
 **Include order in ObjC++ files:**
 - `snes9x.h` MUST be included before Foundation/ObjC headers
 - `apu/apu.h` uses typedefs (`uint8`, `bool8`) defined in `snes9x.h`

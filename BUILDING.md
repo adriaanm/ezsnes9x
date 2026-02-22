@@ -88,52 +88,47 @@ Or just double-click the app bundle in Finder.
 
 The tvOS frontend uses SwiftUI for the launcher UI and Metal for emulator rendering. It requires the Xcode generator (not Unix Makefiles) because it builds mixed Swift + ObjC++ + Metal sources.
 
-**Important:** There are two separate targets due to Metal shader SDK requirements:
-- `ezsnes9x-tvos-sim` — Simulator build (Metal shaders compiled for simulator)
-- `ezsnes9x-tvos` — Device build (Metal shaders compiled for device)
+**Important:** ROMs and cover art are bundled at build time. Set `SNES_ROMS` to your ROM directory before configuring.
 
-### Generate Xcode Project
+### Configure with ROMs
 
 ```bash
-cmake -G Xcode -B build-tvos -DCMAKE_SYSTEM_NAME=tvOS
+# Set SNES_ROMS to your ROM directory (contains .sfc/.smc files and .png cover art)
+SNES_ROMS=~/snes_games cmake -B build-tvos -DCMAKE_SYSTEM_NAME=tvOS
+```
+
+### Build and Deploy to Apple TV
+
+Use the deploy script for one-command build + install:
+
+```bash
+# Find your device ID
+xcrun devicectl list devices
+
+# Deploy (builds and installs)
+TVOS_DEVICE_ID=00008110-000A68A00E2B801E ./platform/tvos/deploy.sh
 ```
 
 ### Build for Simulator
 
 ```bash
-cmake --build build-tvos --config Release --target ezsnes9x-tvos-sim
-```
+cmake --build build-tvos -j$(sysctl -n hw.ncpu) --target ezsnes9x-tvos-sim
 
-### Build for Device
-
-```bash
-cmake --build build-tvos --config Release --target ezsnes9x-tvos
-```
-
-Device builds require code signing. Set `XCODE_ATTRIBUTE_DEVELOPMENT_TEAM` in `platform/tvos/CMakeLists.txt` or configure signing in the generated Xcode project.
-
-### Running on Simulator
-
-```bash
-# Boot simulator
-xcrun simctl boot "Apple TV"
-
-# Install and launch (use simulator target)
-xcrun simctl install booted build-tvos/platform/tvos/Release-appletvsimulator/EZSnes9x.app
+# Install and run
+xcrun simctl boot "Apple TV 4K (3rd generation)"
+xcrun simctl install booted build-tvos/platform/tvos/Debug-appletvos/EZSnes9x.app
 xcrun simctl launch booted com.ezsnes9x.tvos
 ```
 
-**Note:** Both targets produce `EZSnes9x.app` but in different directories. The simulator target outputs to `Release-appletvsimulator/` while the device target outputs to `Release-appletvos/`.
+### ROM and Cover Art Format
 
-### Adding ROMs
+- ROMs: `.sfc`, `.smc`, `.fig`, `.swc` files in `$SNES_ROMS` directory
+- Cover art: `.png` files with same base name as ROM (e.g., `SUPER_MARIO_WORLD.png` for `SUPER_MARIO_WORLD.sfc`)
+- Underscores in filenames are replaced with spaces in the UI
 
-ROMs go in the app's Documents directory. For the simulator:
+### Save States
 
-```bash
-CONTAINER=$(xcrun simctl get_app_container booted com.ezsnes9x.tvos data)
-cp *.sfc "$CONTAINER/Documents/"
-cp *.png "$CONTAINER/Documents/"   # Cover art (same name as ROM)
-```
+Save states (`.srm` and `.suspend` files) are stored in the app's Application Support directory on the device. They persist between app launches.
 
 ### Build Notes
 
