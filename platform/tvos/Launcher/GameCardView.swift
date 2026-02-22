@@ -6,21 +6,42 @@ struct GameCardView: View {
     let game: GameInfo
     let isFocused: Bool
 
+    // Apple TV has 1920x1080 screen - use wider cards than Android (280dp)
+    private let cardWidth: CGFloat = 480
+    private let cardHeight: CGFloat = 720  // 2:3 aspect ratio
+
     var body: some View {
         VStack(spacing: 0) {
-            // Cover art or placeholder
+            // Card with cover art or placeholder
             ZStack {
                 if let coverPath = game.coverPath,
                    let uiImage = UIImage(contentsOfFile: coverPath) {
-                    Image(uiImage: uiImage)
-                        .resizable()
-                        .aspectRatio(2.0/3.0, contentMode: .fit)
+                    // Cover art with background
+                    ZStack {
+                        Color(white: 0.16)  // #2A2A2A background
+
+                        Image(uiImage: uiImage)
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .padding(20)  // Padding around image for breathing room
+                    }
                 } else {
-                    placeholderView
+                    // Placeholder without cover art
+                    ZStack {
+                        Rectangle()
+                            .fill(placeholderColor)
+
+                        Text(game.name)
+                            .font(.largeTitle)
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                            .multilineTextAlignment(.center)
+                            .padding(32)
+                    }
                 }
             }
-            .frame(width: 280, height: 420)
-            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .frame(width: cardWidth, height: cardHeight)
+            .clipShape(RoundedRectangle(cornerRadius: 16))
             .shadow(
                 color: isFocused ? .white.opacity(0.3) : .black.opacity(0.5),
                 radius: isFocused ? 20 : 10,
@@ -29,28 +50,14 @@ struct GameCardView: View {
 
             // Game name below card
             Text(game.name)
-                .font(.headline)
+                .font(.title2)
+                .fontWeight(.medium)
                 .foregroundColor(isFocused ? .white : .gray)
                 .lineLimit(2)
                 .multilineTextAlignment(.center)
-                .frame(width: 280)
-                .padding(.top, 16)
+                .frame(width: cardWidth)
+                .padding(.top, 20)
         }
-    }
-
-    private var placeholderView: some View {
-        ZStack {
-            Rectangle()
-                .fill(placeholderColor)
-
-            Text(game.name)
-                .font(.title3)
-                .fontWeight(.bold)
-                .foregroundColor(.white)
-                .multilineTextAlignment(.center)
-                .padding()
-        }
-        .frame(width: 280, height: 420)
     }
 
     private var placeholderColor: Color {

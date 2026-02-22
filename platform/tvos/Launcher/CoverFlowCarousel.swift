@@ -15,7 +15,7 @@ struct CoverFlowCarousel: View {
         } else {
             ScrollViewReader { proxy in
                 ScrollView(.horizontal, showsIndicators: false) {
-                    LazyHStack(spacing: 40) {
+                    LazyHStack(spacing: 60) {
                         ForEach(Array(games.enumerated()), id: \.element.id) { index, game in
                             Button {
                                 onSelect(game)

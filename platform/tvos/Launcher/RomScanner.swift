@@ -45,7 +45,8 @@ final class RomScanner {
 
             let romPath = (dir as NSString).appendingPathComponent(file)
             let baseName = (file as NSString).deletingPathExtension
-            let displayName = baseName
+            // Replace underscores with spaces for cleaner display (matches Android launcher)
+            let displayName = baseName.replacingOccurrences(of: "_", with: " ")
 
             // Check for cover art (same name, .png extension)
             let coverFile = baseName + ".png"
