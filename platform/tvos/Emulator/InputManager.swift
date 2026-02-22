@@ -120,8 +120,13 @@ final class InputManager: ObservableObject {
         }
     }
 
-    /// Configure MFi / Bluetooth extended gamepad — full SNES mapping
+    /// Configure MFi / Bluetooth extended gamepad — full SNES mapping.
     private func configureExtendedGamepad(_ gamepad: GCExtendedGamepad, port: Int) {
+        // Prevent tvOS from intercepting buttonB (PlayStation Circle / Xbox B) as a
+        // system "back" gesture. Without this, Circle never reaches the app.
+        // Available since tvOS 14.3; earlier versions are not supported by this app.
+        gamepad.buttonB.preferredSystemGestureState = .disabled
+
         gamepad.valueChangedHandler = { [weak self] gp, _ in
             guard let self = self else { return }
             var buttons: UInt16 = 0
@@ -132,11 +137,12 @@ final class InputManager: ObservableObject {
             if gp.dpad.left.isPressed    { buttons |= SNESButton.left }
             if gp.dpad.right.isPressed   { buttons |= SNESButton.right }
 
-            // Face buttons
-            if gp.buttonA.isPressed      { buttons |= SNESButton.a }
-            if gp.buttonB.isPressed      { buttons |= SNESButton.b }
-            if gp.buttonX.isPressed      { buttons |= SNESButton.x }
-            if gp.buttonY.isPressed      { buttons |= SNESButton.y }
+            // Face buttons — ergonomic PlayStation/Xbox layout:
+            // Cross/A (bottom) -> SNES B,  Circle/B (right) -> SNES A
+            if gp.buttonA.isPressed      { buttons |= SNESButton.b }
+            if gp.buttonB.isPressed      { buttons |= SNESButton.a }
+            if gp.buttonX.isPressed      { buttons |= SNESButton.y }
+            if gp.buttonY.isPressed      { buttons |= SNESButton.x }
 
             // Shoulders
             if gp.leftShoulder.isPressed  { buttons |= SNESButton.l }
