@@ -102,10 +102,17 @@ set(METAL_SHADER ${CMAKE_CURRENT_SOURCE_DIR}/Shaders.metal)
 
 # Function to create a tvOS target with specific SDK
 function(add_tvos_target TARGET_NAME SDK_NAME)
+    set(ASSETS_CATALOG ${CMAKE_CURRENT_SOURCE_DIR}/Assets.xcassets)
+
     add_executable(${TARGET_NAME}
         ${TVOS_OBJCXX_SOURCES}
         ${TVOS_SWIFT_SOURCES}
         ${ROM_RESOURCES}
+        ${ASSETS_CATALOG}
+    )
+
+    set_source_files_properties(${ASSETS_CATALOG} PROPERTIES
+        MACOSX_PACKAGE_LOCATION Resources
     )
 
     # Metal shader compilation with hardcoded SDK
@@ -170,6 +177,7 @@ function(add_tvos_target TARGET_NAME SDK_NAME)
         MACOSX_BUNDLE_BUNDLE_NAME "EZSnes9x"
         XCODE_ATTRIBUTE_TARGETED_DEVICE_FAMILY "3"
         XCODE_ATTRIBUTE_TVOS_DEPLOYMENT_TARGET "26.0"
+        XCODE_ATTRIBUTE_ASSETCATALOG_COMPILER_APPICON_NAME "App Icon & Top Shelf Image"
     )
 
     # Code signing settings
