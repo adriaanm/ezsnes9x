@@ -122,10 +122,12 @@ final class InputManager: ObservableObject {
 
     /// Configure MFi / Bluetooth extended gamepad — full SNES mapping.
     private func configureExtendedGamepad(_ gamepad: GCExtendedGamepad, port: Int) {
-        // Prevent tvOS from intercepting buttonB (PlayStation Circle / Xbox B) as a
-        // system "back" gesture. Without this, Circle never reaches the app.
-        // Available since tvOS 14.3; earlier versions are not supported by this app.
+        // Give the game full ownership of all buttons. The Siri Remote handles
+        // system navigation (back, home); the controller is dedicated to game input.
+        // buttonB (Circle/B) would otherwise be intercepted as a system "back" gesture.
+        // buttonMenu (Options/Menu) would be intercepted as "exit to previous screen".
         gamepad.buttonB.preferredSystemGestureState = .disabled
+        gamepad.buttonMenu.preferredSystemGestureState = .disabled
 
         gamepad.valueChangedHandler = { [weak self] gp, _ in
             guard let self = self else { return }
@@ -137,18 +139,23 @@ final class InputManager: ObservableObject {
             if gp.dpad.left.isPressed    { buttons |= SNESButton.left }
             if gp.dpad.right.isPressed   { buttons |= SNESButton.right }
 
-            // Face buttons — ergonomic PlayStation/Xbox layout:
-            // Cross/A (bottom) -> SNES B,  Circle/B (right) -> SNES A
-            if gp.buttonA.isPressed      { buttons |= SNESButton.b }
-            if gp.buttonB.isPressed      { buttons |= SNESButton.a }
-            if gp.buttonX.isPressed      { buttons |= SNESButton.y }
-            if gp.buttonY.isPressed      { buttons |= SNESButton.x }
+            // Face buttons — direct label mapping, no swapping.
+            // SNES-style controllers (8BitDo SN30 etc.) have A/B/X/Y in the same
+            // positions as the SNES, so this works correctly out of the box.
+            // GCExtendedGamepad layout: A=bottom, B=right, X=left, Y=top.
+            // SNES layout:             B=bottom, A=right, Y=left, X=top.
+            // We map by physical position, matching what the button label says on
+            // an SNES-style controller.
+            if gp.buttonA.isPressed      { buttons |= SNESButton.b }  // bottom
+            if gp.buttonB.isPressed      { buttons |= SNESButton.a }  // right
+            if gp.buttonX.isPressed      { buttons |= SNESButton.y }  // left
+            if gp.buttonY.isPressed      { buttons |= SNESButton.x }  // top
 
             // Shoulders
             if gp.leftShoulder.isPressed  { buttons |= SNESButton.l }
             if gp.rightShoulder.isPressed { buttons |= SNESButton.r }
 
-            // Menu / Options
+            // Menu (≡/Options) → Start,  Options (⧉/View/Share) → Select
             if gp.buttonMenu.isPressed    { buttons |= SNESButton.start }
             if let options = gp.buttonOptions, options.isPressed {
                 buttons |= SNESButton.select
@@ -156,7 +163,7 @@ final class InputManager: ObservableObject {
 
             self.bridge?.setButtonState(pad: port, buttons: buttons)
 
-            // Left trigger for rewind
+            // Left trigger → rewind
             if gp.leftTrigger.isPressed {
                 if !(self.bridge?.isRewinding ?? false) {
                     self.bridge?.startRewind()
