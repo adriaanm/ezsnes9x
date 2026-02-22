@@ -4,12 +4,19 @@ SwiftUI launcher with Cover Flow game picker and Metal emulator for Apple TV.
 
 ## Status
 
-**Implementation:** Phases 1-4 and 6 complete (Phase 5 web upload skipped for v1)
-**Testing:** Currently testing in tvOS simulator. App launches with Cover Flow UI and ROMs load, but crashes due to Metal shader compilation issues.
+**Implementation:** ✅ Complete (Phases 1-4 and 6 complete, Phase 5 web upload skipped for v1)
+**Testing:** ✅ Working in tvOS simulator
 
-**Known Issues:**
-- Metal shader SDK targeting: Crash in simulator after Metal library load
-- Needs investigation of CMake Metal shader compilation pipeline
+**Verified:**
+- Cover Flow UI with game carousel
+- ROM loading and emulation
+- Metal rendering (RGB555→BGRA8 conversion)
+- Audio playback via AVAudioEngine
+- Siri Remote and GCController input
+
+**Fixed Issues:**
+- Metal shader SDK targeting: Resolved with separate simulator/device targets
+- Each target compiles Metal shaders with explicit SDK (`appletvsimulator` vs `appletvos`)
 
 ## Architecture Overview
 
