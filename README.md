@@ -4,7 +4,7 @@
 
 This is a fork of [Snes9x](https://github.com/snes9xgit/snes9x) with the sole aim of casual vintage gaming, as close to the good old "plug in a cartridge and play" as possible. Two modern conveniences: your game will be ready to resume where you left it, and, when you missed that jump again, just rewind to travel back in time.
 
-**Platforms:** macOS and Android gaming handhelds only.
+**Platforms:** macOS, tvOS (Apple TV), and Android gaming handhelds.
 
 **Build instructions:** See [BUILDING.md](BUILDING.md)
 
@@ -41,6 +41,7 @@ See [docs/controls.md](docs/controls.md) for complete control reference.
 |----------|-----------|-------|-------|------|
 | **macOS** | Metal | AVAudioEngine | GCController / keyboard | [docs/macos.md](docs/macos.md) |
 | **Android (emulator)** | OpenGL ES 3.0 | Oboe | Native gamepad | [docs/android.md](docs/android.md) |
+| **tvOS** | Metal | AVAudioEngine | Siri Remote / GCController | — |
 | **Android (launcher)** | Jetpack Compose | — | Gamepad & touch | [docs/launcher.md](docs/launcher.md) |
 
 ## Android Launcher
@@ -60,6 +61,12 @@ See [docs/launcher.md](docs/launcher.md) for setup and usage.
 cmake -G "Unix Makefiles" -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build -j$(sysctl -n hw.ncpu)
 open build/platform/macos/ezsnes9x-macos.app
+```
+
+**tvOS (Apple TV):**
+```bash
+cmake -G Xcode -B build-tvos -DCMAKE_SYSTEM_NAME=tvOS
+cmake --build build-tvos --config Release -- -sdk appletvsimulator -arch arm64
 ```
 
 **Android:**

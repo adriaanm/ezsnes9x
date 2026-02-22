@@ -361,6 +361,55 @@ class RomDirectoryObserver(
 - Check `canRead()` before creating observer
 - Restart observer after permission grant
 
+## tvOS Build Learnings
+
+### Metal Shader Compilation with CMake
+
+CMake's Xcode generator does NOT automatically compile `.metal` files the way native Xcode projects do. You must add custom build commands:
+
+```cmake
+# Compile .metal → .air → .metallib
+add_custom_command(TARGET myapp PRE_BUILD
+    COMMAND /bin/sh -c
+        "xcrun -sdk $$SDKROOT metal -c src.metal -o out.air && xcrun -sdk $$SDKROOT metallib out.air -o default.metallib"
+)
+
+# Copy metallib into app bundle
+add_custom_command(TARGET myapp POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy default.metallib $<TARGET_BUNDLE_DIR:myapp>/default.metallib
+)
+```
+
+**Critical:** Use `$$SDKROOT` (double `$` for CMake escaping) in a `/bin/sh -c` command so that Xcode's build-time `SDKROOT` environment variable is used. This ensures the metallib targets the correct platform (simulator vs device). Hardcoding `-sdk appletvsimulator` or using CMake generator expressions for the SDK path will fail when switching between simulator and device builds.
+
+### snes9x.h Include Order in ObjC++
+
+In ObjC++ files (`.mm`) that use snes9x APIs, `snes9x.h` must be included BEFORE any Foundation/ObjC imports. This is because `apu/apu.h` and other snes9x headers use typedefs (`uint8`, `bool8`, `int32`) that are defined in `snes9x.h`. If Foundation headers are imported first, they can interfere with these typedefs.
+
+### Swift ↔ C++ Bridging
+
+Swift cannot call C++ namespaces or templates directly. The pattern used:
+1. C wrapper functions in `EmulatorC.h`/`EmulatorC.mm` (prefixed `EmulatorC_`)
+2. These call into `Emulator::` C++ namespace functions
+3. `Bridging-Header.h` imports the C wrapper header
+4. Swift calls the `EmulatorC_*` functions directly
+
+### tvOS vs macOS Platform Detection
+
+When `CMAKE_SYSTEM_NAME=tvOS`, CMake still sets `APPLE=TRUE`. This means platform guards like `if(APPLE)` will match both macOS and tvOS. To exclude macOS-only code from tvOS builds, use:
+```cmake
+if(APPLE AND NOT CMAKE_SYSTEM_NAME STREQUAL "tvOS")
+```
+
+The `__MACOSX__` compile definition (set for `if(APPLE)`) applies to both platforms, which is correct since both use RGB555 pixel format and similar frameworks.
+
+### tvOS UI Patterns
+
+- **Focus engine:** tvOS uses a focus-based navigation system. Use `@FocusState` and `.focused()` modifier instead of manual D-pad key handling.
+- **Local images:** `AsyncImage` does not load local `file://` URLs. Use `UIImage(contentsOfFile:)` + `Image(uiImage:)` instead.
+- **UIKit, not AppKit:** tvOS uses UIKit like iOS. Use `UIViewRepresentable` (not `NSViewRepresentable`), `UIImage` (not `NSImage`).
+- **Menu button:** Use `.onExitCommand` to handle Siri Remote Menu button press.
+
 ### Launcher Build Configuration
 
 **Two Android apps:**

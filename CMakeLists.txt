@@ -144,10 +144,14 @@ if(HEADLESS)
 endif()
 
 # Platform frontends
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/platform/macos/CMakeLists.txt" AND APPLE)
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/platform/macos/CMakeLists.txt" AND APPLE AND NOT CMAKE_SYSTEM_NAME STREQUAL "tvOS")
     add_subdirectory(platform/macos)
 endif()
 
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/platform/android/CMakeLists.txt" AND ANDROID)
     add_subdirectory(platform/android)
+endif()
+
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/platform/tvos/CMakeLists.txt" AND CMAKE_SYSTEM_NAME STREQUAL "tvOS")
+    add_subdirectory(platform/tvos)
 endif()

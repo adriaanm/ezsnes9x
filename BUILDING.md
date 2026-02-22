@@ -17,6 +17,12 @@ This document contains detailed build instructions for all EZSnes9x components.
 - Xcode Command Line Tools
 - macOS 11+ (Big Sur or later)
 
+### tvOS-Specific
+
+- Full Xcode installation (Command Line Tools alone are not sufficient)
+- tvOS SDK (included with Xcode when tvOS platform support is installed)
+- Apple TV device or tvOS Simulator
+
 ### Android-Specific
 
 - Android SDK
@@ -75,6 +81,59 @@ open build/platform/macos/ezsnes9x-macos.app /path/to/rom.sfc
 ```
 
 Or just double-click the app bundle in Finder.
+
+---
+
+## tvOS Frontend (Apple TV)
+
+The tvOS frontend uses SwiftUI for the launcher UI and Metal for emulator rendering. It requires the Xcode generator (not Unix Makefiles) because it builds mixed Swift + ObjC++ + Metal sources.
+
+### Generate Xcode Project
+
+```bash
+cmake -G Xcode -B build-tvos -DCMAKE_SYSTEM_NAME=tvOS
+```
+
+### Build for Simulator
+
+```bash
+cmake --build build-tvos --config Release -- -sdk appletvsimulator -arch arm64
+```
+
+### Build for Device
+
+```bash
+cmake --build build-tvos --config Release -- -sdk appletvos -arch arm64
+```
+
+Device builds require code signing. Set `XCODE_ATTRIBUTE_DEVELOPMENT_TEAM` in `platform/tvos/CMakeLists.txt` or configure signing in the generated Xcode project.
+
+### Running on Simulator
+
+```bash
+# Boot simulator
+xcrun simctl boot "Apple TV"
+
+# Install and launch
+xcrun simctl install booted build-tvos/platform/tvos/Release-appletvsimulator/EZSnes9x.app
+xcrun simctl launch booted com.ezsnes9x.tvos
+```
+
+### Adding ROMs
+
+ROMs go in the app's Documents directory. For the simulator:
+
+```bash
+CONTAINER=$(xcrun simctl get_app_container booted com.ezsnes9x.tvos data)
+cp *.sfc "$CONTAINER/Documents/"
+cp *.png "$CONTAINER/Documents/"   # Cover art (same name as ROM)
+```
+
+### Build Notes
+
+- CMake compiles Metal shaders via custom build commands (`xcrun metal` / `xcrun metallib`)
+- The `default.metallib` is copied into the app bundle automatically
+- Metal shader SDK is determined at build time from Xcode's `$SDKROOT` environment variable
 
 ---
 
@@ -179,8 +238,9 @@ There is no automated test suite. Verify builds by:
 
 1. **Core library:** Check that `libsnes9x-core.a` is produced
 2. **macOS app:** Run with a test ROM
-3. **Android APK:** Install on device and test with a ROM
-4. **Collection manager:** Run on a small ROM directory
+3. **tvOS app:** Run in simulator or deploy to Apple TV
+4. **Android APK:** Install on device and test with a ROM
+5. **Collection manager:** Run on a small ROM directory
 
 ---
 

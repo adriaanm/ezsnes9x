@@ -10,7 +10,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-EZSnes9x is a simplified SNES emulator targeting only macOS and Android gaming handhelds. It's a fork of Snes9x focused on simplicity. The core emulation engine is platform-independent, built as a static library (`libsnes9x-core`).
+EZSnes9x is a simplified SNES emulator targeting macOS, tvOS (Apple TV), and Android gaming handhelds. It's a fork of Snes9x focused on simplicity. The core emulation engine is platform-independent, built as a static library (`libsnes9x-core`).
 
 ## Build Commands
 
@@ -67,6 +67,7 @@ cmake --build build-android -j$(nproc)
 - **`/` (root):** Core emulation engine — platform-independent, built as static library `libsnes9x-core.a`
 - **`platform/shared/`:** Shared emulator wrapper (`emulator.cpp`) — high-level API used by both frontends
 - **`platform/macos/`:** macOS frontend — Metal + AVAudioEngine + GCController, builds app bundle
+- **`platform/tvos/`:** tvOS frontend — SwiftUI launcher + Metal emulator + AVAudioEngine + GCController/Siri Remote
 - **`platform/android/`:** Android emulator frontend — OpenGL ES 3.0 + Oboe + NativeActivity, builds native lib
 - **`app-android/`:** Android emulator app (Gradle/Kotlin) — at repo root for simpler CMake paths
 - **`app-launcher/`:** Android launcher app (Gradle/Kotlin/Compose) — HOME launcher with Cover Flow UI
@@ -105,7 +106,7 @@ All other port functions (file I/O, input polling, etc.) are implemented in `pla
 
 ### Pixel Format
 
-- macOS: `RGB555` (via `__MACOSX__` define)
+- macOS/tvOS: `RGB555` (via `__MACOSX__` define — CMake sets `APPLE=true` for both)
 - Android/other: `RGB565` (default)
 
 **Important:** The framebuffer pitch is `MAX_SNES_WIDTH` pixels regardless of actual frame width. When uploading to GPU textures, set `GL_UNPACK_ROW_LENGTH` to `MAX_SNES_WIDTH` before calling `glTexSubImage2D()`.
@@ -177,6 +178,48 @@ All other port functions (file I/O, input polling, etc.) are implemented in `pla
 - `FileObserver` for real-time ROM directory monitoring
 - `StateFlow` for reactive UI updates
 - `SharedPreferences` for position persistence
+
+### tvOS Frontend Details
+
+**Architecture:** SwiftUI app with Cover Flow launcher and Metal emulator view. Swift calls C++ via C wrapper functions (EmulatorC.h/EmulatorC.mm) exposed through a bridging header.
+
+**Key files:**
+- `EZSnes9xApp.swift` — @main entry, scenePhase lifecycle
+- `Emulator/EmulatorBridge.swift` — ObservableObject wrapping C++ emulator
+- `Emulator/EmulatorView.swift` — UIViewRepresentable wrapping MTKView
+- `Emulator/InputManager.swift` — GCController + Siri Remote input
+- `Launcher/` — SwiftUI Cover Flow UI (CoverFlowCarousel, GameCardView, RomScanner, StatusBar)
+- `MetalRenderer.mm` — MTKViewDelegate, RGB555→BGRA8 conversion, letterboxing
+- `AudioEngine.mm` — AVAudioEngine pull-model audio
+- `EmulatorC.mm` — C wrapper around C++ `Emulator::` namespace
+- `Shaders.metal` — Metal vertex/fragment shaders
+
+**Swift ↔ C++ bridging:**
+- Swift cannot call C++ directly (no namespace/template support)
+- C wrapper functions in `EmulatorC.h` (prefixed `EmulatorC_`) bridge the gap
+- `Bridging-Header.h` imports `MetalRenderer.h`, `AudioEngine.h`, `EmulatorC.h`
+
+**Metal shader compilation with CMake:**
+- CMake's Xcode generator does NOT compile `.metal` files automatically
+- Custom build commands: `xcrun metal` → `.air` → `xcrun metallib` → `default.metallib`
+- Must use `$SDKROOT` (set by Xcode at build time) to target correct SDK (simulator vs device)
+- `default.metallib` is copied into app bundle via POST_BUILD command
+
+**tvOS-specific patterns:**
+- `UIViewRepresentable` (not `NSViewRepresentable` — tvOS uses UIKit)
+- tvOS focus engine: `@FocusState` + `ScrollViewReader` (not manual D-pad handling)
+- `.buttonStyle(.card)` for native card lift effect
+- `.onExitCommand` for Siri Remote Menu button
+- `AsyncImage` doesn't work with local `file://` URLs — use `UIImage(contentsOfFile:)`
+- Siri Remote mapped as: D-pad→D-pad, trackpad click→A, buttonX→B, menu→Start
+
+**Include order in ObjC++ files:**
+- `snes9x.h` MUST be included before Foundation/ObjC headers
+- `apu/apu.h` uses typedefs (`uint8`, `bool8`) defined in `snes9x.h`
+
+**CMake platform exclusion:**
+- When `CMAKE_SYSTEM_NAME=tvOS`, `APPLE` is still true
+- macOS frontend excluded with `NOT CMAKE_SYSTEM_NAME STREQUAL "tvOS"`
 
 ## External Dependencies
 
