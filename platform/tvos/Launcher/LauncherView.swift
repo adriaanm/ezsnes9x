@@ -7,6 +7,7 @@ struct LauncherView: View {
     @State private var games: [GameInfo] = []
     @State private var selectedIndex: Int = 0
     @State private var showingEmulator = false
+    @State private var debugInfo: String = ""
 
     var body: some View {
         ZStack {
@@ -19,23 +20,30 @@ struct LauncherView: View {
 
                 Spacer()
 
-                // Cover Flow carousel
-                CoverFlowCarousel(
-                    games: games,
-                    selectedIndex: $selectedIndex,
-                    onSelect: launchGame
-                )
-                .frame(height: 920)  // 720px cards + 20px padding + space for 2-line titles
+                // Cover Flow carousel OR debug info
+                if games.isEmpty {
+                    // Debug info in the center when no games
+                    VStack(spacing: 20) {
+                        Text("No ROMs found [v2]")
+                            .font(.title2)
+                            .foregroundColor(.white)
+                        Text(debugInfo)
+                            .font(.body)
+                            .foregroundColor(.gray)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 100)
+                            .lineLimit(nil)
+                    }
+                } else {
+                    CoverFlowCarousel(
+                        games: games,
+                        selectedIndex: $selectedIndex,
+                        onSelect: launchGame
+                    )
+                    .frame(height: 920)
+                }
 
                 Spacer()
-
-                // Documents path hint
-                if games.isEmpty {
-                    Text("Place ROMs in: \(RomScanner.documentsDirectory)")
-                        .font(.caption2)
-                        .foregroundColor(.gray.opacity(0.4))
-                        .padding(.bottom, 20)
-                }
             }
         }
         .onAppear {
@@ -60,6 +68,35 @@ struct LauncherView: View {
     }
 
     private func scanROMs() {
+        let fm = FileManager.default
+
+        // Debug: Check bundled ROMs directory
+        var debugLines: [String] = []
+
+        if let bundledDir = RomScanner.bundledRomsDirectory {
+            let dir = bundledDir.path
+            debugLines.append("Bundle ROMs: \(dir)")
+            debugLines.append("Exists: \(fm.fileExists(atPath: dir))")
+
+            if let files = try? fm.contentsOfDirectory(atPath: dir) {
+                debugLines.append("Files: \(files.count)")
+                let romFiles = files.filter { RomScanner.romExtensions.contains(($0 as NSString).pathExtension.lowercased()) }
+                debugLines.append("ROMs: \(romFiles.count)")
+                if romFiles.count > 0 {
+                    debugLines.append("First: \(romFiles[0])")
+                }
+            } else {
+                debugLines.append("Cannot read directory!")
+            }
+        } else {
+            debugLines.append("No bundled ROMs directory!")
+        }
+
+        debugLines.append("Save dir: \(RomScanner.saveDirectory.path)")
+
+        debugInfo = debugLines.joined(separator: "\n")
+        print("[LauncherView] \(debugInfo)")
+
         games = RomScanner.scan()
     }
 
@@ -69,7 +106,6 @@ struct LauncherView: View {
             return
         }
 
-        bridge.resume()
         showingEmulator = true
     }
 }
