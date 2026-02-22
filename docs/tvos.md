@@ -18,6 +18,97 @@ SwiftUI launcher with Cover Flow game picker and Metal emulator for Apple TV.
 - Metal shader SDK targeting: Resolved with separate simulator/device targets
 - Each target compiles Metal shaders with explicit SDK (`appletvsimulator` vs `appletvos`)
 
+## Deploying to Apple TV
+
+### Prerequisites
+
+- Apple TV 4K (3rd generation) or later
+- Apple ID (free account works for personal development)
+- Xcode installed with tvOS support
+
+### Step 1: Pair Your Apple TV
+
+**Option A: Wireless** (recommended)
+1. On Apple TV: Settings → Remotes and Devices → Remote App and Devices
+2. In Xcode: Window → Devices and Simulators → Devices tab
+3. Click + button and select your Apple TV
+4. Enter the pairing code shown on your TV
+
+**Option B: USB-C Cable** (Apple TV 4K 3rd gen)
+- Connect Apple TV directly to your Mac via USB-C
+
+### Step 2: Configure Code Signing
+
+1. Open the Xcode project:
+   ```bash
+   open build-tvos/snes9x.xcodeproj
+   ```
+
+2. Select `ezsnes9x-tvos` target (device build)
+3. Go to "Signing & Capabilities" tab
+4. Check "Automatically manage signing"
+5. Select your Personal Team from the dropdown
+6. Repeat for `ezsnes9x-tvos-sim` target (simulator build)
+
+### Step 3: Build and Deploy
+
+**From Xcode:**
+1. Select scheme: `ezsnes9x-tvos` (not -sim)
+2. Select destination: Your Apple TV device
+3. Click Run (▶) or press Cmd+R
+4. Xcode will build, sign, and install the app
+
+**From Command Line:**
+```bash
+# Build for device
+xcodebuild -project build-tvos/snes9x.xcodeproj \
+  -scheme ezsnes9x-tvos \
+  -destination 'id=YOUR_DEVICE_ID' \
+  -configuration Release \
+  -allowProvisioningUpdates
+
+# Install on device
+xcrun devicectl device install app \
+  --device YOUR_DEVICE_ID \
+  build-tvos/platform/tvos/Release-appletvos/EZSnes9x.app
+```
+
+**Find your device ID:**
+```bash
+xcrun devicectl list devices
+```
+
+### Step 4: Copy ROMs and Cover Art
+
+Copy your SNES ROMs (.sfc, .smc) and cover art (.png) to the app's Documents folder:
+
+```bash
+# Copy all ROMs and cover art from a local directory
+cd ~/your_roms_directory
+for file in *.sfc *.smc *.png; do
+  if [ -f "$file" ]; then
+    xcrun devicectl device copy to \
+      --device YOUR_DEVICE_ID \
+      --domain-type appDataContainer \
+      --domain-identifier com.ezsnes9x.tvos \
+      --source "$file" \
+      --destination "Documents/$file"
+  fi
+done
+```
+
+**Cover art naming:** Cover art PNG files must have the same name as the ROM file:
+- `SUPER_MARIO_WORLD.sfc` → `SUPER_MARIO_WORLD.png`
+- Underscores in filenames are replaced with spaces in the UI
+
+### Step 5: Launch the App
+
+The app should be installed on your Apple TV's home screen. Launch it to see the Cover Flow launcher with your games!
+
+**Controls:**
+- Siri Remote: D-pad navigation, trackpad click to select, Menu button to exit
+- Game Controller: Full SNES controller mapping + L2 for rewind
+
 ## Architecture Overview
 
 ```

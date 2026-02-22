@@ -25,7 +25,7 @@ struct LauncherView: View {
                     selectedIndex: $selectedIndex,
                     onSelect: launchGame
                 )
-                .frame(height: 850)  // Accommodate 720px cards + title (Apple TV 1920x1080)
+                .frame(height: 920)  // 720px cards + 20px padding + space for 2-line titles
 
                 Spacer()
 

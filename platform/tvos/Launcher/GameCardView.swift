@@ -16,9 +16,14 @@ struct GameCardView: View {
             ZStack {
                 if let coverPath = game.coverPath,
                    let uiImage = UIImage(contentsOfFile: coverPath) {
-                    // Cover art with background
+                    // Cover art with background derived from dominant color
                     ZStack {
-                        Color(white: 0.16)  // #2A2A2A background
+                        // Use dominant color from cover art, fallback to dark gray
+                        if let bgColor = uiImage.dominantBackgroundColor() {
+                            Color(bgColor)
+                        } else {
+                            Color(white: 0.16)  // Fallback to #2A2A2A
+                        }
 
                         Image(uiImage: uiImage)
                             .resizable()
@@ -50,11 +55,12 @@ struct GameCardView: View {
 
             // Game name below card
             Text(game.name)
-                .font(.title2)
+                .font(.title3)
                 .fontWeight(.medium)
                 .foregroundColor(isFocused ? .white : .gray)
                 .lineLimit(2)
                 .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)  // Allow text to wrap to 2 lines
                 .frame(width: cardWidth)
                 .padding(.top, 20)
         }

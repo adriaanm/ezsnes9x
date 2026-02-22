@@ -22,6 +22,7 @@ set(TVOS_SWIFT_SOURCES
     Launcher/GameCardView.swift
     Launcher/RomScanner.swift
     Launcher/StatusBar.swift
+    Launcher/UIImage+DominantColor.swift
 )
 
 set(METAL_SHADER ${CMAKE_CURRENT_SOURCE_DIR}/Shaders.metal)
