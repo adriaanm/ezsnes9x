@@ -20,8 +20,15 @@
 
 #include <cstdio>
 #include <cstring>
+#include <cerrno>
 #include <string>
 #include <sys/stat.h>
+#ifdef __APPLE__
+#include <os/log.h>
+#define ELOG(fmt, ...) os_log(OS_LOG_DEFAULT, "[Emulator] " fmt, ##__VA_ARGS__)
+#else
+#define ELOG(fmt, ...) fprintf(stderr, "[Emulator] " fmt "\n", ##__VA_ARGS__)
+#endif
 
 // ---------------------------------------------------------------------------
 // Internal state
@@ -112,16 +119,16 @@ bool LoadROM(const char *rom_path)
     {
         auto path = splitpath(Memory.ROMFilename);
         s_save_dir = path.dir;
-        fprintf(stderr, "[Emulator] LoadROM: s_save_dir was empty, using ROM dir: %s\n", s_save_dir.c_str());
+        ELOG("LoadROM: s_save_dir was empty, using ROM dir: %{public}s", s_save_dir.c_str());
     }
     else
     {
-        fprintf(stderr, "[Emulator] LoadROM: using s_save_dir: %s\n", s_save_dir.c_str());
+        ELOG("LoadROM: using s_save_dir: %{public}s", s_save_dir.c_str());
     }
 
     // Set suspend state path
     s_suspend_path = s_save_dir + SLASH_STR + S9xBasenameNoExt(Memory.ROMFilename) + ".suspend";
-    fprintf(stderr, "[Emulator] LoadROM: suspend path will be: %s\n", s_suspend_path.c_str());
+    ELOG("LoadROM: suspend path will be: %{public}s", s_suspend_path.c_str());
 
     // Load SRAM if it exists
     std::string sram_path = S9xGetFilename(".srm", SRAM_DIR);
@@ -151,7 +158,14 @@ void Shutdown()
 {
     Settings.StopEmulation = true;
 
-    // Save SRAM
+    // Save suspend state and SRAM before tearing down subsystems
+    if (!s_suspend_path.empty())
+    {
+        ELOG("Shutdown: saving suspend to %{public}s", s_suspend_path.c_str());
+        int ok = S9xFreezeGame(s_suspend_path.c_str());
+        ELOG("Shutdown: S9xFreezeGame returned %d", ok);
+    }
+
     std::string sram_path = S9xGetFilename(".srm", SRAM_DIR);
     Memory.SaveSRAM(sram_path.c_str());
 
@@ -229,11 +243,12 @@ void Suspend()
     if (Settings.StopEmulation)
         return;
 
-    fprintf(stderr, "[Emulator] Suspend: saving to %s\n", s_suspend_path.c_str());
-    S9xFreezeGame(s_suspend_path.c_str());
+    ELOG("Suspend: saving to %{public}s", s_suspend_path.c_str());
+    int freeze_ok = S9xFreezeGame(s_suspend_path.c_str());
+    ELOG("Suspend: S9xFreezeGame returned %d", freeze_ok);
 
     std::string sram_path = S9xGetFilename(".srm", SRAM_DIR);
-    fprintf(stderr, "[Emulator] Suspend: saving SRAM to %s\n", sram_path.c_str());
+    ELOG("Suspend: saving SRAM to %{public}s", sram_path.c_str());
     Memory.SaveSRAM(sram_path.c_str());
 }
 
@@ -241,19 +256,20 @@ void Resume()
 {
     if (Settings.StopEmulation)
     {
-        fprintf(stderr, "[Emulator] Resume: skipped (StopEmulation=true)\n");
+        ELOG("Resume: skipped (StopEmulation=true)");
         return;
     }
 
-    fprintf(stderr, "[Emulator] Resume: checking %s\n", s_suspend_path.c_str());
+    ELOG("Resume: checking %{public}s", s_suspend_path.c_str());
     if (file_exists(s_suspend_path.c_str()))
     {
-        fprintf(stderr, "[Emulator] Resume: loading from %s\n", s_suspend_path.c_str());
-        S9xUnfreezeGame(s_suspend_path.c_str());
+        ELOG("Resume: loading from %{public}s", s_suspend_path.c_str());
+        int unfreeze_ok = S9xUnfreezeGame(s_suspend_path.c_str());
+        ELOG("Resume: S9xUnfreezeGame returned %d", unfreeze_ok);
     }
     else
     {
-        fprintf(stderr, "[Emulator] Resume: file not found\n");
+        ELOG("Resume: file not found");
     }
 }
 
@@ -379,6 +395,8 @@ bool8 S9xOpenSnapshotFile(const char *filename, bool8 read_only, STREAM *file)
 {
     const char *mode = read_only ? "r" : "w";
     *file = OPEN_STREAM(filename, mode);
+    if (!*file)
+        ELOG("S9xOpenSnapshotFile: fopen(%{public}s, %{public}s) failed: %{public}s", filename, mode, strerror(errno));
     return (*file != nullptr);
 }
 

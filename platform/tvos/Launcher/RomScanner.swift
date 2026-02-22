@@ -1,4 +1,7 @@
 import Foundation
+import os.log
+
+private let scannerLogger = Logger(subsystem: "com.ezsnes9x.tvos", category: "RomScanner")
 
 /// Information about a discovered ROM file
 struct GameInfo: Identifiable, Equatable {
@@ -21,12 +24,29 @@ final class RomScanner {
         Bundle.main.url(forResource: "ROMs", withExtension: nil)
     }
 
-    /// Get the Application Support directory for save states (read-write)
+    /// Get the save state directory (read-write). Uses Application Support/Saves,
+    /// falls back to Caches/Saves if Application Support cannot be created (tvOS restriction).
     static var saveDirectory: URL {
-        let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+        let fm = FileManager.default
+        let appSupport = fm.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
         let saveDir = appSupport.appendingPathComponent("Saves")
-        try? FileManager.default.createDirectory(at: saveDir, withIntermediateDirectories: true)
-        return saveDir
+        do {
+            try fm.createDirectory(at: saveDir, withIntermediateDirectories: true)
+            scannerLogger.info("saveDirectory: \(saveDir.path, privacy: .public)")
+            return saveDir
+        } catch {
+            let posixCode = ((error as NSError).userInfo[NSUnderlyingErrorKey] as? NSError)?.code ?? -1
+            scannerLogger.error("saveDirectory: AppSupport failed POSIX=\(posixCode), trying Caches")
+            let caches = fm.urls(for: .cachesDirectory, in: .userDomainMask).first!
+            let fallback = caches.appendingPathComponent("Saves")
+            do {
+                try fm.createDirectory(at: fallback, withIntermediateDirectories: true)
+                scannerLogger.error("saveDirectory fallback OK: \(fallback.path, privacy: .public)")
+            } catch {
+                scannerLogger.error("saveDirectory fallback ALSO failed: \(error.localizedDescription, privacy: .public) path=\(fallback.path, privacy: .public)")
+            }
+            return fallback
+        }
     }
 
     /// Scan for ROMs in the bundled Resources/ROMs directory

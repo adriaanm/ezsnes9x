@@ -1,5 +1,8 @@
 import Foundation
 import MetalKit
+import os.log
+
+private let logger = Logger(subsystem: "com.ezsnes9x.tvos", category: "EmulatorBridge")
 
 /// Swift bridge to the C++ Emulator namespace via C wrappers.
 /// Manages the emulator lifecycle, Metal rendering, and audio.
@@ -35,6 +38,7 @@ final class EmulatorBridge: ObservableObject {
     func loadROM(_ path: String) -> Bool {
         // If a game is already running, shut it down cleanly
         if isRunning {
+            logger.info("loadROM: shutting down running game first")
             audio.stop()
             EmulatorC_Shutdown()
             isInitialized = false
@@ -44,6 +48,7 @@ final class EmulatorBridge: ObservableObject {
         // (Re-)init emulator core
         if !initEmulator() { return false }
 
+        logger.info("loadROM: loading \(path)")
         let success = EmulatorC_LoadROM(path)
         if success {
             romName = String(cString: EmulatorC_GetROMName())
@@ -51,7 +56,9 @@ final class EmulatorBridge: ObservableObject {
             audio.start()
 
             // Resume from suspend state if it exists
+            logger.info("loadROM: calling EmulatorC_Resume()")
             EmulatorC_Resume()
+            logger.info("loadROM: resume done")
         }
         return success
     }
@@ -95,7 +102,11 @@ final class EmulatorBridge: ObservableObject {
     }
 
     func suspend() {
-        guard isRunning else { return }
+        logger.info("suspend() called, isRunning=\(self.isRunning)")
+        guard isRunning else {
+            logger.info("suspend() skipped: not running")
+            return
+        }
         EmulatorC_Suspend()
     }
 
