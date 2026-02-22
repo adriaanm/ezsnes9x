@@ -41,7 +41,7 @@ See [docs/controls.md](docs/controls.md) for complete control reference.
 |----------|-----------|-------|-------|------|
 | **macOS** | Metal | AVAudioEngine | GCController / keyboard | [docs/macos.md](docs/macos.md) |
 | **Android (emulator)** | OpenGL ES 3.0 | Oboe | Native gamepad | [docs/android.md](docs/android.md) |
-| **tvOS** | Metal | AVAudioEngine | Siri Remote / GCController | — |
+| **tvOS** | Metal | AVAudioEngine | Siri Remote / GCController | [docs/tvos.md](docs/tvos.md) |
 | **Android (launcher)** | Jetpack Compose | — | Gamepad & touch | [docs/launcher.md](docs/launcher.md) |
 
 ## Android Launcher
@@ -82,6 +82,7 @@ For full build instructions, see [BUILDING.md](BUILDING.md).
 
 - **[BUILDING.md](BUILDING.md)** — Build instructions for all platforms
 - **[docs/macos.md](docs/macos.md)** — macOS frontend
+- **[docs/tvos.md](docs/tvos.md)** — tvOS frontend (Apple TV)
 - **[docs/android.md](docs/android.md)** — Android emulator
 - **[docs/launcher.md](docs/launcher.md)** — Android launcher app
 - **[docs/controls.md](docs/controls.md)** — Complete control reference
