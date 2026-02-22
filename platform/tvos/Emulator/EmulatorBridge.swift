@@ -99,11 +99,6 @@ final class EmulatorBridge: ObservableObject {
         EmulatorC_Suspend()
     }
 
-    func resume() {
-        guard isRunning else { return }
-        EmulatorC_Resume()
-    }
-
     func shutdown() {
         guard isRunning else { return }
         isRunning = false

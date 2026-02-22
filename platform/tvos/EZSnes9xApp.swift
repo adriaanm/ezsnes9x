@@ -18,9 +18,9 @@ struct EZSnes9xApp: App {
         .onChange(of: scenePhase) { _, newPhase in
             switch newPhase {
             case .active:
-                bridge.resume()
+                break // MTKView draw callbacks resume automatically; don't reload suspend file
             case .inactive, .background:
-                bridge.suspend()
+                bridge.suspend() // Safety save in case OS kills the app
             @unknown default:
                 break
             }
