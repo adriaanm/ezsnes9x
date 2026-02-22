@@ -365,22 +365,41 @@ class RomDirectoryObserver(
 
 ### Metal Shader Compilation with CMake
 
-CMake's Xcode generator does NOT automatically compile `.metal` files the way native Xcode projects do. You must add custom build commands:
+CMake's Xcode generator does NOT automatically compile `.metal` files the way native Xcode projects do. You must add custom build commands.
+
+**The Problem with Environment Variables:**
+CMake's `PRE_BUILD` custom commands run before Xcode's build phases start, so `$SDKROOT` and other Xcode environment variables are not yet set. Attempting to use them results in the metallib being compiled for the wrong target (e.g., device when you need simulator).
+
+**Solution: Separate Targets with Hardcoded SDKs**
+Create separate targets for simulator and device, each with explicit SDK paths:
 
 ```cmake
-# Compile .metal → .air → .metallib
-add_custom_command(TARGET myapp PRE_BUILD
-    COMMAND /bin/sh -c
-        "xcrun -sdk $$SDKROOT metal -c src.metal -o out.air && xcrun -sdk $$SDKROOT metallib out.air -o default.metallib"
-)
+# Function to create target with specific SDK
+function(add_tvos_target TARGET_NAME SDK_NAME)
+    add_executable(${TARGET_NAME} ...)
 
-# Copy metallib into app bundle
-add_custom_command(TARGET myapp POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy default.metallib $<TARGET_BUNDLE_DIR:myapp>/default.metallib
-)
+    # Metal compilation with hardcoded SDK
+    add_custom_command(TARGET ${TARGET_NAME} PRE_BUILD
+        COMMAND xcrun -sdk ${SDK_NAME} metal -c src.metal -o out.air
+        COMMAND xcrun -sdk ${SDK_NAME} metallib out.air -o default.metallib
+    )
+
+    add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy default.metallib
+            $<TARGET_BUNDLE_DIR:${TARGET_NAME}>/default.metallib
+    )
+endfunction()
+
+# Create both targets
+add_tvos_target(myapp-sim appletvsimulator)  # For simulator
+add_tvos_target(myapp appletvos)             # For device
 ```
 
-**Critical:** Use `$$SDKROOT` (double `$` for CMake escaping) in a `/bin/sh -c` command so that Xcode's build-time `SDKROOT` environment variable is used. This ensures the metallib targets the correct platform (simulator vs device). Hardcoding `-sdk appletvsimulator` or using CMake generator expressions for the SDK path will fail when switching between simulator and device builds.
+**Why this works:**
+- No dependency on Xcode environment variables
+- Each target explicitly knows its SDK at CMake configure time
+- Metal shaders are compiled correctly for their target platform
+- Users explicitly choose which target to build
 
 ### snes9x.h Include Order in ObjC++
 

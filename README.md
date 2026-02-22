@@ -66,7 +66,8 @@ open build/platform/macos/ezsnes9x-macos.app
 **tvOS (Apple TV):**
 ```bash
 cmake -G Xcode -B build-tvos -DCMAKE_SYSTEM_NAME=tvOS
-cmake --build build-tvos --config Release -- -sdk appletvsimulator -arch arm64
+cmake --build build-tvos --config Release --target ezsnes9x-tvos-sim  # Simulator
+cmake --build build-tvos --config Release --target ezsnes9x-tvos      # Device
 ```
 
 **Android:**
