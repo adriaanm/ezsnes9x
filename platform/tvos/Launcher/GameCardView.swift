@@ -1,10 +1,29 @@
 import SwiftUI
 
+/// Shared cache for cover art images and their derived background colors.
+/// NSCache is thread-safe; the @unchecked Sendable annotation reflects that.
+private final class CoverArtCache: @unchecked Sendable {
+    static let shared = CoverArtCache()
+    private let images = NSCache<NSString, UIImage>()
+    private let colors = NSCache<NSString, UIColor>()
+    private init() {
+        images.countLimit = 100
+        colors.countLimit = 100
+    }
+    func image(for path: String) -> UIImage? { images.object(forKey: path as NSString) }
+    func set(_ image: UIImage, for path: String) { images.setObject(image, forKey: path as NSString) }
+    func color(for path: String) -> UIColor? { colors.object(forKey: path as NSString) }
+    func set(_ color: UIColor, for path: String) { colors.setObject(color, forKey: path as NSString) }
+}
+
 /// A single game card in the Cover Flow carousel.
 /// Shows cover art if available, otherwise a colored placeholder with the game name.
 struct GameCardView: View {
     let game: GameInfo
     let isFocused: Bool
+
+    @State private var loadedImage: UIImage?
+    @State private var loadedBgColor: Color?
 
     // Apple TV has 1920x1080 screen - use wider cards than Android (280dp)
     private let cardWidth: CGFloat = 480
@@ -14,16 +33,10 @@ struct GameCardView: View {
         VStack(spacing: 0) {
             // Card with cover art or placeholder
             ZStack {
-                if let coverPath = game.coverPath,
-                   let uiImage = UIImage(contentsOfFile: coverPath) {
+                if let uiImage = loadedImage {
                     // Cover art with background derived from dominant color
                     ZStack {
-                        // Use dominant color from cover art, fallback to dark gray
-                        if let bgColor = uiImage.dominantBackgroundColor() {
-                            Color(bgColor)
-                        } else {
-                            Color(white: 0.16)  // Fallback to #2A2A2A
-                        }
+                        (loadedBgColor ?? Color(white: 0.16))
 
                         Image(uiImage: uiImage)
                             .resizable()
@@ -31,7 +44,7 @@ struct GameCardView: View {
                             .padding(20)  // Padding around image for breathing room
                     }
                 } else {
-                    // Placeholder without cover art
+                    // Placeholder without cover art (also shown while loading)
                     ZStack {
                         Rectangle()
                             .fill(placeholderColor)
@@ -64,6 +77,38 @@ struct GameCardView: View {
                 .frame(width: cardWidth)
                 .padding(.top, 20)
         }
+        // Load cover art asynchronously. Cancels automatically if the view disappears
+        // or game.coverPath changes, preventing stale results landing on the wrong card.
+        .task(id: game.coverPath) {
+            await loadCoverArt()
+        }
+    }
+
+    private func loadCoverArt() async {
+        guard let path = game.coverPath else { return }
+
+        // Serve from cache immediately — no disk I/O on the main thread
+        if let cached = CoverArtCache.shared.image(for: path) {
+            loadedImage = cached
+            loadedBgColor = CoverArtCache.shared.color(for: path).map { Color($0) }
+            return
+        }
+
+        // Load image and compute dominant color on a background thread
+        let result = await Task.detached(priority: .userInitiated) { () -> (UIImage, UIColor?)? in
+            guard let image = UIImage(contentsOfFile: path) else { return nil }
+            return (image, image.dominantBackgroundColor())
+        }.value
+
+        guard let (image, bgColor) = result else { return }
+
+        // Cache for subsequent visits
+        CoverArtCache.shared.set(image, for: path)
+        if let bgColor { CoverArtCache.shared.set(bgColor, for: path) }
+
+        // State updates happen back on MainActor (.task modifier is @MainActor-bound)
+        loadedImage = image
+        loadedBgColor = bgColor.map { Color($0) }
     }
 
     private var placeholderColor: Color {
