@@ -21,6 +21,11 @@ final class EmulatorBridge: ObservableObject {
     @discardableResult
     func initEmulator() -> Bool {
         if isInitialized { return true }
+
+        // Set save directory for .srm and .suspend files
+        let saveDir = RomScanner.saveDirectory.path
+        EmulatorC_SetSaveDirectory(saveDir)
+
         let ok = EmulatorC_Init("")
         if ok { isInitialized = true }
         return ok
@@ -44,6 +49,9 @@ final class EmulatorBridge: ObservableObject {
             romName = String(cString: EmulatorC_GetROMName())
             isRunning = true
             audio.start()
+
+            // Resume from suspend state if it exists
+            EmulatorC_Resume()
         }
         return success
     }

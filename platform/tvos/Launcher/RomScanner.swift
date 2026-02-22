@@ -12,28 +12,34 @@ struct GameInfo: Identifiable, Equatable {
     }
 }
 
-/// Scans the app's Documents directory for SNES ROM files
+/// Scans the app's bundled ROMs directory for SNES ROM files
 final class RomScanner {
     static let romExtensions: Set<String> = ["sfc", "smc", "fig", "swc"]
 
-    /// Get the app's Documents directory path
-    static var documentsDirectory: String {
-        let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
-        return paths[0].path
+    /// Get the bundled ROMs directory (Resources/ROMs in app bundle)
+    static var bundledRomsDirectory: URL? {
+        Bundle.main.url(forResource: "ROMs", withExtension: nil)
     }
 
-    /// Scan for ROMs in the Documents directory
-    static func scan() -> [GameInfo] {
-        let dir = documentsDirectory
-        let fm = FileManager.default
+    /// Get the Application Support directory for save states (read-write)
+    static var saveDirectory: URL {
+        let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+        let saveDir = appSupport.appendingPathComponent("Saves")
+        try? FileManager.default.createDirectory(at: saveDir, withIntermediateDirectories: true)
+        return saveDir
+    }
 
-        // Create directory if it doesn't exist
-        if !fm.fileExists(atPath: dir) {
-            try? fm.createDirectory(atPath: dir, withIntermediateDirectories: true)
+    /// Scan for ROMs in the bundled Resources/ROMs directory
+    static func scan() -> [GameInfo] {
+        guard let dir = bundledRomsDirectory else {
+            print("[RomScanner] No bundled ROMs directory found")
+            return []
         }
 
-        guard let files = try? fm.contentsOfDirectory(atPath: dir) else {
-            print("[RomScanner] Cannot read directory: \(dir)")
+        let fm = FileManager.default
+
+        guard let files = try? fm.contentsOfDirectory(atPath: dir.path) else {
+            print("[RomScanner] Cannot read directory: \(dir.path)")
             return []
         }
 
@@ -43,27 +49,28 @@ final class RomScanner {
             let ext = (file as NSString).pathExtension.lowercased()
             guard romExtensions.contains(ext) else { continue }
 
-            let romPath = (dir as NSString).appendingPathComponent(file)
+            let romPath = dir.appendingPathComponent(file)
             let baseName = (file as NSString).deletingPathExtension
             // Replace underscores with spaces for cleaner display (matches Android launcher)
             let displayName = baseName.replacingOccurrences(of: "_", with: " ")
 
             // Check for cover art (same name, .png extension)
             let coverFile = baseName + ".png"
-            let coverPath = (dir as NSString).appendingPathComponent(coverFile)
-            let hasCover = fm.fileExists(atPath: coverPath)
+            let coverPath = dir.appendingPathComponent(coverFile)
+            let hasCover = fm.fileExists(atPath: coverPath.path)
 
             games.append(GameInfo(
                 name: displayName,
-                romPath: romPath,
-                coverPath: hasCover ? coverPath : nil
+                romPath: romPath.path,
+                coverPath: hasCover ? coverPath.path : nil
             ))
         }
 
         // Sort alphabetically
         games.sort { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
 
-        print("[RomScanner] Found \(games.count) ROMs in \(dir)")
+        print("[RomScanner] Found \(games.count) ROMs in \(dir.path)")
+        print("[RomScanner] Save directory: \(saveDirectory.path)")
         return games
     }
 }

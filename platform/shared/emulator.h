@@ -18,6 +18,7 @@ namespace Emulator {
     void Shutdown();                             // Save SRAM, deinit everything
     const S9xConfig *GetConfig();                // Access loaded config (e.g., keyboard mapping)
     void SetRewindEnabled(bool enabled);         // Override rewind_enabled setting (call before LoadROM)
+    void SetSaveDirectory(const char *path);     // Set directory for save states (.srm, .suspend)
 
     // Rewind
     void RewindStartContinuous();          // Start continuous rewind (call on trigger down)

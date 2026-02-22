@@ -9,6 +9,7 @@ extern "C" {
 #endif
 
 bool EmulatorC_Init(const char *config_path);
+void EmulatorC_SetSaveDirectory(const char *path);
 bool EmulatorC_LoadROM(const char *rom_path);
 void EmulatorC_RunFrame(void);
 void EmulatorC_Shutdown(void);

@@ -7,6 +7,10 @@ bool EmulatorC_Init(const char *config_path) {
     return Emulator::Init(config_path);
 }
 
+void EmulatorC_SetSaveDirectory(const char *path) {
+    Emulator::SetSaveDirectory(path);
+}
+
 bool EmulatorC_LoadROM(const char *rom_path) {
     return Emulator::LoadROM(rom_path);
 }
