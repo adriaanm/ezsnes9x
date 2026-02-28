@@ -85,6 +85,52 @@ Complete controller and keyboard mappings for all EZSnes9x platforms.
 
 ---
 
+## tvOS Emulator (Apple TV)
+
+### Controller Priority
+
+When a dedicated game controller (DualShock, Xbox, 8BitDo, etc.) is connected, it becomes player 1. The Siri Remote is always connected on Apple TV but acts as a fallback — it only controls player 1 when no gamepad is present.
+
+### Game Controller
+
+| Button | DualShock/DualSense | Action |
+|--------|---------------------|--------|
+| D-pad / Left Stick | D-pad / Left Stick | D-pad |
+| A (bottom) | × (Cross) | SNES B |
+| B (right) | ○ (Circle) | SNES A |
+| X (left) | □ (Square) | SNES Y |
+| Y (top) | △ (Triangle) | SNES X |
+| L1/R1 | L1/R1 | SNES L/R |
+| Menu | Options | Start |
+| Options | Share/Create | Select |
+| **L2/ZL** | **L2** | Rewind (hold to rewind, release to resume) |
+| Home | PS button | tvOS Home (not captured) |
+
+All system gestures except Home are disabled on the game controller during emulation — face buttons, Menu, and shoulder buttons go directly to the emulator, not to tvOS.
+
+### Siri Remote
+
+| Button | Action |
+|--------|--------|
+| Trackpad edges | D-pad |
+| Trackpad click | SNES A |
+| Button X | SNES B |
+| **Menu** | **Exit to launcher** |
+
+The Siri Remote has limited buttons. A full gamepad is recommended for games requiring all SNES buttons.
+
+---
+
+## tvOS Launcher (Cover Flow)
+
+| Control | Action |
+|---------|--------|
+| D-pad / Siri Remote swipe | Navigate carousel |
+| A / Trackpad click | Launch selected game |
+| Menu | Standard tvOS back navigation |
+
+---
+
 ## Rewind Controls
 
 Rewind works the same on all platforms:
@@ -94,6 +140,7 @@ Rewind works the same on all platforms:
 | macOS (gamepad) | Hold **L2/ZL** |
 | macOS (keyboard) | Hold **Backspace** |
 | Android (gamepad) | Hold **L2** or two-finger swipe left |
+| tvOS (gamepad) | Hold **L2/ZL** |
 
 **How it works:**
 - Hold the rewind button to rewind time

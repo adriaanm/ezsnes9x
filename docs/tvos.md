@@ -82,8 +82,8 @@ Or manually from Xcode:
 The app should be installed on your Apple TV's home screen. Launch it to see the Cover Flow launcher with your games!
 
 **Controls:**
-- Siri Remote: D-pad navigation, trackpad click to select, Menu button to exit
-- Game Controller: Full SNES controller mapping + L2 for rewind
+- Siri Remote: D-pad navigation, trackpad click to select, Menu button to exit to launcher
+- Game Controller: Full SNES controller mapping + L2 for rewind. All buttons go directly to the emulator — Menu = Start, not exit. System gestures (back, home) are suppressed via `GCEventViewController`.
 
 ## Storage Architecture
 
@@ -147,17 +147,18 @@ platform/tvos/
 ├── EZSnes9xApp.swift           # App entry point (@main)
 ├── Emulator/
 │   ├── EmulatorBridge.swift    # Swift ↔ ObjC++ bridge
-│   ├── EmulatorView.swift      # MTKView wrapped in UIViewRepresentable
+│   ├── GameControllerViewController.swift  # GCEventViewController wrapper (captures all input)
 │   ├── MetalRenderer.mm        # Metal rendering (extracted from macOS main.mm)
 │   ├── AudioEngine.mm          # AVAudioEngine (extracted from macOS main.mm)
-│   ├── InputManager.swift      # GCController + Siri Remote
+│   ├── InputManager.swift      # GCController + Siri Remote + exit logic
 │   └── Shaders.metal           # Vertex/fragment shaders (extracted from macOS)
 ├── Launcher/
 │   ├── LauncherView.swift      # Main launcher screen
 │   ├── CoverFlowCarousel.swift # 3D carousel with focus engine
 │   ├── GameCardView.swift      # Individual game card
 │   ├── RomScanner.swift        # Scans bundled ROMs directory
-│   └── StatusBar.swift         # Clock + controller status
+│   ├── StatusBar.swift         # Clock + controller status
+│   └── UIImage+DominantColor.swift  # Cover art placeholder colors
 └── Bridging-Header.h          # ObjC++ ↔ Swift bridge
 ```
 

@@ -424,10 +424,13 @@ The `__MACOSX__` compile definition (set for `if(APPLE)`) applies to both platfo
 
 ### tvOS UI Patterns
 
-- **Focus engine:** tvOS uses a focus-based navigation system. Use `@FocusState` and `.focused()` modifier instead of manual D-pad key handling.
+- **Focus engine:** tvOS uses a focus-based navigation system. Use `@FocusState` and `.focused()` modifier for launcher UI navigation (e.g., `CoverFlowCarousel`).
 - **Local images:** `AsyncImage` does not load local `file://` URLs. Use `UIImage(contentsOfFile:)` + `Image(uiImage:)` instead.
 - **UIKit, not AppKit:** tvOS uses UIKit like iOS. Use `UIViewRepresentable` (not `NSViewRepresentable`), `UIImage` (not `NSImage`).
-- **Menu button:** Use `.onExitCommand` to handle Siri Remote Menu button press.
+- **Controller input capture:** Wrap emulator views in `GCEventViewController` with `controllerUserInteractionEnabled = false` to prevent tvOS from intercepting gamepad buttons as navigation events (back, home, select). Without this, Menu button exits the app instead of sending SNES Start.
+- **Exit to launcher:** Use `InputManager.exitRequested` flag (observed via `.onChange`) instead of `.onExitCommand`. This allows Siri Remote Menu to exit while gamepad Menu maps to SNES Start.
+- **System gesture suppression:** Set `preferredSystemGestureState = .disabled` on `buttonA`, `buttonB`, and `buttonMenu` for extended gamepads. Leave `buttonHome` alone so the PS/Xbox button keeps its tvOS Home function.
+- **Controller priority:** The Siri Remote is always connected on Apple TV. Extended gamepads must be prioritized for port 0 (player 1). When a gamepad connects, bump the Siri Remote to a fallback port. When the gamepad disconnects, promote the Siri Remote back to port 0.
 
 ### Launcher Build Configuration
 

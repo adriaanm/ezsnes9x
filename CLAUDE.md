@@ -186,7 +186,7 @@ All other port functions (file I/O, input polling, etc.) are implemented in `pla
 **Key files:**
 - `EZSnes9xApp.swift` — @main entry, scenePhase lifecycle
 - `Emulator/EmulatorBridge.swift` — ObservableObject wrapping C++ emulator
-- `Emulator/EmulatorView.swift` — UIViewRepresentable wrapping MTKView
+- `Emulator/GameControllerViewController.swift` — GCEventViewController wrapping MTKView (captures all controller input)
 - `Emulator/InputManager.swift` — GCController + Siri Remote input
 - `Launcher/` — SwiftUI Cover Flow UI (CoverFlowCarousel, GameCardView, RomScanner, StatusBar)
 - `MetalRenderer.mm` — MTKViewDelegate, RGB555→BGRA8 conversion, letterboxing
@@ -209,9 +209,9 @@ All other port functions (file I/O, input polling, etc.) are implemented in `pla
 - `UIViewRepresentable` (not `NSViewRepresentable` — tvOS uses UIKit)
 - tvOS focus engine: `@FocusState` + `ScrollViewReader` (not manual D-pad handling)
 - `.buttonStyle(.card)` for native card lift effect
-- `.onExitCommand` for Siri Remote Menu button
+- `GCEventViewController` with `controllerUserInteractionEnabled = false` captures all controller input during emulation
 - `AsyncImage` doesn't work with local `file://` URLs — use `UIImage(contentsOfFile:)`
-- Siri Remote mapped as: D-pad→D-pad, trackpad click→A, buttonX→B, menu→Start
+- Siri Remote mapped as: D-pad→D-pad, trackpad click→A, buttonX→B, menu→exit to launcher
 
 **tvOS storage (bundled ROMs + save states):**
 - tvOS has no Documents folder access — ROMs must be bundled in the app
@@ -221,6 +221,14 @@ All other port functions (file I/O, input polling, etc.) are implemented in `pla
 - Save states (`.srm`, `.suspend`) stored in Application Support directory (read-write, created at runtime)
 - `RomScanner.saveDirectory` returns the Application Support path for saves
 - `EmulatorC_SetSaveDirectory()` called at init to configure save location
+
+**Controller input routing:**
+- `GCEventViewController` (subclassed as `EmulatorGCEventViewController`) captures all controller input during gameplay
+- `controllerUserInteractionEnabled = false` prevents tvOS from intercepting buttons as navigation
+- `preferredSystemGestureState = .disabled` set on buttonA, buttonB, and buttonMenu; buttonHome left for tvOS Home
+- Siri Remote Menu button exits to launcher (standard tvOS UX); gamepad Menu button sends SNES Start
+- Exit logic driven by `InputManager.exitRequested` (observed by `EmulatorScreen`)
+- Controller priority: extended gamepads always get port 0 (player 1); Siri Remote is fallback (bumped to port 4 when a gamepad connects, promoted back when it disconnects)
 
 **Include order in ObjC++ files:**
 - `snes9x.h` MUST be included before Foundation/ObjC headers
