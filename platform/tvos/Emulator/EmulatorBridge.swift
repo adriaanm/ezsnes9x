@@ -15,7 +15,7 @@ final class EmulatorBridge: ObservableObject {
 
     private var isInitialized = false
 
-    /// Attach renderer to an MTKView. Called by EmulatorView when the view is created.
+    /// Attach renderer to an MTKView. Called by GameControllerViewController when the view is created.
     func attachToView(_ view: MTKView) {
         renderer = MetalRenderer(mtkView: view)
     }
@@ -39,10 +39,7 @@ final class EmulatorBridge: ObservableObject {
         // If a game is already running, shut it down cleanly
         if isRunning {
             logger.info("loadROM: shutting down running game first")
-            audio.stop()
-            EmulatorC_Shutdown()
-            isInitialized = false
-            isRunning = false
+            shutdown()
         }
 
         // (Re-)init emulator core
@@ -101,6 +98,8 @@ final class EmulatorBridge: ObservableObject {
         EmulatorC_SetButtonState(Int32(pad), buttons)
     }
 
+    /// Save state (.suspend + .srm) without stopping emulation.
+    /// Used by scenePhase handler for safety saves when app backgrounds.
     func suspend() {
         logger.info("suspend() called, isRunning=\(self.isRunning)")
         guard isRunning else {
@@ -110,11 +109,14 @@ final class EmulatorBridge: ObservableObject {
         EmulatorC_Suspend()
     }
 
+    /// Full teardown: stop audio, save state, free all emulator resources.
+    /// Call this when exiting a game back to the launcher.
+    /// Shutdown() internally saves .suspend + .srm, so no separate Suspend() needed.
     func shutdown() {
+        logger.info("shutdown() called, isRunning=\(self.isRunning)")
         guard isRunning else { return }
         isRunning = false
         audio.stop()
-        EmulatorC_Suspend()
         EmulatorC_Shutdown()
         isInitialized = false
     }
