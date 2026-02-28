@@ -88,7 +88,7 @@ set(TVOS_OBJCXX_SOURCES
 set(TVOS_SWIFT_SOURCES
     EZSnes9xApp.swift
     Emulator/EmulatorBridge.swift
-    Emulator/EmulatorView.swift
+    Emulator/GameControllerViewController.swift
     Emulator/InputManager.swift
     Launcher/LauncherView.swift
     Launcher/CoverFlowCarousel.swift

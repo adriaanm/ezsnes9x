@@ -60,8 +60,8 @@ struct LauncherView: View {
             // When dismissed, rescan in case saves changed
             scanROMs()
         } content: {
-            EmulatorScreen(bridge: bridge, onExit: {
-                bridge.suspend()
+            EmulatorScreen(bridge: bridge, inputManager: inputManager, onExit: {
+                bridge.shutdown()
                 showingEmulator = false
             })
         }
@@ -111,19 +111,25 @@ struct LauncherView: View {
 }
 
 /// Full-screen emulator view shown when a game is launched.
+/// Uses GCEventViewController to capture all controller input — buttons go to
+/// InputManager's GCController handlers, not to tvOS as navigation events.
+/// Exit is triggered by Siri Remote Menu (via InputManager.exitRequested).
 struct EmulatorScreen: View {
     let bridge: EmulatorBridge
+    @ObservedObject var inputManager: InputManager
     let onExit: () -> Void
 
     var body: some View {
         ZStack {
             Color.black.ignoresSafeArea()
-            EmulatorView(bridge: bridge)
+            GameControllerViewControllerRepresentable(bridge: bridge)
                 .ignoresSafeArea()
         }
-        .onExitCommand {
-            // Menu button pressed on Siri Remote — return to launcher
-            onExit()
+        .onChange(of: inputManager.exitRequested) { _, requested in
+            if requested {
+                inputManager.exitRequested = false
+                onExit()
+            }
         }
     }
 }
