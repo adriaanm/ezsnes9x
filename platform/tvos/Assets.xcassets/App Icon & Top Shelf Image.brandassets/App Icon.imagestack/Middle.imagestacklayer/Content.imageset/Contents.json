@@ -1,12 +1,10 @@
 {
   "images" : [
     {
-      "filename" : "App-Icon-1280x768.png",
       "idiom" : "tv",
       "scale" : "1x"
     },
     {
-      "filename" : "App-Icon-2560x1536.png",
       "idiom" : "tv",
       "scale" : "2x"
     }
